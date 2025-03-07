@@ -1,24 +1,23 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
-import QRScanner from '../components/QRScanner';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 const Index: React.FC = () => {
   const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   
-  const handleQRScan = (roomId: string) => {
-    // In a real app, this would validate with a backend
-    setIsAuthenticated(true);
+  const handleAuthentication = () => {
+    // Set a default room ID
+    const defaultRoomId = "101";
     
     // Store the room ID in localStorage
-    localStorage.setItem('roomId', roomId);
+    localStorage.setItem('roomId', defaultRoomId);
     
     // Show success toast
-    toast.success(`Successfully authenticated for Room ${roomId}`);
+    toast.success(`Successfully authenticated for Room ${defaultRoomId}`);
     
     // Navigate to the home page after a short delay
     setTimeout(() => {
@@ -39,7 +38,7 @@ const Index: React.FC = () => {
             Hotel Service Sphere
           </h1>
           <p className="mt-4 text-xl text-muted-foreground max-w-2xl mx-auto">
-            Scan your QR code to unlock room service, spa bookings, and activities
+            Experience premium room service, spa bookings, and activities
           </p>
         </motion.div>
         
@@ -50,8 +49,18 @@ const Index: React.FC = () => {
           className="w-full max-w-md"
         >
           <div className="bg-card shadow-lg rounded-2xl px-8 py-12 sm:px-12 sm:py-16">
-            <div className="flex flex-col items-center">
-              <QRScanner onScan={handleQRScan} />
+            <div className="flex flex-col items-center text-center">
+              <h2 className="text-2xl font-semibold mb-6">Welcome to Your Stay</h2>
+              <p className="mb-8 text-muted-foreground">
+                QR code authentication is temporarily disabled. Click the button below to continue.
+              </p>
+              <Button 
+                size="lg"
+                onClick={handleAuthentication}
+                className="w-full"
+              >
+                Enter Hotel Services
+              </Button>
             </div>
           </div>
         </motion.div>
