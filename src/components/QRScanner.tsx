@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { Button } from '@/components/ui/button';
@@ -5,12 +6,12 @@ import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 
 interface QRScannerProps {
-  onScanSuccess: (decodedText: string) => void;
+  onScan: (decodedText: string) => void;
   onScanFailure?: (error: string) => void;
 }
 
 const QRScanner: React.FC<QRScannerProps> = ({ 
-  onScanSuccess, 
+  onScan, 
   onScanFailure 
 }) => {
   const [isScanning, setIsScanning] = useState(false);
@@ -78,7 +79,7 @@ const QRScanner: React.FC<QRScannerProps> = ({
 
   const handleScanSuccess = async (decodedText: string) => {
     await stopScanner();
-    onScanSuccess(decodedText);
+    onScan(decodedText);
   };
 
   return (
