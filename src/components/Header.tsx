@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { User, ShoppingBag, Home, ShoppingCart } from 'lucide-react';
@@ -42,6 +41,18 @@ const Header: React.FC = () => {
     navigate(path);
   };
   
+  const handleCartClick = () => {
+    if (location.pathname === '/room-service') {
+      // If we're already on the room service page, dispatch an event to open the cart
+      window.dispatchEvent(new CustomEvent('openCart'));
+    } else {
+      // Otherwise navigate to the room service page
+      navigate('/room-service');
+      // Set a flag in sessionStorage to open cart when page loads
+      sessionStorage.setItem('openCartOnLoad', 'true');
+    }
+  };
+  
   const isActive = (path: string) => {
     return location.pathname === path;
   };
@@ -62,7 +73,7 @@ const Header: React.FC = () => {
           {/* Cart icon */}
           <div className="flex items-center">
             <button 
-              onClick={() => handleNavigation('/room-service')}
+              onClick={handleCartClick}
               className="relative p-2 mr-2"
             >
               <ShoppingCart className="h-5 w-5" />

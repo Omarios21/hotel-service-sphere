@@ -32,6 +32,26 @@ const RoomService: React.FC = () => {
     window.dispatchEvent(new Event('cartUpdated'));
   }, [cart]);
   
+  // Listen for cart open event
+  useEffect(() => {
+    const handleOpenCart = () => {
+      setIsCartOpen(true);
+    };
+    
+    window.addEventListener('openCart', handleOpenCart);
+    
+    // Check if we should open cart on load (from navigation)
+    const shouldOpenCart = sessionStorage.getItem('openCartOnLoad');
+    if (shouldOpenCart === 'true') {
+      setIsCartOpen(true);
+      sessionStorage.removeItem('openCartOnLoad');
+    }
+    
+    return () => {
+      window.removeEventListener('openCart', handleOpenCart);
+    };
+  }, []);
+  
   // Load cart from localStorage on initial render
   useEffect(() => {
     const savedCart = localStorage.getItem('roomServiceCart');
@@ -110,13 +130,13 @@ const RoomService: React.FC = () => {
         const updatedCart = [...prevCart];
         updatedCart[existingItemIndex].quantity += quantity;
         toast.success(`Updated ${item.name} quantity in cart`, {
-          duration: 2000 // 2 seconds duration
+          duration: 2000 // 2 seconds duration (reduced from default)
         });
         return updatedCart;
       } else {
         // Add new item to cart
         toast.success(`Added ${item.name} to cart`, {
-          duration: 2000 // 2 seconds duration
+          duration: 2000 // 2 seconds duration (reduced from default)
         });
         return [...prevCart, { item, quantity }];
       }
