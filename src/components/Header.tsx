@@ -1,11 +1,42 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { User, ShoppingBag, Home } from 'lucide-react';
+import { User, ShoppingBag, Home, ShoppingCart } from 'lucide-react';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [cartItemCount, setCartItemCount] = useState(0);
+  
+  // Track cart items from localStorage
+  useEffect(() => {
+    const getCartItems = () => {
+      const cartData = localStorage.getItem('roomServiceCart');
+      if (cartData) {
+        try {
+          const cart = JSON.parse(cartData);
+          const itemCount = cart.reduce((total: number, item: any) => total + item.quantity, 0);
+          setCartItemCount(itemCount);
+        } catch (e) {
+          console.error('Error parsing cart data', e);
+          setCartItemCount(0);
+        }
+      } else {
+        setCartItemCount(0);
+      }
+    };
+    
+    // Initial load
+    getCartItems();
+    
+    // Setup event listener for storage changes
+    const handleStorageChange = () => getCartItems();
+    window.addEventListener('cartUpdated', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('cartUpdated', handleStorageChange);
+    };
+  }, []);
   
   const handleNavigation = (path: string) => {
     navigate(path);
@@ -25,6 +56,21 @@ const Header: React.FC = () => {
               className="font-medium text-lg transition-opacity hover:opacity-80"
             >
               Hotel Service
+            </button>
+          </div>
+          
+          {/* Cart icon */}
+          <div className="flex items-center">
+            <button 
+              onClick={() => handleNavigation('/room-service')}
+              className="relative p-2 mr-2"
+            >
+              <ShoppingCart className="h-5 w-5" />
+              {cartItemCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartItemCount}
+                </span>
+              )}
             </button>
           </div>
           

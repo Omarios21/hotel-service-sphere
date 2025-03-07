@@ -13,7 +13,7 @@ const BottomNav: React.FC = () => {
   
   const navItems = [
     { path: '/home', label: 'Home', icon: <Home className="h-5 w-5" /> },
-    { path: '/room-service', label: 'Service', icon: <ShoppingBag className="h-5 w-5" /> },
+    { path: '/room-service', label: 'Room Service', icon: <ShoppingBag className="h-5 w-5" /> },
     { path: '/spa', label: 'Spa', icon: <Scissors className="h-5 w-5" /> },
     { path: '/activities', label: 'Activities', icon: <MapPin className="h-5 w-5" /> },
     { path: '/profile', label: 'Profile', icon: <User className="h-5 w-5" /> },

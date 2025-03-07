@@ -1,15 +1,48 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import MenuItem, { MenuItemType } from '../components/MenuItem';
 import { motion } from 'framer-motion';
-import { ShoppingBag, X } from 'lucide-react';
+import { ShoppingBag, X, Clock, CreditCard, Banknote } from 'lucide-react';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 const RoomService: React.FC = () => {
   const [cart, setCart] = useState<{ item: MenuItemType; quantity: number }[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'checkout' | 'card' | null>(null);
+  
+  // Estimate delivery time (20-40 minutes from now)
+  const getEstimatedDeliveryTime = () => {
+    const now = new Date();
+    const minTime = new Date(now.getTime() + 20 * 60000);
+    const maxTime = new Date(now.getTime() + 40 * 60000);
+    
+    return {
+      min: minTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      max: maxTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+  };
+  
+  // Store cart in localStorage and dispatch event for header badge
+  useEffect(() => {
+    localStorage.setItem('roomServiceCart', JSON.stringify(cart));
+    // Dispatch event for header to update cart badge
+    window.dispatchEvent(new Event('cartUpdated'));
+  }, [cart]);
+  
+  // Load cart from localStorage on initial render
+  useEffect(() => {
+    const savedCart = localStorage.getItem('roomServiceCart');
+    if (savedCart) {
+      try {
+        setCart(JSON.parse(savedCart));
+      } catch (e) {
+        console.error('Error parsing saved cart', e);
+      }
+    }
+  }, []);
   
   // Sample menu items
   const menuItems: MenuItemType[] = [
@@ -76,11 +109,15 @@ const RoomService: React.FC = () => {
         // Update quantity if item exists
         const updatedCart = [...prevCart];
         updatedCart[existingItemIndex].quantity += quantity;
-        toast.success(`Updated ${item.name} quantity in cart`);
+        toast.success(`Updated ${item.name} quantity in cart`, {
+          duration: 2000 // 2 seconds duration
+        });
         return updatedCart;
       } else {
         // Add new item to cart
-        toast.success(`Added ${item.name} to cart`);
+        toast.success(`Added ${item.name} to cart`, {
+          duration: 2000 // 2 seconds duration
+        });
         return [...prevCart, { item, quantity }];
       }
     });
@@ -88,7 +125,9 @@ const RoomService: React.FC = () => {
   
   const handleRemoveFromCart = (itemId: string) => {
     setCart(prevCart => prevCart.filter(cartItem => cartItem.item.id !== itemId));
-    toast.info('Item removed from cart');
+    toast.info('Item removed from cart', {
+      duration: 2000 // 2 seconds duration
+    });
   };
   
   const calculateTotal = () => {
@@ -96,7 +135,7 @@ const RoomService: React.FC = () => {
   };
   
   const handleSubmitOrder = () => {
-    if (cart.length === 0) return;
+    if (cart.length === 0 || !paymentMethod) return;
     
     setIsSubmitting(true);
     
@@ -105,9 +144,21 @@ const RoomService: React.FC = () => {
       setCart([]);
       setIsCartOpen(false);
       setIsSubmitting(false);
-      toast.success('Your order has been placed successfully!');
+      setPaymentMethod(null);
+      
+      // Clear localStorage cart
+      localStorage.removeItem('roomServiceCart');
+      
+      // Update cart badge
+      window.dispatchEvent(new Event('cartUpdated'));
+      
+      toast.success('Your order has been placed successfully!', {
+        duration: 2000 // 2 seconds duration
+      });
     }, 1500);
   };
+  
+  const deliveryTime = getEstimatedDeliveryTime();
   
   return (
     <Layout>
@@ -200,6 +251,16 @@ const RoomService: React.FC = () => {
                 
                 {cart.length > 0 ? (
                   <>
+                    <div className="mb-4 p-4 bg-muted/50 rounded-lg border border-border flex items-center">
+                      <Clock className="h-5 w-5 mr-3 text-muted-foreground" />
+                      <div>
+                        <h3 className="font-medium text-sm">Estimated Delivery Time</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Between {deliveryTime.min} and {deliveryTime.max}
+                        </p>
+                      </div>
+                    </div>
+                    
                     <div className="space-y-4 mb-8">
                       {cart.map(cartItem => (
                         <div 
@@ -244,16 +305,41 @@ const RoomService: React.FC = () => {
                       </div>
                     </div>
                     
+                    {/* Payment Method Selection */}
+                    <div className="mb-6">
+                      <h3 className="font-medium mb-3">Payment Method</h3>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button
+                          onClick={() => setPaymentMethod('checkout')}
+                          variant={paymentMethod === 'checkout' ? 'default' : 'outline'}
+                          className="flex items-center justify-center py-6"
+                        >
+                          <Banknote className="h-5 w-5 mr-2" />
+                          <span>Pay at Checkout</span>
+                        </Button>
+                        <Button
+                          onClick={() => setPaymentMethod('card')}
+                          variant={paymentMethod === 'card' ? 'default' : 'outline'}
+                          className="flex items-center justify-center py-6"
+                        >
+                          <CreditCard className="h-5 w-5 mr-2" />
+                          <span>Pay by Card</span>
+                        </Button>
+                      </div>
+                    </div>
+                    
                     <button
                       onClick={handleSubmitOrder}
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || !paymentMethod}
                       className={`w-full py-3 rounded-lg font-medium text-center transition-all
                         ${isSubmitting 
                           ? 'bg-muted text-muted-foreground cursor-wait' 
-                          : 'bg-primary text-primary-foreground hover:opacity-90'
+                          : !paymentMethod
+                            ? 'bg-muted text-muted-foreground' 
+                            : 'bg-primary text-primary-foreground hover:opacity-90'
                         }`}
                     >
-                      {isSubmitting ? 'Processing...' : 'Place Order'}
+                      {isSubmitting ? 'Processing...' : paymentMethod ? 'Place Order' : 'Select Payment Method'}
                     </button>
                   </>
                 ) : (
