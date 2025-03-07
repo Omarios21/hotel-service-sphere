@@ -1,83 +1,106 @@
-
-import React, { useState } from 'react';
-import { QrCode, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Html5Qrcode } from 'html5-qrcode';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { toast } from '@/hooks/use-toast';
 
 interface QRScannerProps {
-  onScan: (roomId: string) => void;
+  onScanSuccess: (decodedText: string) => void;
+  onScanFailure?: (error: string) => void;
 }
 
-const QRScanner: React.FC<QRScannerProps> = ({ onScan }) => {
+const QRScanner: React.FC<QRScannerProps> = ({ 
+  onScanSuccess, 
+  onScanFailure 
+}) => {
   const [isScanning, setIsScanning] = useState(false);
-  
-  // Simulate QR code scanning
-  const handleScan = () => {
+  const [scanner, setScanner] = useState<Html5Qrcode | null>(null);
+  const qrBoxSize = 250;
+
+  useEffect(() => {
+    // Initialize scanner
+    const newScanner = new Html5Qrcode('reader');
+    setScanner(newScanner);
+
+    // Cleanup on unmount
+    return () => {
+      if (scanner && scanner.isScanning) {
+        scanner.stop().catch(error => console.error('Error stopping scanner:', error));
+      }
+    };
+  }, []);
+
+  const startScanner = async () => {
+    if (!scanner) return;
+
     setIsScanning(true);
     
-    // Simulate a successful scan after a delay
-    setTimeout(() => {
-      setIsScanning(false);
-      // Pass a mock room ID (in real app, this would come from the QR code)
-      onScan('101');
-    }, 2000);
-  };
-  
-  return (
-    <div className="flex flex-col items-center">
-      <div 
-        className={`relative w-64 h-64 border-2 rounded-lg overflow-hidden ${
-          isScanning ? 'border-primary' : 'border-border'
-        }`}
-      >
-        {isScanning ? (
-          <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
-            <RefreshCw className="h-10 w-10 text-primary animate-spin-slow" />
-          </div>
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-secondary/30">
-            <QrCode className="h-16 w-16 text-muted-foreground" />
-          </div>
-        )}
-        
-        {/* Scanning animation */}
-        {isScanning && (
-          <div 
-            className="absolute h-1 w-full bg-primary/70 animate-ping"
-            style={{
-              animation: 'scanLine 2s linear infinite',
-            }}
-          />
-        )}
-      </div>
-      
-      <button
-        onClick={handleScan}
-        disabled={isScanning}
-        className={`mt-8 px-6 py-3 rounded-full font-medium transition-all 
-          ${isScanning 
-            ? 'bg-muted text-muted-foreground cursor-not-allowed' 
-            : 'bg-primary text-primary-foreground hover:opacity-90 shadow-md'
-          }`}
-      >
-        {isScanning ? 'Scanning...' : 'Scan QR Code'}
-      </button>
-      
-      <p className="mt-4 text-sm text-muted-foreground max-w-xs text-center">
-        Scan the QR code provided by the reception desk to access hotel services.
-      </p>
-      
-      <style jsx>{`
-        @keyframes scanLine {
-          0% {
-            top: 0%;
-          }
-          50% {
-            top: 100%;
-          }
-          100% {
-            top: 0%;
+    const config = {
+      fps: 10,
+      qrbox: { width: qrBoxSize, height: qrBoxSize },
+      aspectRatio: 1.0
+    };
+
+    try {
+      await scanner.start(
+        { facingMode: "environment" },
+        config,
+        (decodedText) => {
+          handleScanSuccess(decodedText);
+        },
+        (errorMessage) => {
+          if (onScanFailure) {
+            onScanFailure(errorMessage);
           }
         }
-      `}</style>
+      );
+    } catch (err) {
+      console.error('Error starting scanner:', err);
+      toast({
+        title: "Camera Error",
+        description: "Could not access the camera. Please check permissions.",
+        variant: "destructive"
+      });
+      setIsScanning(false);
+    }
+  };
+
+  const stopScanner = async () => {
+    if (scanner && scanner.isScanning) {
+      try {
+        await scanner.stop();
+        setIsScanning(false);
+      } catch (error) {
+        console.error('Error stopping scanner:', error);
+      }
+    }
+  };
+
+  const handleScanSuccess = async (decodedText: string) => {
+    await stopScanner();
+    onScanSuccess(decodedText);
+  };
+
+  return (
+    <div className="flex flex-col items-center">
+      <Card className="p-4 w-full max-w-md bg-background">
+        <div 
+          id="reader" 
+          className="w-full aspect-square max-w-md overflow-hidden rounded-lg bg-black"
+        ></div>
+        
+        <div className="mt-4 flex justify-center">
+          {!isScanning ? (
+            <Button onClick={startScanner} className="w-full">
+              Scan QR Code
+            </Button>
+          ) : (
+            <Button onClick={stopScanner} variant="outline" className="w-full">
+              Cancel Scan
+            </Button>
+          )}
+        </div>
+      </Card>
     </div>
   );
 };
