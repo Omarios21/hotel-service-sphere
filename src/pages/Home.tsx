@@ -1,10 +1,10 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import ServiceCard from '../components/ServiceCard';
 import { motion } from 'framer-motion';
-import { Utensils, Scissors, MapPin, UserIcon, Calendar, Clock, Wifi, Coffee, Sun, Sparkles } from 'lucide-react';
+import { Utensils, Scissors, MapPin, UserIcon, Calendar, Clock, Wifi, Coffee, Sun } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface Activity {
@@ -28,7 +28,7 @@ const Home: React.FC = () => {
   };
   
   // Sample upcoming and ongoing activities
-  const activities: Activity[] = [
+  const [activities, setActivities] = useState<Activity[]>([
     {
       id: '1',
       title: 'Morning Yoga',
@@ -50,7 +50,7 @@ const Home: React.FC = () => {
       location: 'Game Room',
       status: 'ongoing'
     }
-  ];
+  ]);
   
   useEffect(() => {
     // If no roomId is found in localStorage, redirect to authentication page
@@ -112,28 +112,25 @@ const Home: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.6 }}
           className="mb-8"
         >
-          <Card className="overflow-hidden border-none shadow-xl">
-            <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 p-8 md:p-10">
+          <Card className="overflow-hidden border-none shadow-lg">
+            <div className="bg-gradient-to-r from-blue-500/90 to-indigo-600/90 text-white p-6 md:p-8">
               <div className="max-w-lg">
                 <motion.h1 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3, duration: 0.8 }}
-                  className="text-3xl md:text-4xl font-bold tracking-tight text-amber-800 font-playfair"
+                  className="text-3xl md:text-4xl font-bold tracking-tight"
                 >
-                  <span className="flex items-center">
-                    <Sparkles className="h-8 w-8 mr-2 text-amber-600" />
-                    Welcome to Suite {roomId}
-                  </span>
+                  Welcome to Room {roomId}
                 </motion.h1>
                 <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.5, duration: 0.8 }}
-                  className="mt-3 text-amber-700 italic"
+                  className="mt-3 text-blue-50"
                 >
                   {hotelInfo.tagline}
                 </motion.p>
@@ -149,38 +146,38 @@ const Home: React.FC = () => {
           transition={{ duration: 0.5, delay: 0.4 }}
           className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4"
         >
-          <Card className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-none shadow-md hover:shadow-lg transition-all duration-300">
+          <Card className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-none shadow-md">
             <CardContent className="p-5">
               <div className="flex flex-col h-full">
                 <div className="flex items-center gap-3 mb-2">
                   <Sun className="h-5 w-5 text-amber-500" />
-                  <h3 className="font-medium text-amber-800">Hotel</h3>
+                  <h3 className="font-medium">Hotel</h3>
                 </div>
-                <p className="text-lg font-medium text-amber-700 font-playfair">{hotelInfo.name}</p>
+                <p className="text-lg font-medium text-primary">{hotelInfo.name}</p>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-none shadow-md hover:shadow-lg transition-all duration-300">
+          <Card className="bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-teal-900/20 dark:to-emerald-900/20 border-none shadow-md">
             <CardContent className="p-5">
               <div className="flex flex-col h-full">
                 <div className="flex items-center gap-3 mb-2">
-                  <Clock className="h-5 w-5 text-amber-500" />
-                  <h3 className="font-medium text-amber-800">Checkout Time</h3>
+                  <Clock className="h-5 w-5 text-teal-500" />
+                  <h3 className="font-medium">Checkout Time</h3>
                 </div>
-                <p className="text-lg font-medium text-amber-700 font-playfair">{hotelInfo.checkoutTime}</p>
+                <p className="text-lg font-medium text-primary">{hotelInfo.checkoutTime}</p>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-none shadow-md hover:shadow-lg transition-all duration-300">
+          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-none shadow-md">
             <CardContent className="p-5">
               <div className="flex flex-col h-full">
                 <div className="flex items-center gap-3 mb-2">
-                  <Wifi className="h-5 w-5 text-amber-500" />
-                  <h3 className="font-medium text-amber-800">WiFi Code</h3>
+                  <Wifi className="h-5 w-5 text-blue-500" />
+                  <h3 className="font-medium">WiFi Code</h3>
                 </div>
-                <p className="text-lg font-medium text-amber-700 font-mono">{hotelInfo.wifiCode}</p>
+                <p className="text-lg font-medium text-primary font-mono">{hotelInfo.wifiCode}</p>
               </div>
             </CardContent>
           </Card>
@@ -194,8 +191,8 @@ const Home: React.FC = () => {
           className="mb-8"
         >
           <div className="flex items-center gap-2 mb-4">
-            <Calendar className="h-5 w-5 text-amber-600" />
-            <h2 className="text-xl font-semibold text-amber-800 font-playfair">Today's Activities</h2>
+            <Calendar className="h-5 w-5 text-primary" />
+            <h2 className="text-xl font-semibold">Today's Activities</h2>
           </div>
           
           <div className="space-y-3">
@@ -205,25 +202,25 @@ const Home: React.FC = () => {
                 whileHover={{ y: -3, transition: { duration: 0.2 } }}
                 className={`p-4 rounded-xl border shadow-sm transition-all ${
                   activity.status === 'ongoing' 
-                    ? 'bg-amber-100/60 border-amber-200' 
-                    : 'bg-white/80 hover:bg-amber-50 border-amber-100/50'
+                    ? 'bg-primary/10 border-primary/30' 
+                    : 'bg-card hover:bg-secondary/50'
                 }`}
               >
                 <div className="flex justify-between items-center">
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-medium text-amber-800">{activity.title}</h3>
+                      <h3 className="font-medium">{activity.title}</h3>
                       {activity.status === 'ongoing' && (
-                        <span className="text-xs bg-amber-500 text-white px-2 py-0.5 rounded-full animate-pulse">
+                        <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full animate-pulse">
                           Now
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-amber-700/70">{activity.time} • {activity.location}</p>
+                    <p className="text-sm text-muted-foreground">{activity.time} • {activity.location}</p>
                   </div>
                   <button 
                     onClick={() => navigate('/activities')}
-                    className="text-amber-600 text-sm flex items-center gap-1 underline-offset-4 hover:underline"
+                    className="text-primary text-sm flex items-center gap-1 underline-offset-4 hover:underline"
                   >
                     Details
                   </button>
@@ -240,8 +237,8 @@ const Home: React.FC = () => {
           animate="show"
         >
           <div className="flex items-center gap-2 mb-4">
-            <Coffee className="h-5 w-5 text-amber-600" />
-            <h2 className="text-xl font-semibold text-amber-800 font-playfair">Our Services</h2>
+            <Coffee className="h-5 w-5 text-primary" />
+            <h2 className="text-xl font-semibold">Our Services</h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

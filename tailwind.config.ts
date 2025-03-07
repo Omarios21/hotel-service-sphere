@@ -62,17 +62,12 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				},
-				gold: '#BC9A6A'
+				}
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
-			},
-			fontFamily: {
-				sans: ['Inter var', 'sans-serif'],
-				playfair: ['"Playfair Display"', 'serif']
 			},
 			keyframes: {
 				'accordion-down': {
@@ -122,6 +117,9 @@ export default {
 				'scale-in': 'scale-in 0.4s ease-out',
 				'scale-out': 'scale-out 0.4s ease-in',
 				'spin-slow': 'spin-slow 3s linear infinite'
+			},
+			fontFamily: {
+				sans: ['Inter var', 'sans-serif']
 			}
 		}
 	},
