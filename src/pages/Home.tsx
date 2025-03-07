@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import ServiceCard from '../components/ServiceCard';
 import { motion } from 'framer-motion';
-import { Utensils, Scissors, MapPin, UserIcon, Calendar, Clock, Wifi, Coffee, Sun } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Utensils, Scissors, MapPin, UserIcon, Calendar, Clock } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 
 interface Activity {
   id: string;
@@ -108,124 +108,87 @@ const Home: React.FC = () => {
   return (
     <Layout>
       <div className="py-6 md:py-8">
-        {/* Welcome Banner */}
+        {/* Hotel Information Card */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-8"
+          transition={{ duration: 0.5 }}
+          className="mb-6"
         >
-          <Card className="overflow-hidden border-none shadow-lg">
-            <div className="bg-gradient-to-r from-blue-500/90 to-indigo-600/90 text-white p-6 md:p-8">
-              <div className="max-w-lg">
-                <motion.h1 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3, duration: 0.8 }}
-                  className="text-3xl md:text-4xl font-bold tracking-tight"
-                >
-                  Welcome to Room {roomId}
-                </motion.h1>
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5, duration: 0.8 }}
-                  className="mt-3 text-blue-50"
-                >
-                  {hotelInfo.tagline}
-                </motion.p>
+          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-indigo-950 p-4 md:p-6 border-none shadow-md">
+            <div className="flex flex-col">
+              <h2 className="text-2xl font-bold text-primary mb-1">{hotelInfo.name}</h2>
+              <p className="text-muted-foreground italic mb-3">{hotelInfo.tagline}</p>
+              
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-primary" />
+                  <span>Checkout: {hotelInfo.checkoutTime}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">WiFi:</span>
+                  <code className="bg-primary/10 px-2 py-0.5 rounded">{hotelInfo.wifiCode}</code>
+                </div>
               </div>
             </div>
           </Card>
         </motion.div>
         
-        {/* Hotel Information Cards */}
+        {/* Welcome Message */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4"
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="text-center mb-6"
         >
-          <Card className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-none shadow-md">
-            <CardContent className="p-5">
-              <div className="flex flex-col h-full">
-                <div className="flex items-center gap-3 mb-2">
-                  <Sun className="h-5 w-5 text-amber-500" />
-                  <h3 className="font-medium">Hotel</h3>
-                </div>
-                <p className="text-lg font-medium text-primary">{hotelInfo.name}</p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-teal-900/20 dark:to-emerald-900/20 border-none shadow-md">
-            <CardContent className="p-5">
-              <div className="flex flex-col h-full">
-                <div className="flex items-center gap-3 mb-2">
-                  <Clock className="h-5 w-5 text-teal-500" />
-                  <h3 className="font-medium">Checkout Time</h3>
-                </div>
-                <p className="text-lg font-medium text-primary">{hotelInfo.checkoutTime}</p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-none shadow-md">
-            <CardContent className="p-5">
-              <div className="flex flex-col h-full">
-                <div className="flex items-center gap-3 mb-2">
-                  <Wifi className="h-5 w-5 text-blue-500" />
-                  <h3 className="font-medium">WiFi Code</h3>
-                </div>
-                <p className="text-lg font-medium text-primary font-mono">{hotelInfo.wifiCode}</p>
-              </div>
-            </CardContent>
-          </Card>
+          <h1 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
+            Welcome to Room {roomId}
+          </h1>
+          <p className="mt-2 text-lg text-muted-foreground max-w-2xl mx-auto">
+            Explore our exclusive services designed for your comfort and enjoyment
+          </p>
         </motion.div>
         
         {/* Activities Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
           className="mb-8"
         >
-          <div className="flex items-center gap-2 mb-4">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
             <Calendar className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-semibold">Today's Activities</h2>
-          </div>
+            Activities
+          </h2>
           
           <div className="space-y-3">
             {activities.map((activity) => (
-              <motion.div
+              <div 
                 key={activity.id}
-                whileHover={{ y: -3, transition: { duration: 0.2 } }}
-                className={`p-4 rounded-xl border shadow-sm transition-all ${
+                className={`p-3 rounded-lg border flex justify-between items-center ${
                   activity.status === 'ongoing' 
-                    ? 'bg-primary/10 border-primary/30' 
-                    : 'bg-card hover:bg-secondary/50'
+                    ? 'bg-primary/10 border-primary/20' 
+                    : 'bg-card border-border'
                 }`}
               >
-                <div className="flex justify-between items-center">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-medium">{activity.title}</h3>
-                      {activity.status === 'ongoing' && (
-                        <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full animate-pulse">
-                          Now
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">{activity.time} • {activity.location}</p>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-medium">{activity.title}</h3>
+                    {activity.status === 'ongoing' && (
+                      <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
+                        Now
+                      </span>
+                    )}
                   </div>
-                  <button 
-                    onClick={() => navigate('/activities')}
-                    className="text-primary text-sm flex items-center gap-1 underline-offset-4 hover:underline"
-                  >
-                    Details
-                  </button>
+                  <p className="text-sm text-muted-foreground">{activity.time} • {activity.location}</p>
                 </div>
-              </motion.div>
+                <button 
+                  onClick={() => navigate('/activities')}
+                  className="text-primary text-sm underline-offset-4 hover:underline"
+                >
+                  Details
+                </button>
+              </div>
             ))}
           </div>
         </motion.div>
@@ -235,24 +198,18 @@ const Home: React.FC = () => {
           variants={container}
           initial="hidden"
           animate="show"
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
         >
-          <div className="flex items-center gap-2 mb-4">
-            <Coffee className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-semibold">Our Services</h2>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {services.map((service) => (
-              <motion.div key={service.id} variants={item}>
-                <ServiceCard
-                  title={service.title}
-                  description={service.description}
-                  icon={service.icon}
-                  onClick={() => navigate(service.path)}
-                />
-              </motion.div>
-            ))}
-          </div>
+          {services.map((service) => (
+            <motion.div key={service.id} variants={item}>
+              <ServiceCard
+                title={service.title}
+                description={service.description}
+                icon={service.icon}
+                onClick={() => navigate(service.path)}
+              />
+            </motion.div>
+          ))}
         </motion.div>
       </div>
     </Layout>
