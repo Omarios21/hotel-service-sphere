@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
@@ -35,7 +34,6 @@ const Home: React.FC = () => {
   const [currentSpaBooking, setCurrentSpaBooking] = useState<SpaBooking | null>(null);
   const [currentActivityBooking, setCurrentActivityBooking] = useState<ActivityBooking | null>(null);
   
-  // Sample hotel information
   const hotelInfo = {
     name: "Grand Azure Resort & Spa",
     tagline: "Where luxury meets tranquility",
@@ -43,7 +41,6 @@ const Home: React.FC = () => {
     wifiCode: "AZURE2025"
   };
   
-  // Sample upcoming and ongoing activities
   const [activities, setActivities] = useState<Activity[]>([
     {
       id: '1',
@@ -68,7 +65,6 @@ const Home: React.FC = () => {
     }
   ]);
 
-  // Sort activities to show ongoing events first
   useEffect(() => {
     const sortedActivities = [...activities].sort((a, b) => {
       if (a.status === 'ongoing' && b.status !== 'ongoing') {
@@ -84,10 +80,8 @@ const Home: React.FC = () => {
     }
   }, [activities]);
   
-  // Listen for order and booking updates
   useEffect(() => {
     const checkCurrentBookings = () => {
-      // Check room service order
       const savedOrder = localStorage.getItem('currentRoomServiceOrder');
       if (savedOrder) {
         try {
@@ -100,7 +94,6 @@ const Home: React.FC = () => {
         setCurrentOrder(null);
       }
       
-      // Check spa booking
       const savedSpaBooking = localStorage.getItem('currentSpaBooking');
       if (savedSpaBooking) {
         try {
@@ -113,7 +106,6 @@ const Home: React.FC = () => {
         setCurrentSpaBooking(null);
       }
       
-      // Check activity booking
       const savedActivityBooking = localStorage.getItem('currentActivityBooking');
       if (savedActivityBooking) {
         try {
@@ -127,13 +119,10 @@ const Home: React.FC = () => {
       }
     };
     
-    // Check on initial load
     checkCurrentBookings();
     
-    // Listen for storage changes
     window.addEventListener('storage', checkCurrentBookings);
     
-    // Listen for custom events
     const handleOrderUpdate = () => checkCurrentBookings();
     window.addEventListener('orderUpdated', handleOrderUpdate);
     window.addEventListener('spaBookingUpdated', handleOrderUpdate);
@@ -162,13 +151,11 @@ const Home: React.FC = () => {
   };
   
   useEffect(() => {
-    // If no roomId is found in localStorage, redirect to authentication page
     if (!roomId) {
       navigate('/');
     }
   }, [roomId, navigate]);
   
-  // Animation variants
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -184,13 +171,11 @@ const Home: React.FC = () => {
     show: { opacity: 1, y: 0 }
   };
 
-  // Check if there are any reservations
   const hasAnyReservations = currentOrder || currentSpaBooking || currentActivityBooking;
   
   return (
     <Layout>
       <div className="py-8 md:py-10">
-        {/* Welcome Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -205,7 +190,6 @@ const Home: React.FC = () => {
           </p>
         </motion.div>
         
-        {/* Hotel Information Card */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -247,7 +231,6 @@ const Home: React.FC = () => {
           </Card>
         </motion.div>
         
-        {/* No Reservations Message */}
         {!hasAnyReservations && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -262,37 +245,13 @@ const Home: React.FC = () => {
                 </div>
                 <h3 className="text-lg font-medium mb-2">No Current Reservations</h3>
                 <p className="text-muted-foreground font-light mb-4">
-                  You don't have any active room service orders, spa appointments, or activity bookings.
+                  You don't have any active <strong>room service</strong> orders, <strong>spa</strong> appointments, or <strong>activity</strong> bookings.
                 </p>
-                <div className="flex flex-wrap gap-3 justify-center">
-                  <Button 
-                    variant="outline" 
-                    className="border-primary/20 hover:bg-primary/5"
-                    onClick={() => navigate('/room-service')}
-                  >
-                    Order Room Service
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="border-primary/20 hover:bg-primary/5"
-                    onClick={() => navigate('/spa')}
-                  >
-                    Book Spa Treatment
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="border-primary/20 hover:bg-primary/5"
-                    onClick={() => navigate('/activities')}
-                  >
-                    View Activities
-                  </Button>
-                </div>
               </div>
             </Card>
           </motion.div>
         )}
         
-        {/* Delivery Status Section */}
         {currentOrder && (
           <DeliveryStatus 
             orderDetails={currentOrder} 
@@ -300,7 +259,6 @@ const Home: React.FC = () => {
           />
         )}
         
-        {/* Spa Booking Status Section */}
         {currentSpaBooking && (
           <SpaBookingStatus
             bookingDetails={currentSpaBooking}
@@ -308,7 +266,6 @@ const Home: React.FC = () => {
           />
         )}
         
-        {/* Activity Booking Status Section */}
         {currentActivityBooking && (
           <ActivityBookingStatus
             bookingDetails={currentActivityBooking}
@@ -316,7 +273,6 @@ const Home: React.FC = () => {
           />
         )}
         
-        {/* Activities Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -392,14 +348,12 @@ const Home: React.FC = () => {
           </div>
         </motion.div>
         
-        {/* Delivery details modal */}
         <DeliveryFollowUp
           isOpen={isDeliveryDetailsOpen}
           onClose={() => setIsDeliveryDetailsOpen(false)}
           orderDetails={currentOrder || undefined}
         />
         
-        {/* Spa booking details modal */}
         <SpaBookingDetails
           isOpen={isSpaDetailsOpen}
           onClose={() => setIsSpaDetailsOpen(false)}
@@ -407,7 +361,6 @@ const Home: React.FC = () => {
           onCancelBooking={clearSpaBooking}
         />
         
-        {/* Activity booking details modal */}
         <ActivityBookingDetails
           isOpen={isActivityDetailsOpen}
           onClose={() => setIsActivityDetailsOpen(false)}
