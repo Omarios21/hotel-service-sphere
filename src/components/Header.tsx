@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { User, ShoppingBag, Home, ShoppingCart, Shield } from 'lucide-react';
+import { User, ShoppingCart, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 const Header: React.FC = () => {
@@ -92,12 +91,15 @@ const Header: React.FC = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <button 
-              onClick={() => handleNavigation('/home')}
-              className="font-medium text-lg transition-opacity hover:opacity-80"
+              onClick={() => handleNavigation('/profile')}
+              className="flex items-center space-x-1 transition-colors"
             >
-              Hotel Service
+              <User className="h-5 w-5" />
             </button>
           </div>
+          
+          {/* Center area - reserved for future use */}
+          <div className="flex-1"></div>
           
           {/* Cart icon */}
           <div className="flex items-center">
@@ -112,78 +114,16 @@ const Header: React.FC = () => {
                 </span>
               )}
             </button>
-          </div>
-          
-          {/* Desktop navigation - visible only on larger screens */}
-          <nav className="hidden lg:flex items-center space-x-8">
-            <button
-              onClick={() => handleNavigation('/home')}
-              className={`flex items-center space-x-1 transition-colors ${
-                isActive('/home') 
-                  ? 'text-primary font-medium' 
-                  : 'text-muted-foreground hover:text-primary'
-              }`}
-            >
-              <Home className="h-4 w-4" />
-              <span>Home</span>
-            </button>
-            <button
-              onClick={() => handleNavigation('/room-service')}
-              className={`flex items-center space-x-1 transition-colors ${
-                isActive('/room-service') 
-                  ? 'text-primary font-medium' 
-                  : 'text-muted-foreground hover:text-primary'
-              }`}
-            >
-              <ShoppingBag className="h-4 w-4" />
-              <span>Room Service</span>
-            </button>
-            <button
-              onClick={() => handleNavigation('/spa')}
-              className={`flex items-center space-x-1 transition-colors ${
-                isActive('/spa') 
-                  ? 'text-primary font-medium' 
-                  : 'text-muted-foreground hover:text-primary'
-              }`}
-            >
-              <span>Spa</span>
-            </button>
-            <button
-              onClick={() => handleNavigation('/activities')}
-              className={`flex items-center space-x-1 transition-colors ${
-                isActive('/activities') 
-                  ? 'text-primary font-medium' 
-                  : 'text-muted-foreground hover:text-primary'
-              }`}
-            >
-              <span>Activities</span>
-            </button>
-            <button
-              onClick={() => handleNavigation('/profile')}
-              className={`flex items-center space-x-1 transition-colors ${
-                isActive('/profile') 
-                  ? 'text-primary font-medium' 
-                  : 'text-muted-foreground hover:text-primary'
-              }`}
-            >
-              <User className="h-4 w-4" />
-              <span>Profile</span>
-            </button>
             
             {isAdmin && (
               <button
                 onClick={() => handleNavigation('/admin')}
-                className={`flex items-center space-x-1 transition-colors ${
-                  isActive('/admin') 
-                    ? 'text-primary font-medium' 
-                    : 'text-muted-foreground hover:text-primary'
-                }`}
+                className="ml-2"
               >
-                <Shield className="h-4 w-4" />
-                <span>Admin</span>
+                <Shield className="h-5 w-5" />
               </button>
             )}
-          </nav>
+          </div>
         </div>
       </div>
     </header>

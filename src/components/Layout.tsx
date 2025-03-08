@@ -3,6 +3,7 @@ import React from 'react';
 import { useLocation } from 'react-router-dom';
 import Header from './Header';
 import BottomNav from './BottomNav';
+import ChatBubble from './ChatBubble';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -14,6 +15,7 @@ const Layout: React.FC<LayoutProps> = ({ children, hideHeader = false }) => {
   
   // Determine if we're on the authentication page
   const isAuthPage = location.pathname === '/';
+  const isChatPage = location.pathname === '/chat';
   
   return (
     <div className="flex flex-col h-full w-full bg-background overflow-hidden">
@@ -24,6 +26,7 @@ const Layout: React.FC<LayoutProps> = ({ children, hideHeader = false }) => {
         </div>
       </main>
       {!isAuthPage && <BottomNav />}
+      {!isAuthPage && !isChatPage && <ChatBubble />}
     </div>
   );
 };

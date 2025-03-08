@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, ShoppingBag, Scissors, MapPin, User, MessageCircle } from 'lucide-react';
+import { Home, ShoppingBag, Scissors, MapPin, User } from 'lucide-react';
 
 const BottomNav: React.FC = () => {
   const navigate = useNavigate();
@@ -15,7 +15,6 @@ const BottomNav: React.FC = () => {
     { path: '/home', label: 'Home', icon: <Home className="h-5 w-5" /> },
     { path: '/room-service', label: 'Room Service', icon: <ShoppingBag className="h-5 w-5" /> },
     { path: '/spa', label: 'Spa', icon: <Scissors className="h-5 w-5" /> },
-    { path: '/chat', label: 'Reception', icon: <MessageCircle className="h-5 w-5" /> },
     { path: '/activities', label: 'Activities', icon: <MapPin className="h-5 w-5" /> },
     { path: '/profile', label: 'Profile', icon: <User className="h-5 w-5" /> },
   ];
