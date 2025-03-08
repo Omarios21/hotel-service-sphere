@@ -99,7 +99,7 @@ const Spa: React.FC = () => {
         description: 'Combines massage therapy with the therapeutic benefits of essential oils.',
         duration: '75 min',
         price: 160,
-        image: 'https://images.unsplash.com/photo-1571375390890-0323e21e0528?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
+        image: 'https://touchtohealspa.com/wp-content/uploads/2020/02/aromatherapy-massage-scaled-e1582251557268.jpg'
       },
       {
         id: '4',
@@ -107,7 +107,7 @@ const Spa: React.FC = () => {
         description: 'Uses heated stones to promote deep relaxation and ease muscle tension.',
         duration: '90 min',
         price: 180,
-        image: 'https://images.unsplash.com/photo-1554057009-8da3c333a053?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
+        image: 'https://www.livebalanced.ca/wp-content/uploads/2024/12/Definition-Of-Hot-Stone-Massage.jpg'
       },
       {
         id: '5',
