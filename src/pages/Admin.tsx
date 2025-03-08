@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,7 +28,7 @@ const Admin: React.FC = () => {
           return;
         }
         
-        // Create admin record for this user if it doesn't exist yet
+        // First verify if this user already has an admin record
         const { data: adminData, error: adminError } = await supabase
           .from('admins')
           .select('*')
@@ -39,9 +40,12 @@ const Admin: React.FC = () => {
           toast.error('Error checking admin status');
           setIsAdmin(false);
         } else if (adminData) {
+          // User already has admin privileges
+          console.log('User is already an admin:', adminData);
           setIsAdmin(true);
         } else {
-          // Automatically create admin record for any logged in user
+          // User doesn't have admin privileges yet, create admin record
+          console.log('Creating admin record for user:', session.session.user.id);
           const { error: insertError } = await supabase
             .from('admins')
             .insert({ user_id: session.session.user.id });
@@ -51,6 +55,7 @@ const Admin: React.FC = () => {
             toast.error('Error creating admin user');
             setIsAdmin(false);
           } else {
+            console.log('Admin record created successfully');
             setIsAdmin(true);
             toast.success('You have been granted admin access');
           }
