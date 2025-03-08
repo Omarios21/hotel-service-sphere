@@ -19,18 +19,21 @@ const CartButton: React.FC<CartButtonProps> = ({ cartItems, calculateTotal, open
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="fixed bottom-6 right-6 z-10"
+      className="fixed bottom-24 right-6 z-10"
     >
-      <button
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
         onClick={openCart}
-        className="flex items-center space-x-2 bg-primary text-primary-foreground px-4 py-3 rounded-full shadow-lg hover:opacity-90 transition-all"
+        className="flex items-center space-x-2 bg-primary text-primary-foreground px-5 py-3.5 rounded-full shadow-lg hover:shadow-xl transition-all"
       >
         <ShoppingBag className="h-5 w-5" />
-        <span className="font-medium">
+        <span className="font-medium text-sm">
           {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'}
         </span>
+        <div className="w-px h-4 bg-white/30 mx-1"></div>
         <span className="font-bold">{formatPrice(calculateTotal())}</span>
-      </button>
+      </motion.button>
     </motion.div>
   );
 };

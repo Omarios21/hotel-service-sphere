@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Plus, Minus, ShoppingCart } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { motion } from 'framer-motion';
 
 export interface MenuItemType {
   id: string;
@@ -43,26 +44,33 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, onAddToCart }) => {
   };
   
   return (
-    <div className="bg-white border border-border rounded-xl overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md">
+    <motion.div 
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.2 }}
+      className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
+    >
       <div className="relative aspect-[16/9] overflow-hidden bg-muted">
         <img 
           src={item.image} 
           alt={item.name} 
           className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
         />
-      </div>
-      <div className="p-4">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="font-medium text-base">{item.name}</h3>
-          <span className="font-medium text-primary">{formatPrice(item.price)}</span>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+        <div className="absolute bottom-3 right-3">
+          <span className="bg-white dark:bg-slate-900 text-primary dark:text-primary font-medium px-3 py-1 rounded-full text-sm shadow-md">
+            {formatPrice(item.price)}
+          </span>
         </div>
-        <p className="text-muted-foreground text-sm mb-4 line-clamp-2">{item.description}</p>
+      </div>
+      <div className="p-5">
+        <h3 className="font-medium text-lg mb-2">{item.name}</h3>
+        <p className="text-muted-foreground text-sm mb-5 line-clamp-2">{item.description}</p>
         
         <div className="flex items-center justify-between">
-          <div className="flex items-center border border-border rounded-lg overflow-hidden">
+          <div className="flex items-center border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
             <button 
               onClick={handleDecrement}
-              className="p-2 bg-secondary hover:bg-secondary/80 transition-colors"
+              className="p-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
               disabled={quantity <= 1}
             >
               <Minus className="h-4 w-4" />
@@ -70,7 +78,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, onAddToCart }) => {
             <span className="px-4 py-1 text-sm font-medium">{quantity}</span>
             <button 
               onClick={handleIncrement}
-              className="p-2 bg-secondary hover:bg-secondary/80 transition-colors"
+              className="p-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
               disabled={quantity >= 10}
             >
               <Plus className="h-4 w-4" />
@@ -80,7 +88,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, onAddToCart }) => {
           <button
             onClick={handleAddToCart}
             disabled={isAddingToCart}
-            className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-all
+            className={`flex items-center space-x-1 px-4 py-2 rounded-lg text-sm font-medium transition-all
               ${isAddingToCart 
                 ? 'bg-muted text-muted-foreground cursor-wait' 
                 : 'bg-primary text-primary-foreground hover:opacity-90'
@@ -91,7 +99,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, onAddToCart }) => {
           </button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

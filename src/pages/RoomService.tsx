@@ -1,8 +1,9 @@
+
 import React from 'react';
 import Layout from '../components/Layout';
 import { motion } from 'framer-motion';
 import { useRoomService } from '@/hooks/useRoomService';
-import { Package } from 'lucide-react';
+import { Package, UtensilsCrossed } from 'lucide-react';
 
 // Room Service Components
 import MenuCategoryFilter from '@/components/room-service/MenuCategoryFilter';
@@ -41,25 +42,33 @@ const RoomService: React.FC = () => {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="mb-8 flex justify-between items-center"
+          className="mb-8"
         >
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-primary">Room Service</h1>
-            <p className="mt-2 text-lg text-muted-foreground">
-              Order delicious meals and refreshments directly to your room
-            </p>
+          <div className="relative overflow-hidden bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-indigo-950 rounded-2xl p-8 shadow-md border border-slate-100 dark:border-slate-800">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full"></div>
+            <div className="relative z-10">
+              <h1 className="text-3xl font-serif font-light tracking-tight text-primary">Room Service</h1>
+              <p className="mt-2 text-lg text-muted-foreground/80 font-light">
+                Indulge in exquisite dining delivered directly to your suite
+              </p>
+            </div>
+            
+            {/* Order Tracking Button */}
+            {currentOrder && (
+              <button
+                onClick={() => setIsDeliveryTracking(true)}
+                className="absolute top-8 right-8 bg-primary/10 hover:bg-primary/20 text-primary rounded-full p-3 transition-colors"
+                title="Track Delivery"
+              >
+                <Package className="h-5 w-5" />
+              </button>
+            )}
+            
+            {/* Illustration Element */}
+            <div className="absolute -bottom-6 -right-6 opacity-10">
+              <UtensilsCrossed className="h-24 w-24 text-primary" />
+            </div>
           </div>
-          
-          {/* Order Tracking Button */}
-          {currentOrder && (
-            <button
-              onClick={() => setIsDeliveryTracking(true)}
-              className="bg-primary/10 hover:bg-primary/20 text-primary rounded-full p-3 transition-colors"
-              title="Track Delivery"
-            >
-              <Package className="h-5 w-5" />
-            </button>
-          )}
         </motion.div>
         
         {/* Categories Filter */}
