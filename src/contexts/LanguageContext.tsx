@@ -60,6 +60,11 @@ export const translations: Translations = {
     es: 'Chatear con Recepción',
     fr: 'Chat avec la Réception'
   },
+  'nav.taxi': {
+    en: 'Taxi',
+    es: 'Taxi',
+    fr: 'Taxi'
+  },
   
   // Home page
   'home.welcomeTitle': {
@@ -226,6 +231,88 @@ export const translations: Translations = {
     en: 'The reception team has been notified.',
     es: 'El equipo de recepción ha sido notificado.',
     fr: 'L\'équipe de réception a été notifiée.'
+  },
+  
+  // Taxi booking page
+  'taxi.title': {
+    en: 'Taxi Booking',
+    es: 'Reserva de Taxi',
+    fr: 'Réservation de Taxi'
+  },
+  'taxi.subtitle': {
+    en: 'Book a taxi for your journey around the city',
+    es: 'Reserve un taxi para su viaje por la ciudad',
+    fr: 'Réservez un taxi pour votre voyage dans la ville'
+  },
+  'taxi.bookNow': {
+    en: 'Book Now',
+    es: 'Reservar Ahora',
+    fr: 'Réserver Maintenant'
+  },
+  'taxi.scheduleRide': {
+    en: 'Schedule a Ride',
+    es: 'Programar un Viaje',
+    fr: 'Planifier un Trajet'
+  },
+  'taxi.pickupLocation': {
+    en: 'Pickup Location',
+    es: 'Lugar de Recogida',
+    fr: 'Lieu de Prise en Charge'
+  },
+  'taxi.pickupPlaceholder': {
+    en: 'Enter pickup address',
+    es: 'Ingrese dirección de recogida',
+    fr: 'Entrez l\'adresse de prise en charge'
+  },
+  'taxi.destination': {
+    en: 'Destination',
+    es: 'Destino',
+    fr: 'Destination'
+  },
+  'taxi.destinationPlaceholder': {
+    en: 'Enter destination address',
+    es: 'Ingrese dirección de destino',
+    fr: 'Entrez l\'adresse de destination'
+  },
+  'taxi.passengers': {
+    en: 'Number of Passengers',
+    es: 'Número de Pasajeros',
+    fr: 'Nombre de Passagers'
+  },
+  'taxi.date': {
+    en: 'Date',
+    es: 'Fecha',
+    fr: 'Date'
+  },
+  'taxi.time': {
+    en: 'Time',
+    es: 'Hora',
+    fr: 'Heure'
+  },
+  'taxi.estimatedPrice': {
+    en: 'Estimated Price',
+    es: 'Precio Estimado',
+    fr: 'Prix Estimé'
+  },
+  'taxi.estimatedTime': {
+    en: 'Estimated Arrival',
+    es: 'Llegada Estimada',
+    fr: 'Arrivée Estimée'
+  },
+  'taxi.processing': {
+    en: 'Processing',
+    es: 'Procesando',
+    fr: 'Traitement'
+  },
+  'taxi.bookingConfirmedNow': {
+    en: 'Taxi booked! Your driver will arrive shortly.',
+    es: '¡Taxi reservado! Su conductor llegará en breve.',
+    fr: 'Taxi réservé ! Votre chauffeur arrivera bientôt.'
+  },
+  'taxi.bookingConfirmedSchedule': {
+    en: 'Your taxi has been scheduled successfully!',
+    es: '¡Su taxi ha sido programado con éxito!',
+    fr: 'Votre taxi a été programmé avec succès !'
   }
 };
 
@@ -282,16 +369,19 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   const formatPrice = (priceInUSD: number): string => {
     const convertedPrice = priceInUSD * currencyRates[currency];
     
+    // Round to nearest 0.25
+    const roundedPrice = Math.ceil(convertedPrice * 4) / 4;
+    
     // Format based on currency
     if (currency === 'USD') {
-      return `$${convertedPrice.toFixed(2)}`;
+      return `$${roundedPrice.toFixed(2)}`;
     } else if (currency === 'EUR') {
-      return `€${convertedPrice.toFixed(2)}`;
+      return `€${roundedPrice.toFixed(2)}`;
     } else if (currency === 'MAD') {
-      return `${convertedPrice.toFixed(2)} MAD`;
+      return `${roundedPrice.toFixed(2)} MAD`;
     }
     
-    return `${convertedPrice.toFixed(2)}`;
+    return `${roundedPrice.toFixed(2)}`;
   };
 
   return (

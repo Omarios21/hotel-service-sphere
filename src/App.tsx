@@ -18,6 +18,7 @@ import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import Chat from "./pages/Chat";
 import Wallet from "./pages/Wallet";
+import TaxiBooking from "./pages/TaxiBooking";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/wallet" element={<Wallet />} />
+            <Route path="/taxi" element={<TaxiBooking />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AnimatePresence>

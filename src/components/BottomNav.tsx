@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, ShoppingBag, Scissors, MapPin, Wallet } from 'lucide-react';
+import { Home, ShoppingBag, Scissors, MapPin, Wallet, Car } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const BottomNav: React.FC = () => {
@@ -18,6 +18,7 @@ const BottomNav: React.FC = () => {
     { path: '/room-service', label: t('nav.roomService'), icon: <ShoppingBag className="h-5 w-5" /> },
     { path: '/spa', label: t('nav.spa'), icon: <Scissors className="h-5 w-5" /> },
     { path: '/activities', label: t('nav.activities'), icon: <MapPin className="h-5 w-5" /> },
+    { path: '/taxi', label: t('nav.taxi'), icon: <Car className="h-5 w-5" /> },
     { path: '/wallet', label: t('nav.wallet'), icon: <Wallet className="h-5 w-5" /> },
   ];
   

@@ -21,7 +21,7 @@ interface MenuItemProps {
 const MenuItem: React.FC<MenuItemProps> = ({ item, onAddToCart }) => {
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const { formatPrice } = useLanguage();
+  const { formatPrice, t } = useLanguage();
   
   const handleIncrement = () => {
     setQuantity(prev => Math.min(prev + 1, 10));
@@ -87,7 +87,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, onAddToCart }) => {
               }`}
           >
             <ShoppingCart className="h-4 w-4" />
-            <span>Add</span>
+            <span>{t('button.add')}</span>
           </button>
         </div>
       </div>
