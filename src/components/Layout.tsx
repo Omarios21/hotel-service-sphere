@@ -18,10 +18,10 @@ const Layout: React.FC<LayoutProps> = ({ children, hideHeader = false }) => {
   const isChatPage = location.pathname === '/chat';
   
   return (
-    <div className="flex flex-col h-full w-full bg-background overflow-hidden">
+    <div className="flex flex-col min-h-full w-full bg-background">
       {!hideHeader && !isAuthPage && <Header />}
-      <main className="flex-1 overflow-auto pb-24">
-        <div className="animate-fade-in mx-auto max-w-screen-xl px-4 sm:px-6 w-full h-full">
+      <main className="flex-1 overflow-y-auto pb-28">
+        <div className="animate-fade-in mx-auto max-w-screen-xl px-4 sm:px-6 w-full">
           {children}
         </div>
       </main>

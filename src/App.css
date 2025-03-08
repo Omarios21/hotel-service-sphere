@@ -51,3 +51,14 @@ html {
 .pb-safe {
   padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0));
 }
+
+/* Improve scrolling on mobile and prevent chat bubble overlap */
+html, body, #root {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  position: relative;
+  -webkit-overflow-scrolling: touch;
+}

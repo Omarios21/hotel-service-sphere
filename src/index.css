@@ -44,11 +44,20 @@
   
   html, body, #root {
     @apply h-full w-full bg-background text-foreground antialiased;
+    overflow-x: hidden;
   }
   
   /* Add smooth scrolling for page transitions */
   html {
     scroll-behavior: smooth;
+    height: 100%;
+  }
+  
+  body {
+    min-height: 100%;
+    position: relative;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
   
   /* Font optimizations */
