@@ -65,9 +65,9 @@ const Auth: React.FC = () => {
           
         if (insertError) {
           console.error('Error creating admin:', insertError);
-          toast.error('Error setting up admin access');
+          toast.error('Error setting up admin access', { duration: 2000 });
         } else {
-          toast.success('Admin access granted');
+          toast.success('Admin access granted', { duration: 2000 });
         }
       }
     } catch (error) {
@@ -90,9 +90,10 @@ const Auth: React.FC = () => {
         if (error) {
           if (error.message.includes('Email not confirmed')) {
             setEmailConfirmationRequired(true);
-            toast.error('Email not confirmed. Please check your inbox or disable email confirmation in Supabase dashboard.');
+            toast.error('Email not confirmed. Please check your inbox or disable email confirmation in Supabase dashboard.', 
+              { duration: 2000 });
           } else {
-            toast.error(error.message || 'Failed to login');
+            toast.error(error.message || 'Failed to login', { duration: 2000 });
           }
           throw error;
         }
@@ -102,7 +103,7 @@ const Auth: React.FC = () => {
           await createAdminUser(data.user.id);
         }
         
-        toast.success('Logged in successfully');
+        toast.success('Logged in successfully', { duration: 2000 });
       } else {
         const { data, error } = await supabase.auth.signUp({
           email,
@@ -116,7 +117,8 @@ const Auth: React.FC = () => {
           await createAdminUser(data.user.id);
         }
         
-        toast.success('Signup successful! Please check your email for confirmation if required.');
+        toast.success('Signup successful! Please check your email for confirmation if required.', 
+          { duration: 2000 });
         setEmailConfirmationRequired(true);
       }
     } catch (error: any) {

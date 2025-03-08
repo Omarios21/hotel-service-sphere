@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -26,7 +25,6 @@ const MenuItemsManager: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   
-  // Form state
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
@@ -50,7 +48,7 @@ const MenuItemsManager: React.FC = () => {
       
       setMenuItems(data || []);
     } catch (error: any) {
-      toast.error('Error loading menu items: ' + error.message);
+      toast.error('Error loading menu items: ' + error.message, { duration: 2000 });
     } finally {
       setLoading(false);
     }
@@ -90,9 +88,9 @@ const MenuItemsManager: React.FC = () => {
         mi.id === item.id ? { ...mi, available: !mi.available } : mi
       ));
       
-      toast.success(`${item.name} is now ${!item.available ? 'available' : 'unavailable'}`);
+      toast.success(`${item.name} is now ${!item.available ? 'available' : 'unavailable'}`, { duration: 2000 });
     } catch (error: any) {
-      toast.error('Error updating item: ' + error.message);
+      toast.error('Error updating item: ' + error.message, { duration: 2000 });
     }
   };
   
@@ -108,9 +106,9 @@ const MenuItemsManager: React.FC = () => {
       if (error) throw error;
       
       setMenuItems(menuItems.filter(mi => mi.id !== item.id));
-      toast.success(`${item.name} deleted successfully`);
+      toast.success(`${item.name} deleted successfully`, { duration: 2000 });
     } catch (error: any) {
-      toast.error('Error deleting item: ' + error.message);
+      toast.error('Error deleting item: ' + error.message, { duration: 2000 });
     }
   };
   
@@ -118,19 +116,17 @@ const MenuItemsManager: React.FC = () => {
     e.preventDefault();
     
     try {
-      // Validate form
       if (!name || !description || !price || !imageUrl || !category) {
-        toast.error('All fields are required');
+        toast.error('All fields are required', { duration: 2000 });
         return;
       }
       
       const priceNum = parseFloat(price);
       if (isNaN(priceNum) || priceNum <= 0) {
-        toast.error('Price must be a positive number');
+        toast.error('Price must be a positive number', { duration: 2000 });
         return;
       }
       
-      // Prepare data
       const menuItemData = {
         name,
         description,
@@ -141,7 +137,6 @@ const MenuItemsManager: React.FC = () => {
       };
       
       if (editingItem) {
-        // Update existing item
         const { error } = await supabase
           .from('menu_items')
           .update(menuItemData)
@@ -153,9 +148,8 @@ const MenuItemsManager: React.FC = () => {
           item.id === editingItem.id ? { ...item, ...menuItemData } : item
         ));
         
-        toast.success(`${name} updated successfully`);
+        toast.success(`${name} updated successfully`, { duration: 2000 });
       } else {
-        // Create new item
         const { data, error } = await supabase
           .from('menu_items')
           .insert(menuItemData)
@@ -167,14 +161,13 @@ const MenuItemsManager: React.FC = () => {
           setMenuItems([...menuItems, data[0]]);
         }
         
-        toast.success(`${name} added successfully`);
+        toast.success(`${name} added successfully`, { duration: 2000 });
       }
       
-      // Reset form and close it
       resetForm();
       setShowForm(false);
     } catch (error: any) {
-      toast.error('Error saving menu item: ' + error.message);
+      toast.error('Error saving menu item: ' + error.message, { duration: 2000 });
     }
   };
   

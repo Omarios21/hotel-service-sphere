@@ -17,7 +17,7 @@ const Index: React.FC = () => {
     localStorage.setItem('roomId', defaultRoomId);
     
     // Show success toast
-    toast.success(`Successfully authenticated for Room ${defaultRoomId}`);
+    toast.success(`Successfully authenticated for Room ${defaultRoomId}`, { duration: 2000 });
     
     // Navigate to the home page after a short delay
     setTimeout(() => {

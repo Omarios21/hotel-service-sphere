@@ -25,7 +25,7 @@ const Admin: React.FC = () => {
         const { data: session } = await supabase.auth.getSession();
         if (!session.session) {
           console.log('No session found, redirecting to auth');
-          toast.error('You must be logged in to access the admin area');
+          toast.error('You must be logged in to access the admin area', { duration: 2000 });
           navigate('/auth');
           return;
         }

@@ -48,7 +48,7 @@ export const useRoomService = () => {
         setMenuItems(transformedData);
       } catch (error) {
         console.error('Error fetching menu items:', error);
-        toast.error('Failed to load menu items');
+        toast.error('Failed to load menu items', { duration: 2000 });
       } finally {
         setIsLoading(false);
       }
@@ -106,13 +106,13 @@ export const useRoomService = () => {
         const updatedCart = [...prevCart];
         updatedCart[existingItemIndex].quantity += quantity;
         toast.success(`Updated ${item.name} quantity in cart`, {
-          duration: 2000 // 2 seconds duration (reduced from default)
+          duration: 2000 // 2 seconds duration
         });
         return updatedCart;
       } else {
         // Add new item to cart
         toast.success(`Added ${item.name} to cart`, {
-          duration: 2000 // 2 seconds duration (reduced from default)
+          duration: 2000 // 2 seconds duration
         });
         return [...prevCart, { item, quantity }];
       }
