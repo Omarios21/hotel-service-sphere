@@ -44,43 +44,43 @@ const Auth: React.FC = () => {
   // Create admin user if it doesn't exist
   useEffect(() => {
     const createAdminUser = async () => {
-      // Check if admin user exists
-      const { data: existingUser, error: searchError } = await supabase.auth.admin
-        .listUsers({ 
-          filter: { 
-            email: 'admin@hotel.ma' 
-          } 
+      try {
+        // Try to sign up the admin user directly
+        const { data: authData, error: signupError } = await supabase.auth.signUp({
+          email: 'admin@hotel.ma',
+          password: 'admin',
         });
-
-      if (searchError) {
-        console.error('Error checking for admin user:', searchError);
-        return;
-      }
-
-      // If admin user doesn't exist, create it
-      if (!existingUser || existingUser.length === 0) {
-        try {
-          // Sign up admin user
-          const { data: authData, error: signupError } = await supabase.auth.signUp({
-            email: 'admin@hotel.ma',
-            password: 'admin',
-          });
-          
-          if (signupError) throw signupError;
-          
-          if (authData.user) {
-            // Add user to admins table
-            const { error: adminError } = await supabase
-              .from('admins')
-              .insert({ user_id: authData.user.id });
-            
-            if (adminError) throw adminError;
-            
-            console.log('Admin user created successfully');
+        
+        if (signupError) {
+          // If the error is because the user already exists, that's fine
+          if (signupError.message.includes('already registered')) {
+            console.log('Admin user already exists');
+            return;
           }
-        } catch (error: any) {
-          console.error('Error creating admin user:', error.message);
+          console.error('Error creating admin user:', signupError.message);
+          return;
         }
+        
+        if (authData.user) {
+          // Add user to admins table
+          const { error: adminError } = await supabase
+            .from('admins')
+            .insert({ user_id: authData.user.id });
+          
+          if (adminError) {
+            // If the error is a duplicate key violation, the user is already an admin
+            if (adminError.code === '23505') {
+              console.log('User is already an admin');
+              return;
+            }
+            console.error('Error adding user to admins table:', adminError.message);
+            return;
+          }
+          
+          console.log('Admin user created successfully');
+        }
+      } catch (error: any) {
+        console.error('Error in createAdminUser:', error.message);
       }
     };
     
