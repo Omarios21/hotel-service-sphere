@@ -12,6 +12,27 @@ export const useRoomService = () => {
   const [menuItems, setMenuItems] = useState<MenuItemType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('all');
+  
+  // Delivery follow-up state
+  const [isDeliveryTracking, setIsDeliveryTracking] = useState(false);
+  const [currentOrder, setCurrentOrder] = useState<{
+    orderId: string;
+    estimatedDelivery: { min: string; max: string };
+    items: { name: string; quantity: number }[];
+    orderTime: string;
+  } | null>(null);
+  
+  // Check for ongoing order in localStorage
+  useEffect(() => {
+    const savedOrder = localStorage.getItem('currentRoomServiceOrder');
+    if (savedOrder) {
+      try {
+        setCurrentOrder(JSON.parse(savedOrder));
+      } catch (e) {
+        console.error('Error parsing saved order', e);
+      }
+    }
+  }, []);
 
   // Categories for filtering
   const categories = [
@@ -209,6 +230,33 @@ export const useRoomService = () => {
     
     setIsSubmitting(true);
     
+    // Generate order ID
+    const orderId = `ORD-${Math.floor(Math.random() * 10000)}`;
+    
+    // Get estimated delivery time
+    const now = new Date();
+    const minTime = new Date(now.getTime() + 20 * 60000);
+    const maxTime = new Date(now.getTime() + 40 * 60000);
+    
+    const deliveryEstimate = {
+      min: minTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      max: maxTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    
+    // Create order items
+    const orderItems = cart.map(item => ({
+      name: item.item.name,
+      quantity: item.quantity
+    }));
+    
+    // Create order object
+    const orderDetails = {
+      orderId,
+      estimatedDelivery: deliveryEstimate,
+      items: orderItems,
+      orderTime: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    
     // Simulate API call
     setTimeout(() => {
       setCart([]);
@@ -216,16 +264,29 @@ export const useRoomService = () => {
       setIsSubmitting(false);
       setPaymentMethod(null);
       
+      // Store order in state and localStorage
+      setCurrentOrder(orderDetails);
+      localStorage.setItem('currentRoomServiceOrder', JSON.stringify(orderDetails));
+      
       // Clear localStorage cart
       localStorage.removeItem('roomServiceCart');
       
       // Update cart badge
       window.dispatchEvent(new Event('cartUpdated'));
       
+      // Show success toast
       toast.success('Your order has been placed successfully!', {
-        duration: 2000 // 2 seconds duration
+        duration: 2000
       });
+      
+      // Open delivery tracking
+      setIsDeliveryTracking(true);
     }, 1500);
+  };
+
+  // Close delivery tracking
+  const closeDeliveryTracking = () => {
+    setIsDeliveryTracking(false);
   };
   
   // Filter menu items by category
@@ -249,6 +310,10 @@ export const useRoomService = () => {
     handleAddToCart,
     handleRemoveFromCart,
     calculateTotal,
-    handleSubmitOrder
+    handleSubmitOrder,
+    isDeliveryTracking,
+    setIsDeliveryTracking,
+    currentOrder,
+    closeDeliveryTracking
   };
 };
