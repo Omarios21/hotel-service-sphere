@@ -11,53 +11,15 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import { Button } from '@/components/ui/button';
 
 const Admin: React.FC = () => {
-  const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(false); // Changed initial value to false
+  const [isAdmin, setIsAdmin] = useState(true); // Set to true to bypass authentication
   const navigate = useNavigate();
 
+  // Simplified useEffect - just for show, doesn't actually check authentication
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      
-      if (!sessionData.session) {
-        navigate('/auth');
-        return;
-      }
-      
-      // Check if user is an admin
-      const { data: adminData } = await supabase
-        .from('admins')
-        .select('*')
-        .eq('user_id', sessionData.session.user.id)
-        .single();
-      
-      if (adminData) {
-        setIsAdmin(true);
-      } else {
-        // First user to login becomes an admin automatically (for demo purposes)
-        const { count: adminCount } = await supabase
-          .from('admins')
-          .select('*', { count: 'exact', head: true });
-        
-        if (adminCount === 0) {
-          // Make the first user an admin
-          await supabase
-            .from('admins')
-            .insert({
-              user_id: sessionData.session.user.id
-            });
-          setIsAdmin(true);
-          toast.success('You have been made an admin as the first user');
-        } else {
-          toast.error('You are not authorized to access the admin panel');
-          navigate('/home');
-        }
-      }
-      
-      setLoading(false);
-    };
-    
-    checkAuth();
+    // Temporarily disabled authentication checks
+    console.log('Admin authentication checks temporarily disabled for testing');
+    setLoading(false);
   }, [navigate]);
 
   const handleSignOut = async () => {
@@ -73,10 +35,7 @@ const Admin: React.FC = () => {
     );
   }
 
-  if (!isAdmin) {
-    return null;
-  }
-
+  // Always allow access to the admin panel
   return (
     <div className="flex h-screen overflow-hidden">
       <AdminSidebar />
@@ -86,6 +45,10 @@ const Admin: React.FC = () => {
         
         <main className="flex-1 overflow-y-auto p-6">
           <div className="max-w-7xl mx-auto">
+            <div className="mb-4 p-2 bg-yellow-100 text-yellow-800 rounded-md">
+              <p className="font-medium">⚠️ Admin authentication is temporarily disabled for testing.</p>
+            </div>
+
             <Tabs defaultValue="menu-items">
               <TabsList className="mb-6">
                 <TabsTrigger value="menu-items">Menu Items</TabsTrigger>
