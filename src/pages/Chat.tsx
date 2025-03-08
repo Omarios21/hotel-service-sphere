@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Send } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Message {
   id: string;
@@ -16,10 +17,11 @@ interface Message {
 }
 
 const Chat: React.FC = () => {
+  const { t } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Welcome to Hotel Service! How can I help you today?',
+      text: t('chat.welcome'),
       sender: 'reception',
       timestamp: new Date()
     }
@@ -57,7 +59,7 @@ const Chat: React.FC = () => {
     setTimeout(() => {
       const receptionResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'Thank you for your message. A member of our reception team will respond shortly.',
+        text: t('chat.received'),
         sender: 'reception',
         timestamp: new Date()
       };
@@ -65,8 +67,8 @@ const Chat: React.FC = () => {
       setMessages(prev => [...prev, receptionResponse]);
       
       toast({
-        title: "Message received",
-        description: "The reception team has been notified.",
+        title: t('chat.notification'),
+        description: t('chat.notificationDesc'),
       });
     }, 1000);
   };
@@ -84,8 +86,8 @@ const Chat: React.FC = () => {
           transition={{ duration: 0.5 }}
           className="mb-4"
         >
-          <h1 className="text-2xl font-bold">Chat with Reception</h1>
-          <p className="text-muted-foreground">Need assistance? Message our reception team directly.</p>
+          <h1 className="text-2xl font-bold">{t('chat.title')}</h1>
+          <p className="text-muted-foreground">{t('chat.subtitle')}</p>
         </motion.div>
         
         <div className="flex-1 overflow-y-auto mb-4 space-y-4">
@@ -116,7 +118,7 @@ const Chat: React.FC = () => {
             <Input
               value={newMessage}
               onChange={e => setNewMessage(e.target.value)}
-              placeholder="Type your message..."
+              placeholder={t('chat.placeholder')}
               className="flex-1"
             />
             <Button type="submit" disabled={!newMessage.trim()}>

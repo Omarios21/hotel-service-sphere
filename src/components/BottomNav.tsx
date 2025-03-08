@@ -2,21 +2,23 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, ShoppingBag, Scissors, MapPin, Wallet } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const BottomNav: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useLanguage();
   
   const isActive = (path: string) => {
     return location.pathname === path;
   };
   
   const navItems = [
-    { path: '/home', label: 'Home', icon: <Home className="h-5 w-5" /> },
-    { path: '/room-service', label: 'Room Service', icon: <ShoppingBag className="h-5 w-5" /> },
-    { path: '/spa', label: 'Spa', icon: <Scissors className="h-5 w-5" /> },
-    { path: '/activities', label: 'Activities', icon: <MapPin className="h-5 w-5" /> },
-    { path: '/wallet', label: 'Wallet', icon: <Wallet className="h-5 w-5" /> },
+    { path: '/home', label: t('nav.home'), icon: <Home className="h-5 w-5" /> },
+    { path: '/room-service', label: t('nav.roomService'), icon: <ShoppingBag className="h-5 w-5" /> },
+    { path: '/spa', label: t('nav.spa'), icon: <Scissors className="h-5 w-5" /> },
+    { path: '/activities', label: t('nav.activities'), icon: <MapPin className="h-5 w-5" /> },
+    { path: '/wallet', label: t('nav.wallet'), icon: <Wallet className="h-5 w-5" /> },
   ];
   
   return (

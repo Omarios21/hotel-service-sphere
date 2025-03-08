@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { User, ShoppingCart, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -95,8 +97,10 @@ const Header: React.FC = () => {
             </button>
           </div>
           
-          {/* Center area - reserved for future use */}
-          <div className="flex-1"></div>
+          {/* Language Switcher */}
+          <div className="flex-1 flex justify-center">
+            <LanguageSwitcher />
+          </div>
           
           {/* Cart icon */}
           <div className="flex items-center">
