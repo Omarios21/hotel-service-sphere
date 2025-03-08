@@ -1,10 +1,11 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { motion } from 'framer-motion';
-import { User, Clock, Calendar, LogOut, Settings, Bell, CheckSquare } from 'lucide-react';
+import { User, Clock, Calendar, LogOut, Settings, Bell, CheckSquare, Shield } from 'lucide-react';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Order {
   id: string;
@@ -20,8 +21,25 @@ const Profile: React.FC = () => {
   const roomId = localStorage.getItem('roomId') || '101';
   const [activeTab, setActiveTab] = useState<'orders' | 'settings'>('orders');
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   
-  // Sample orders
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) return;
+      
+      const { data } = await supabase
+        .from('admins')
+        .select('*')
+        .eq('user_id', sessionData.session.user.id)
+        .maybeSingle();
+      
+      setIsAdmin(!!data);
+    };
+    
+    checkAdmin();
+  }, []);
+  
   const orders: Order[] = [
     {
       id: 'o1',
@@ -50,13 +68,8 @@ const Profile: React.FC = () => {
   ];
   
   const handleSignOut = () => {
-    // Clear localStorage
     localStorage.removeItem('roomId');
-    
-    // Show toast
     toast.success('Signed out successfully');
-    
-    // Navigate to authentication page
     setTimeout(() => {
       navigate('/');
     }, 500);
@@ -93,6 +106,11 @@ const Profile: React.FC = () => {
     return new Date(dateString).toLocaleString(undefined, options);
   };
   
+  const goToAdmin = () => {
+    navigate('/admin');
+    toast.success('Switching to admin interface');
+  };
+  
   return (
     <Layout>
       <div className="py-8">
@@ -108,8 +126,23 @@ const Profile: React.FC = () => {
           </p>
         </motion.div>
         
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="mb-4"
+        >
+          <Button 
+            variant="outline" 
+            onClick={goToAdmin} 
+            className="flex items-center gap-2"
+          >
+            <Shield className="h-4 w-4" />
+            <span>Go to Admin Interface</span>
+          </Button>
+        </motion.div>
+        
         <div className="bg-white border border-border rounded-xl shadow-sm overflow-hidden">
-          {/* Profile header */}
           <div className="p-6 border-b border-border">
             <div className="flex items-center">
               <div className="bg-secondary rounded-full p-3 mr-4">
@@ -136,7 +169,6 @@ const Profile: React.FC = () => {
             </div>
           </div>
           
-          {/* Tabs */}
           <div className="flex border-b border-border">
             <button
               onClick={() => setActiveTab('orders')}
@@ -160,7 +192,6 @@ const Profile: React.FC = () => {
             </button>
           </div>
           
-          {/* Tab content */}
           <div className="p-6">
             {activeTab === 'orders' && (
               <motion.div
