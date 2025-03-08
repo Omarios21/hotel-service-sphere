@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import Layout from '@/components/Layout';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Info } from 'lucide-react';
 
 const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -48,6 +48,11 @@ const Auth: React.FC = () => {
     setLoading(true);
     setError(null);
     
+    // Ensure email uses a custom domain that should work with Supabase
+    if (!email.endsWith('@hotel-app.com')) {
+      setEmail(email.split('@')[0] + '@hotel-app.com');
+    }
+    
     try {
       if (mode === 'login') {
         const { error } = await supabase.auth.signInWithPassword({
@@ -64,7 +69,7 @@ const Auth: React.FC = () => {
         });
         
         if (error) throw error;
-        toast.success('Signup successful! Please check your email for confirmation.');
+        toast.success('Signup successful! You can now log in.');
       }
     } catch (error: any) {
       console.error('Auth error:', error);
@@ -76,7 +81,7 @@ const Auth: React.FC = () => {
   };
 
   const fillDemoCredentials = () => {
-    setEmail('admin@example.com');
+    setEmail('admin@hotel-app.com');
     setPassword('password123');
   };
 
@@ -95,6 +100,14 @@ const Auth: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-md flex items-start gap-2 mb-4">
+              <Info className="h-5 w-5 mt-0.5 flex-shrink-0" />
+              <div className="text-sm">
+                <p className="font-medium">Important:</p>
+                <p>All emails will be automatically converted to use the @hotel-app.com domain for compatibility with this demo.</p>
+              </div>
+            </div>
+            
             <form onSubmit={handleAuth} className="space-y-4">
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md flex items-start gap-2">
@@ -107,7 +120,7 @@ const Auth: React.FC = () => {
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
-                  type="email"
+                  type="text"
                   placeholder="your@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
