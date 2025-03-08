@@ -21,18 +21,18 @@ const BottomNav: React.FC = () => {
   
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-lg border-t border-border">
-      <div className="flex justify-around items-center py-2">
+      <div className="flex justify-around items-center h-16">
         {navItems.map(item => (
           <button
             key={item.path}
             onClick={() => navigate(item.path)}
-            className={`flex flex-col items-center justify-center w-full py-2 transition-colors ${
+            className={`flex flex-col items-center justify-center h-full w-full py-2 transition-colors ${
               isActive(item.path)
                 ? 'text-primary'
                 : 'text-muted-foreground hover:text-primary'
             }`}
           >
-            {item.icon}
+            <div className="flex justify-center">{item.icon}</div>
             <span className="text-xs mt-1">{item.label}</span>
           </button>
         ))}

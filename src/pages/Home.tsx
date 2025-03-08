@@ -2,9 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
-import ServiceCard from '../components/ServiceCard';
 import { motion } from 'framer-motion';
-import { Utensils, Clock, Calendar, Package } from 'lucide-react';
+import { Calendar, Clock } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import DeliveryStatus from '@/components/home/DeliveryStatus';
 import DeliveryFollowUp from '@/components/room-service/DeliveryFollowUp';
@@ -95,15 +94,7 @@ const Home: React.FC = () => {
     }
   }, [roomId, navigate]);
   
-  const services = [
-    {
-      id: 'room-service',
-      title: 'Room Service',
-      description: 'Order food and beverages directly to your room',
-      icon: <Utensils className="h-6 w-6" />,
-      path: '/room-service'
-    }
-  ];
+  // Removed services array since we're not displaying any shortcuts anymore
   
   const container = {
     hidden: { opacity: 0 },
@@ -123,6 +114,18 @@ const Home: React.FC = () => {
   return (
     <Layout>
       <div className="py-6 md:py-8">
+        {/* Welcome Message - Moved to top */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-6"
+        >
+          <h1 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
+            Welcome to Room {roomId}
+          </h1>
+        </motion.div>
+        
         {/* Hotel Information Card */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -135,7 +138,7 @@ const Home: React.FC = () => {
               <h2 className="text-2xl font-bold text-primary mb-1">{hotelInfo.name}</h2>
               <p className="text-muted-foreground italic mb-3">{hotelInfo.tagline}</p>
               
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="flex justify-between items-center text-sm">
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-primary" />
                   <span>Checkout: {hotelInfo.checkoutTime}</span>
@@ -149,22 +152,7 @@ const Home: React.FC = () => {
           </Card>
         </motion.div>
         
-        {/* Welcome Message */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="text-center mb-6"
-        >
-          <h1 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-            Welcome to Room {roomId}
-          </h1>
-          <p className="mt-2 text-lg text-muted-foreground max-w-2xl mx-auto">
-            Explore our exclusive services designed for your comfort and enjoyment
-          </p>
-        </motion.div>
-        
-        {/* Delivery Status Section - New */}
+        {/* Delivery Status Section */}
         {currentOrder && (
           <DeliveryStatus 
             orderDetails={currentOrder} 
@@ -216,24 +204,7 @@ const Home: React.FC = () => {
           </div>
         </motion.div>
         
-        {/* Services Grid - Showing only Room Service now */}
-        <motion.div
-          variants={container}
-          initial="hidden"
-          animate="show"
-          className="grid grid-cols-1 gap-4"
-        >
-          {services.map((service) => (
-            <motion.div key={service.id} variants={item}>
-              <ServiceCard
-                title={service.title}
-                description={service.description}
-                icon={service.icon}
-                onClick={() => navigate(service.path)}
-              />
-            </motion.div>
-          ))}
-        </motion.div>
+        {/* Services grid - Completely removed since no services are showing */}
         
         {/* Delivery details modal */}
         <DeliveryFollowUp
