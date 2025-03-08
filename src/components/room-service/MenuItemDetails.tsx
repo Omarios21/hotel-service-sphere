@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { MenuItemType } from '../MenuItem';
 import { useLanguage } from '@/contexts/LanguageContext';
