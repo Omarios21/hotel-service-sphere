@@ -45,6 +45,7 @@ const Spa: React.FC = () => {
   const { data: spaServices = [], isLoading: isLoadingServices } = useQuery({
     queryKey: ['spaServices'],
     queryFn: async () => {
+      console.log('Fetching spa services...');
       const { data, error } = await supabase
         .from('spa_services')
         .select('*')
@@ -56,6 +57,12 @@ const Spa: React.FC = () => {
         return getFallbackSpaServices();
       }
       
+      console.log('Spa services fetched:', data);
+      if (!data || data.length === 0) {
+        console.log('No spa services found, using fallback data');
+        return getFallbackSpaServices();
+      }
+      
       return data.map(service => ({
         id: service.id,
         name: service.name,
@@ -64,7 +71,8 @@ const Spa: React.FC = () => {
         price: service.price,
         image: service.image
       }));
-    }
+    },
+    refetchOnWindowFocus: false
   });
   
   const getFallbackSpaServices = (): SpaService[] => {
@@ -227,7 +235,7 @@ const Spa: React.FC = () => {
                   <div key={i} className="bg-muted animate-pulse rounded-xl h-64"></div>
                 ))}
               </div>
-            ) : (
+            ) : spaServices && spaServices.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {spaServices.map(service => (
                   <motion.div
@@ -257,6 +265,10 @@ const Spa: React.FC = () => {
                     </div>
                   </motion.div>
                 ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">No spa services available at the moment.</p>
               </div>
             )}
           </TabsContent>
