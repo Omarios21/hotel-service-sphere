@@ -47,10 +47,96 @@ const MenuItemsManager: React.FC = () => {
       if (error) throw error;
       
       setMenuItems(data || []);
+      
+      if (data && data.length === 0) {
+        await seedDefaultMenuItems();
+      }
     } catch (error: any) {
       toast.error('Error loading menu items: ' + error.message, { duration: 2000 });
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const seedDefaultMenuItems = async () => {
+    try {
+      const defaultItems = [
+        {
+          name: 'Continental Breakfast',
+          description: 'A selection of pastries, fresh fruit, yogurt, and coffee or tea.',
+          price: 18.5,
+          image_url: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+          category: 'breakfast',
+          available: true
+        },
+        {
+          name: 'Eggs Benedict',
+          description: 'Poached eggs with hollandaise sauce on English muffins with your choice of ham or smoked salmon.',
+          price: 21.0,
+          image_url: 'https://images.unsplash.com/photo-1608039829572-78524f79c4c7?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+          category: 'breakfast',
+          available: true
+        },
+        {
+          name: 'Grilled Salmon',
+          description: 'Fresh salmon fillet grilled to perfection, served with seasonal vegetables and lemon butter sauce.',
+          price: 32.0,
+          image_url: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+          category: 'main',
+          available: true
+        },
+        {
+          name: 'Filet Mignon',
+          description: 'Premium beef tenderloin cooked to your preference, served with truffle mashed potatoes and red wine reduction.',
+          price: 45.0,
+          image_url: 'https://images.unsplash.com/photo-1546964124-0cce460f38ef?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+          category: 'main',
+          available: true
+        },
+        {
+          name: 'Chocolate Lava Cake',
+          description: 'Warm chocolate cake with a molten center, served with vanilla ice cream.',
+          price: 14.0,
+          image_url: 'https://images.unsplash.com/photo-1615937657715-bc7b4b7962c1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+          category: 'desserts',
+          available: true
+        },
+        {
+          name: 'Tiramisu',
+          description: 'Classic Italian dessert with layers of coffee-soaked ladyfingers and mascarpone cream.',
+          price: 12.0,
+          image_url: 'https://images.unsplash.com/photo-1517427294546-5aa121f68e8a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+          category: 'desserts',
+          available: true
+        },
+        {
+          name: 'Wine Selection',
+          description: 'Choose from our curated selection of red, white, or sparkling wines.',
+          price: 28.0,
+          image_url: 'https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+          category: 'drinks',
+          available: true
+        },
+        {
+          name: 'Premium Cocktails',
+          description: 'Handcrafted cocktails prepared by our expert mixologists.',
+          price: 16.0,
+          image_url: 'https://images.unsplash.com/photo-1541546006121-5c3bc5e8c7b9?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+          category: 'drinks',
+          available: true
+        }
+      ];
+      
+      const { error } = await supabase
+        .from('menu_items')
+        .insert(defaultItems);
+      
+      if (error) throw error;
+      
+      toast.success('Default menu items added', { duration: 2000 });
+      fetchMenuItems();
+    } catch (error: any) {
+      toast.error('Error seeding menu items: ' + error.message, { duration: 2000 });
     }
   };
   
@@ -182,10 +268,17 @@ const MenuItemsManager: React.FC = () => {
         <h2 className="text-2xl font-bold">Menu Items</h2>
         
         {!showForm && (
-          <Button onClick={() => setShowForm(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add New Item
-          </Button>
+          <div className="space-x-2">
+            {menuItems.length === 0 && (
+              <Button variant="outline" onClick={seedDefaultMenuItems}>
+                Seed Default Items
+              </Button>
+            )}
+            <Button onClick={() => setShowForm(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add New Item
+            </Button>
+          </div>
         )}
       </div>
       

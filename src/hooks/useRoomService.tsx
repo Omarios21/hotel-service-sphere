@@ -55,92 +55,99 @@ export const useRoomService = () => {
           throw error;
         }
         
-        const transformedData = data.map(item => ({
-          id: item.id,
-          name: item.name,
-          description: item.description,
-          price: item.price,
-          image: item.image_url,
-          category: item.category
-        }));
-        
-        setMenuItems(transformedData);
+        if (data && data.length > 0) {
+          const transformedData = data.map(item => ({
+            id: item.id,
+            name: item.name,
+            description: item.description,
+            price: item.price,
+            image: item.image_url,
+            category: item.category
+          }));
+          
+          setMenuItems(transformedData);
+        } else {
+          console.log('No menu items found in database, using fallback data');
+          useFallbackMenuData();
+        }
       } catch (error) {
         console.error('Error fetching menu items:', error);
-        
-        // Use sample menu data without showing a toast notification
-        const mockMenuItems: MenuItemType[] = [
-          {
-            id: '1',
-            name: 'Continental Breakfast',
-            description: 'A selection of pastries, fresh fruit, yogurt, and coffee or tea.',
-            price: 18.5,
-            image: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-            category: 'breakfast'
-          },
-          {
-            id: '2',
-            name: 'Eggs Benedict',
-            description: 'Poached eggs with hollandaise sauce on English muffins with your choice of ham or smoked salmon.',
-            price: 21.0,
-            image: 'https://images.unsplash.com/photo-1608039829572-78524f79c4c7?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-            category: 'breakfast'
-          },
-          {
-            id: '3',
-            name: 'Grilled Salmon',
-            description: 'Fresh salmon fillet grilled to perfection, served with seasonal vegetables and lemon butter sauce.',
-            price: 32.0,
-            image: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-            category: 'main'
-          },
-          {
-            id: '4',
-            name: 'Filet Mignon',
-            description: 'Premium beef tenderloin cooked to your preference, served with truffle mashed potatoes and red wine reduction.',
-            price: 45.0,
-            image: 'https://images.unsplash.com/photo-1546964124-0cce460f38ef?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-            category: 'main'
-          },
-          {
-            id: '5',
-            name: 'Chocolate Lava Cake',
-            description: 'Warm chocolate cake with a molten center, served with vanilla ice cream.',
-            price: 14.0,
-            image: 'https://images.unsplash.com/photo-1615937657715-bc7b4b7962c1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-            category: 'desserts'
-          },
-          {
-            id: '6',
-            name: 'Tiramisu',
-            description: 'Classic Italian dessert with layers of coffee-soaked ladyfingers and mascarpone cream.',
-            price: 12.0,
-            image: 'https://images.unsplash.com/photo-1517427294546-5aa121f68e8a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-            category: 'desserts'
-          },
-          {
-            id: '7',
-            name: 'Wine Selection',
-            description: 'Choose from our curated selection of red, white, or sparkling wines.',
-            price: 28.0,
-            image: 'https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-            category: 'drinks'
-          },
-          {
-            id: '8',
-            name: 'Premium Cocktails',
-            description: 'Handcrafted cocktails prepared by our expert mixologists.',
-            price: 16.0,
-            image: 'https://images.unsplash.com/photo-1541546006121-5c3bc5e8c7b9?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-            category: 'drinks'
-          }
-        ];
-        
-        setMenuItems(mockMenuItems);
-        // Removed toast.info notification about sample data
+        useFallbackMenuData();
       } finally {
         setIsLoading(false);
       }
+    };
+    
+    const useFallbackMenuData = () => {
+      // Fallback menu data without showing a toast notification
+      const mockMenuItems: MenuItemType[] = [
+        {
+          id: '1',
+          name: 'Continental Breakfast',
+          description: 'A selection of pastries, fresh fruit, yogurt, and coffee or tea.',
+          price: 18.5,
+          image: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+          category: 'breakfast'
+        },
+        {
+          id: '2',
+          name: 'Eggs Benedict',
+          description: 'Poached eggs with hollandaise sauce on English muffins with your choice of ham or smoked salmon.',
+          price: 21.0,
+          image: 'https://images.unsplash.com/photo-1608039829572-78524f79c4c7?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+          category: 'breakfast'
+        },
+        {
+          id: '3',
+          name: 'Grilled Salmon',
+          description: 'Fresh salmon fillet grilled to perfection, served with seasonal vegetables and lemon butter sauce.',
+          price: 32.0,
+          image: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+          category: 'main'
+        },
+        {
+          id: '4',
+          name: 'Filet Mignon',
+          description: 'Premium beef tenderloin cooked to your preference, served with truffle mashed potatoes and red wine reduction.',
+          price: 45.0,
+          image: 'https://images.unsplash.com/photo-1546964124-0cce460f38ef?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+          category: 'main'
+        },
+        {
+          id: '5',
+          name: 'Chocolate Lava Cake',
+          description: 'Warm chocolate cake with a molten center, served with vanilla ice cream.',
+          price: 14.0,
+          image: 'https://images.unsplash.com/photo-1615937657715-bc7b4b7962c1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+          category: 'desserts'
+        },
+        {
+          id: '6',
+          name: 'Tiramisu',
+          description: 'Classic Italian dessert with layers of coffee-soaked ladyfingers and mascarpone cream.',
+          price: 12.0,
+          image: 'https://images.unsplash.com/photo-1517427294546-5aa121f68e8a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+          category: 'desserts'
+        },
+        {
+          id: '7',
+          name: 'Wine Selection',
+          description: 'Choose from our curated selection of red, white, or sparkling wines.',
+          price: 28.0,
+          image: 'https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+          category: 'drinks'
+        },
+        {
+          id: '8',
+          name: 'Premium Cocktails',
+          description: 'Handcrafted cocktails prepared by our expert mixologists.',
+          price: 16.0,
+          image: 'https://images.unsplash.com/photo-1541546006121-5c3bc5e8c7b9?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+          category: 'drinks'
+        }
+      ];
+      
+      setMenuItems(mockMenuItems);
     };
     
     fetchMenuItems();
