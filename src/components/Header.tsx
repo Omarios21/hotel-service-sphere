@@ -81,10 +81,6 @@ const Header: React.FC = () => {
     }
   };
   
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
-  
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur-lg bg-background/70 border-b border-border transition-all duration-200">
       <div className="container mx-auto px-4 sm:px-6 py-3">
@@ -93,6 +89,7 @@ const Header: React.FC = () => {
             <button 
               onClick={() => handleNavigation('/profile')}
               className="flex items-center space-x-1 transition-colors"
+              aria-label="Go to profile"
             >
               <User className="h-5 w-5" />
             </button>
@@ -106,6 +103,7 @@ const Header: React.FC = () => {
             <button 
               onClick={handleCartClick}
               className="relative p-2 mr-2"
+              aria-label="Shopping cart"
             >
               <ShoppingCart className="h-5 w-5" />
               {cartItemCount > 0 && (
@@ -119,6 +117,7 @@ const Header: React.FC = () => {
               <button
                 onClick={() => handleNavigation('/admin')}
                 className="ml-2"
+                aria-label="Admin dashboard"
               >
                 <Shield className="h-5 w-5" />
               </button>

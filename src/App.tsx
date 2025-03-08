@@ -17,6 +17,7 @@ import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import Chat from "./pages/Chat";
+import Wallet from "./pages/Wallet";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/chat" element={<Chat />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/wallet" element={<Wallet />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AnimatePresence>
