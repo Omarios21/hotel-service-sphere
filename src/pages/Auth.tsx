@@ -16,6 +16,7 @@ const Auth: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [error, setError] = useState<string | null>(null);
+  const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false);
   const navigate = useNavigate();
 
   // Check if already logged in
@@ -47,6 +48,7 @@ const Auth: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setNeedsEmailConfirmation(false);
     
     // Ensure email uses a custom domain that should work with Supabase
     if (!email.endsWith('@hotel-app.com')) {
@@ -60,16 +62,28 @@ const Auth: React.FC = () => {
           password,
         });
         
-        if (error) throw error;
+        if (error) {
+          if (error.message === 'Email not confirmed') {
+            setNeedsEmailConfirmation(true);
+            throw new Error('Please check your email and confirm your account before logging in.');
+          }
+          throw error;
+        }
         toast.success('Logged in successfully');
       } else {
         const { error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            // For demo purposes, we can auto-confirm the email
+            // This won't actually work unless you configure Supabase to allow it
+            emailRedirectTo: window.location.origin + '/auth',
+          }
         });
         
         if (error) throw error;
-        toast.success('Signup successful! You can now log in.');
+        setNeedsEmailConfirmation(true);
+        toast.success('Signup successful! Check your email for confirmation link.');
       }
     } catch (error: any) {
       console.error('Auth error:', error);
@@ -105,8 +119,25 @@ const Auth: React.FC = () => {
               <div className="text-sm">
                 <p className="font-medium">Important:</p>
                 <p>All emails will be automatically converted to use the @hotel-app.com domain for compatibility with this demo.</p>
+                <p className="mt-1 font-medium">For Demo Access:</p>
+                <p>1. Click "Demo Credentials" to fill in demo details</p>
+                <p>2. Click "Sign Up" to create an account first</p>
+                <p>3. Then switch to "Login" to log in with the same credentials</p>
               </div>
             </div>
+            
+            {needsEmailConfirmation && (
+              <div className="bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-md flex items-start gap-2 mb-4">
+                <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                <div className="text-sm">
+                  <p className="font-medium">Email Confirmation Required</p>
+                  <p>For this demo, please visit the Supabase dashboard to manually confirm your user.</p>
+                  <p className="mt-2">
+                    Alternatively, you can disable email confirmation in the Supabase authentication settings.
+                  </p>
+                </div>
+              </div>
+            )}
             
             <form onSubmit={handleAuth} className="space-y-4">
               {error && (
