@@ -21,7 +21,7 @@ interface MenuItemProps {
 const MenuItem: React.FC<MenuItemProps> = ({ item, onAddToCart }) => {
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const { formatPrice, t } = useLanguage();
+  const { formatPrice } = useLanguage();
   
   const handleIncrement = () => {
     setQuantity(prev => Math.min(prev + 1, 10));
@@ -86,8 +86,8 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, onAddToCart }) => {
                 : 'bg-primary text-primary-foreground hover:opacity-90'
               }`}
           >
-            <ShoppingBag className="h-4 w-4" />
-            <span>{t('roomService.add')}</span>
+            <ShoppingCart className="h-4 w-4" />
+            <span>Add</span>
           </button>
         </div>
       </div>
