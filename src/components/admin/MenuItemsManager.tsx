@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Plus, Edit, Trash2, Check, X, Image } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface MenuItem {
   id: string;
@@ -24,6 +26,7 @@ const MenuItemsManager: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const { formatPrice } = useLanguage();
   
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -405,7 +408,7 @@ const MenuItemsManager: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex justify-between mb-2">
                   <h3 className="font-medium">{item.name}</h3>
-                  <span className="font-medium">${item.price.toFixed(2)}</span>
+                  <span className="font-medium">{formatPrice(item.price)}</span>
                 </div>
                 <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                   {item.description}

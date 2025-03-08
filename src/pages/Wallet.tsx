@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Wallet, CreditCard, Clock, Calendar, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Transaction {
   id: string;
@@ -19,6 +20,7 @@ const WalletPage: React.FC = () => {
   const roomId = localStorage.getItem('roomId') || '101';
   const [balance, setBalance] = useState(500); // Example balance in $
   const [showTopUp, setShowTopUp] = useState(false);
+  const { formatPrice, t } = useLanguage();
   
   // Sample transactions data
   const transactions: Transaction[] = [
@@ -65,7 +67,7 @@ const WalletPage: React.FC = () => {
   const handleTopUp = (amount: number) => {
     setBalance(prevBalance => prevBalance + amount);
     setShowTopUp(false);
-    toast.success(`Successfully added $${amount} to your wallet`);
+    toast.success(`Successfully added ${formatPrice(amount)} to your wallet`);
   };
   
   const getStatusColor = (status: Transaction['status']) => {
@@ -108,7 +110,7 @@ const WalletPage: React.FC = () => {
                 <div>
                   <CardTitle className="text-2xl">Room {roomId}</CardTitle>
                   <CardDescription className="text-primary-foreground/80 mt-1">
-                    Balance: ${balance.toFixed(2)}
+                    Balance: {formatPrice(balance)}
                   </CardDescription>
                 </div>
                 <Wallet className="h-12 w-12 opacity-80" />
@@ -186,7 +188,7 @@ const WalletPage: React.FC = () => {
                         className="py-6"
                         onClick={() => handleTopUp(amount)}
                       >
-                        ${amount}
+                        {formatPrice(amount)}
                       </Button>
                     ))}
                   </div>
@@ -228,7 +230,7 @@ const WalletPage: React.FC = () => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium">${transaction.amount.toFixed(2)}</p>
+                        <p className="font-medium">{formatPrice(transaction.amount)}</p>
                         <span className={`text-xs font-medium mt-1 px-2 py-1 rounded-full inline-block ${getStatusColor(transaction.status)}`}>
                           {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
                         </span>

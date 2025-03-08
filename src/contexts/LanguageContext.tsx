@@ -1,8 +1,24 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 // Define supported languages
 export type Language = 'en' | 'es' | 'fr';
+
+// Define supported currencies
+export type Currency = 'USD' | 'EUR' | 'MAD';
+
+// Define currency conversion rates (relative to USD)
+export const currencyRates: Record<Currency, number> = {
+  USD: 1,
+  EUR: 0.92, // 1 USD = 0.92 EUR (example rate)
+  MAD: 10.02 // 1 USD = 10.02 MAD (example rate)
+};
+
+// Define currency symbols
+export const currencySymbols: Record<Currency, string> = {
+  USD: '$',
+  EUR: '€',
+  MAD: 'MAD'
+};
 
 // Define translations interface
 interface Translations {
@@ -107,16 +123,21 @@ export const translations: Translations = {
     fr: 'Voir les activités'
   },
   
-  // Room service
-  'roomService.title': {
-    en: 'Room Service',
-    es: 'Servicio de habitación',
-    fr: 'Service de chambre'
+  // Currency settings
+  'currency.USD': {
+    en: 'US Dollar',
+    es: 'Dólar estadounidense',
+    fr: 'Dollar américain'
   },
-  'roomService.subtitle': {
-    en: 'Order delicious meals and refreshments directly to your room',
-    es: 'Pida deliciosas comidas y refrescos directamente a su habitación',
-    fr: 'Commandez de délicieux repas et rafraîchissements directement dans votre chambre'
+  'currency.EUR': {
+    en: 'Euro',
+    es: 'Euro',
+    fr: 'Euro'
+  },
+  'currency.MAD': {
+    en: 'Moroccan Dirham',
+    es: 'Dírham marroquí',
+    fr: 'Dirham marocain'
   },
   
   // Buttons and actions
@@ -200,7 +221,10 @@ export const translations: Translations = {
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
+  currency: Currency;
+  setCurrency: (currency: Currency) => void;
   t: (key: string) => string;
+  formatPrice: (priceInUSD: number) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -217,10 +241,21 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     return (savedLanguage as Language) || 'en';
   });
 
+  // Try to get saved currency from localStorage, or default to USD
+  const [currency, setCurrency] = useState<Currency>(() => {
+    const savedCurrency = localStorage.getItem('preferredCurrency');
+    return (savedCurrency as Currency) || 'USD';
+  });
+
   // Save language preference to localStorage when it changes
   useEffect(() => {
     localStorage.setItem('preferredLanguage', language);
   }, [language]);
+
+  // Save currency preference to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('preferredCurrency', currency);
+  }, [currency]);
 
   // Translation function
   const t = (key: string): string => {
@@ -231,8 +266,24 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     return translations[key][language] || translations[key]['en'] || key;
   };
 
+  // Price formatting function that considers the selected currency
+  const formatPrice = (priceInUSD: number): string => {
+    const convertedPrice = priceInUSD * currencyRates[currency];
+    
+    // Format based on currency
+    if (currency === 'USD') {
+      return `$${convertedPrice.toFixed(2)}`;
+    } else if (currency === 'EUR') {
+      return `€${convertedPrice.toFixed(2)}`;
+    } else if (currency === 'MAD') {
+      return `${convertedPrice.toFixed(2)} MAD`;
+    }
+    
+    return `${convertedPrice.toFixed(2)}`;
+  };
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage, currency, setCurrency, t, formatPrice }}>
       {children}
     </LanguageContext.Provider>
   );

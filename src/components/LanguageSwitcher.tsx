@@ -24,7 +24,7 @@ const LanguageSwitcher: React.FC = () => {
         <Globe className="h-5 w-5" />
         <span className="text-sm font-medium uppercase">{language}</span>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="bg-background">
         {languages.map((lang) => (
           <DropdownMenuItem
             key={lang.code}

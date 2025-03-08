@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, X } from 'lucide-react';
 import { SpaBooking } from '@/hooks/useSpaBookings';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SpaBookingDetailsProps {
   isOpen: boolean;
@@ -18,6 +19,8 @@ const SpaBookingDetails: React.FC<SpaBookingDetailsProps> = ({
   bookingDetails,
   onCancelBooking
 }) => {
+  const { formatPrice } = useLanguage();
+  
   if (!bookingDetails) return null;
 
   return (
@@ -59,11 +62,11 @@ const SpaBookingDetails: React.FC<SpaBookingDetailsProps> = ({
           <div className="pt-3 border-t">
             <div className="flex justify-between mb-2">
               <span className="text-muted-foreground">Service price</span>
-              <span>${bookingDetails.price.toFixed(2)}</span>
+              <span>{formatPrice(bookingDetails.price)}</span>
             </div>
             <div className="flex justify-between font-bold">
               <span>Total</span>
-              <span>${bookingDetails.price.toFixed(2)}</span>
+              <span>{formatPrice(bookingDetails.price)}</span>
             </div>
           </div>
           

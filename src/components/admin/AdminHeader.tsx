@@ -4,6 +4,7 @@ import { User, LogOut, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSwitcher from '../LanguageSwitcher';
+import CurrencySwitcher from '../CurrencySwitcher';
 
 interface AdminHeaderProps {
   onSignOut: () => void;
@@ -18,6 +19,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ onSignOut }) => {
         <h1 className="text-xl font-bold">Hotel Admin Dashboard</h1>
         
         <div className="flex items-center space-x-4">
+          <CurrencySwitcher />
           <LanguageSwitcher />
           
           <Button variant="outline" size="sm" onClick={onSignOut}>

@@ -2,6 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ShoppingBag } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface CartButtonProps {
   cartItems: { item: any; quantity: number }[];
@@ -10,6 +11,8 @@ interface CartButtonProps {
 }
 
 const CartButton: React.FC<CartButtonProps> = ({ cartItems, calculateTotal, openCart }) => {
+  const { formatPrice } = useLanguage();
+  
   if (cartItems.length === 0) return null;
 
   return (
@@ -26,7 +29,7 @@ const CartButton: React.FC<CartButtonProps> = ({ cartItems, calculateTotal, open
         <span className="font-medium">
           {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'}
         </span>
-        <span className="font-bold">${calculateTotal().toFixed(2)}</span>
+        <span className="font-bold">{formatPrice(calculateTotal())}</span>
       </button>
     </motion.div>
   );

@@ -5,6 +5,7 @@ import { ShoppingBag, X, Clock, CreditCard, Banknote } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { MenuItemType } from '../MenuItem';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface CartProps {
   isOpen: boolean;
@@ -27,6 +28,8 @@ const Cart: React.FC<CartProps> = ({
   setPaymentMethod,
   onSubmitOrder,
 }) => {
+  const { formatPrice } = useLanguage();
+  
   if (!isOpen) return null;
 
   const calculateTotal = () => {
@@ -89,13 +92,13 @@ const Cart: React.FC<CartProps> = ({
                       <h3 className="font-medium">{cartItem.item.name}</h3>
                       <div className="flex items-center mt-1">
                         <span className="text-sm text-muted-foreground">
-                          ${cartItem.item.price.toFixed(2)} × {cartItem.quantity}
+                          {formatPrice(cartItem.item.price)} × {cartItem.quantity}
                         </span>
                       </div>
                     </div>
                     <div className="flex items-center">
                       <span className="font-medium mr-4">
-                        ${(cartItem.item.price * cartItem.quantity).toFixed(2)}
+                        {formatPrice(cartItem.item.price * cartItem.quantity)}
                       </span>
                       <button
                         onClick={() => onRemoveFromCart(cartItem.item.id)}
@@ -111,15 +114,15 @@ const Cart: React.FC<CartProps> = ({
               <div className="border-t border-border pt-4 mb-8">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-medium">${calculateTotal().toFixed(2)}</span>
+                  <span className="font-medium">{formatPrice(calculateTotal())}</span>
                 </div>
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-muted-foreground">Service charge (10%)</span>
-                  <span className="font-medium">${(calculateTotal() * 0.1).toFixed(2)}</span>
+                  <span className="font-medium">{formatPrice(calculateTotal() * 0.1)}</span>
                 </div>
                 <div className="flex justify-between items-center font-bold text-lg mt-4">
                   <span>Total</span>
-                  <span>${(calculateTotal() * 1.1).toFixed(2)}</span>
+                  <span>{formatPrice(calculateTotal() * 1.1)}</span>
                 </div>
               </div>
               

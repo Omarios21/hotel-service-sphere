@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { Plus, Minus, ShoppingCart } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export interface MenuItemType {
   id: string;
@@ -20,6 +21,7 @@ interface MenuItemProps {
 const MenuItem: React.FC<MenuItemProps> = ({ item, onAddToCart }) => {
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const { formatPrice } = useLanguage();
   
   const handleIncrement = () => {
     setQuantity(prev => Math.min(prev + 1, 10));
@@ -52,7 +54,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, onAddToCart }) => {
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">
           <h3 className="font-medium text-base">{item.name}</h3>
-          <span className="font-medium text-primary">${item.price.toFixed(2)}</span>
+          <span className="font-medium text-primary">{formatPrice(item.price)}</span>
         </div>
         <p className="text-muted-foreground text-sm mb-4 line-clamp-2">{item.description}</p>
         
