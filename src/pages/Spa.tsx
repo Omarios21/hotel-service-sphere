@@ -43,6 +43,7 @@ const Spa: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("services");
   const [spaServices, setSpaServices] = useState<SpaService[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
   // Sample time slots - In a real app, these could be fetched from the server based on date
   const timeSlots: TimeSlot[] = [
@@ -60,20 +61,30 @@ const Spa: React.FC = () => {
   useEffect(() => {
     const fetchSpaServices = async () => {
       setIsLoading(true);
+      setErrorMessage(null);
+      
       try {
+        console.log('Fetching spa services...');
         const { data, error } = await supabase
           .from('spa_services')
-          .select('*')
-          .eq('available', true);
+          .select('*');
         
         if (error) {
           throw error;
         }
         
-        setSpaServices(data);
+        console.log('Spa services data:', data);
+        
+        if (data && data.length > 0) {
+          setSpaServices(data);
+        } else {
+          console.log('No spa services found');
+          setErrorMessage('No spa services available. Please check back later.');
+        }
       } catch (error) {
         console.error('Error fetching spa services:', error);
-        toast.error('Failed to load spa services. Please try again later.');
+        setErrorMessage('Failed to load spa services. Please try again later.');
+        toast.error('Failed to load spa services.');
       } finally {
         setIsLoading(false);
       }
@@ -179,6 +190,14 @@ const Spa: React.FC = () => {
             {isLoading ? (
               <div className="flex justify-center py-12">
                 <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+              </div>
+            ) : errorMessage ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">{errorMessage}</p>
+              </div>
+            ) : spaServices.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No spa services are currently available.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

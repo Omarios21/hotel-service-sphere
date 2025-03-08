@@ -35,24 +35,37 @@ const Activities: React.FC = () => {
   const [isBooking, setIsBooking] = useState(false);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
   useEffect(() => {
     const fetchActivities = async () => {
       setIsLoading(true);
+      setErrorMessage(null);
+      
       try {
+        console.log('Fetching activities...');
         // Fetch activities
         const { data: activitiesData, error: activitiesError } = await supabase
           .from('activities')
-          .select('*')
-          .eq('available', true);
+          .select('*');
         
         if (activitiesError) {
           throw activitiesError;
         }
 
+        console.log('Activities data:', activitiesData);
+
+        if (!activitiesData || activitiesData.length === 0) {
+          console.log('No activities found');
+          setErrorMessage('No activities available. Please check back later.');
+          setIsLoading(false);
+          return;
+        }
+
         // For each activity, fetch its available dates
         const activitiesWithDates = await Promise.all(
           activitiesData.map(async (activity) => {
+            console.log('Fetching dates for activity:', activity.id);
             const { data: datesData, error: datesError } = await supabase
               .from('activity_dates')
               .select('date')
@@ -66,17 +79,21 @@ const Activities: React.FC = () => {
               };
             }
 
+            console.log('Dates for activity', activity.id, ':', datesData);
+
             return {
               ...activity,
-              availableDates: datesData.map(d => d.date)
+              availableDates: datesData ? datesData.map(d => d.date) : []
             };
           })
         );
 
+        console.log('Activities with dates:', activitiesWithDates);
         setActivities(activitiesWithDates);
       } catch (error) {
         console.error('Error fetching activities:', error);
-        toast.error('Failed to load activities. Please try again later.');
+        setErrorMessage('Failed to load activities. Please try again later.');
+        toast.error('Failed to load activities.');
       } finally {
         setIsLoading(false);
       }
@@ -146,6 +163,14 @@ const Activities: React.FC = () => {
         {isLoading ? (
           <div className="flex justify-center py-12">
             <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+          </div>
+        ) : errorMessage ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">{errorMessage}</p>
+          </div>
+        ) : activities.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No activities are currently available.</p>
           </div>
         ) : !selectedActivity ? (
           // Activity selection view

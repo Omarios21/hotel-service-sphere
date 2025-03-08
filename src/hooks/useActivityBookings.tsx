@@ -50,9 +50,12 @@ export const useActivityBookings = () => {
       bookingTime
     };
     
+    console.log('Creating activity booking:', bookingDetails);
+    console.log('Activity ID:', activityDetails.id);
+    
     // Save to Supabase
     try {
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from('activity_bookings')
         .insert({
           activity_id: activityDetails.id,
@@ -63,7 +66,10 @@ export const useActivityBookings = () => {
           guest_count: activityDetails.guestCount,
           total_price: activityDetails.price * activityDetails.guestCount,
           booking_time: bookingTime
-        });
+        })
+        .select();
+
+      console.log('Supabase insert response:', data, error);
 
       if (error) {
         console.error('Error saving booking to Supabase:', error);
@@ -95,14 +101,19 @@ export const useActivityBookings = () => {
           .eq('booking_id', currentBooking.bookingId)
           .single();
         
+        console.log('Find booking response:', data, error);
+        
         if (error) {
           console.error('Error finding booking to delete:', error);
         } else if (data) {
           // Delete from Supabase
-          const { error: deleteError } = await supabase
+          const { error: deleteError, data: deleteData } = await supabase
             .from('activity_bookings')
             .delete()
-            .eq('id', data.id);
+            .eq('id', data.id)
+            .select();
+          
+          console.log('Delete booking response:', deleteData, deleteError);
           
           if (deleteError) {
             console.error('Error deleting booking from Supabase:', deleteError);
