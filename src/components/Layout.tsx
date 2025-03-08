@@ -20,7 +20,7 @@ const Layout: React.FC<LayoutProps> = ({ children, hideHeader = false }) => {
   return (
     <div className="flex flex-col h-full w-full bg-background overflow-hidden">
       {!hideHeader && !isAuthPage && <Header />}
-      <main className="flex-1 overflow-auto pb-16">
+      <main className="flex-1 overflow-auto pb-24">
         <div className="animate-fade-in mx-auto max-w-screen-xl px-4 sm:px-6 w-full h-full">
           {children}
         </div>

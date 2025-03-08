@@ -16,9 +16,9 @@ const ChatBubble: React.FC = () => {
       <Button 
         onClick={handleChatClick} 
         size="icon" 
-        className="h-12 w-12 rounded-full shadow-lg"
+        className="h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90"
       >
-        <MessageCircle className="h-6 w-6" />
+        <MessageCircle className="h-6 w-6 text-primary-foreground" />
         <span className="sr-only">Chat with Reception</span>
       </Button>
     </div>
