@@ -72,7 +72,7 @@ const Activities: React.FC = () => {
       location: 'Helipad',
       duration: '45 minutes',
       price: 350,
-      image: 'https://images.unsplash.com/photo-1608322368986-0cc6274ae0c3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      image: 'https://i0.wp.com/theluxurytravelexpert.com/wp-content/uploads/2021/09/most-spectacular-helicopter-tours-in-the-world.jpeg?fit=2048%2C1152&ssl=1',
       availableDates: ['2023-10-07', '2023-10-09', '2023-10-11']
     },
     {
