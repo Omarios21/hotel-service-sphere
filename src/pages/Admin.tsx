@@ -19,45 +19,60 @@ const Admin: React.FC = () => {
     const checkAdmin = async () => {
       try {
         setLoading(true);
+        console.log('Checking admin status...');
         
         // Check if user is logged in
         const { data: session } = await supabase.auth.getSession();
         if (!session.session) {
+          console.log('No session found, redirecting to auth');
           toast.error('You must be logged in to access the admin area');
           navigate('/auth');
           return;
         }
         
-        // First verify if this user already has an admin record
-        const { data: adminData, error: adminError } = await supabase
-          .from('admins')
-          .select('*')
-          .eq('user_id', session.session.user.id)
-          .maybeSingle();
+        console.log('User is logged in:', session.session.user.id);
         
-        if (adminError) {
-          console.error('Error checking admin status:', adminError);
-          toast.error('Error checking admin status');
-          setIsAdmin(false);
-        } else if (adminData) {
-          // User already has admin privileges
-          console.log('User is already an admin:', adminData);
-          setIsAdmin(true);
-        } else {
-          // User doesn't have admin privileges yet, create admin record
-          console.log('Creating admin record for user:', session.session.user.id);
+        // Always create admin record for any logged in user
+        // Skip checking if record exists and just try to insert
+        try {
           const { error: insertError } = await supabase
             .from('admins')
-            .insert({ user_id: session.session.user.id });
+            .insert({ user_id: session.session.user.id })
+            .select();
           
           if (insertError) {
-            console.error('Error creating admin:', insertError);
-            toast.error('Error creating admin user');
-            setIsAdmin(false);
+            // If error is about duplicate, that's fine - user is already an admin
+            console.log('Insert result:', insertError);
+            if (insertError.code === '23505') { // Unique violation error
+              console.log('User is already an admin (duplicate key)');
+              setIsAdmin(true);
+            } else {
+              console.error('Error creating admin:', insertError);
+              toast.error('Error setting up admin access');
+              setIsAdmin(false);
+            }
           } else {
             console.log('Admin record created successfully');
             setIsAdmin(true);
             toast.success('You have been granted admin access');
+          }
+        } catch (error) {
+          console.error('Admin creation error:', error);
+          toast.error('Error checking admin status');
+          setIsAdmin(false);
+        }
+        
+        // Double-check that admin access is set properly
+        if (!isAdmin) {
+          const { data: adminCheck } = await supabase
+            .from('admins')
+            .select('*')
+            .eq('user_id', session.session.user.id)
+            .maybeSingle();
+          
+          console.log('Double-checking admin status:', adminCheck);
+          if (adminCheck) {
+            setIsAdmin(true);
           }
         }
       } catch (error) {
