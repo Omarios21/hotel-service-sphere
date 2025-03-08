@@ -4,8 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import ServiceCard from '../components/ServiceCard';
 import { motion } from 'framer-motion';
-import { Utensils, Scissors, MapPin, UserIcon, Calendar, Clock } from 'lucide-react';
+import { Utensils, Clock, Calendar, Package } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import DeliveryStatus from '@/components/home/DeliveryStatus';
+import DeliveryFollowUp from '@/components/room-service/DeliveryFollowUp';
 
 interface Activity {
   id: string;
@@ -18,6 +20,8 @@ interface Activity {
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const roomId = localStorage.getItem('roomId');
+  const [isDeliveryDetailsOpen, setIsDeliveryDetailsOpen] = useState(false);
+  const [currentOrder, setCurrentOrder] = useState<any>(null);
   
   // Sample hotel information
   const hotelInfo = {
@@ -52,6 +56,38 @@ const Home: React.FC = () => {
     }
   ]);
   
+  // Listen for order updates
+  useEffect(() => {
+    const checkCurrentOrder = () => {
+      const savedOrder = localStorage.getItem('currentRoomServiceOrder');
+      if (savedOrder) {
+        try {
+          setCurrentOrder(JSON.parse(savedOrder));
+        } catch (e) {
+          console.error('Error parsing saved order', e);
+          setCurrentOrder(null);
+        }
+      } else {
+        setCurrentOrder(null);
+      }
+    };
+    
+    // Check on initial load
+    checkCurrentOrder();
+    
+    // Listen for storage changes
+    window.addEventListener('storage', checkCurrentOrder);
+    
+    // Listen for custom event when order is placed
+    const handleOrderUpdate = () => checkCurrentOrder();
+    window.addEventListener('orderUpdated', handleOrderUpdate);
+    
+    return () => {
+      window.removeEventListener('storage', checkCurrentOrder);
+      window.removeEventListener('orderUpdated', handleOrderUpdate);
+    };
+  }, []);
+  
   useEffect(() => {
     // If no roomId is found in localStorage, redirect to authentication page
     if (!roomId) {
@@ -66,27 +102,6 @@ const Home: React.FC = () => {
       description: 'Order food and beverages directly to your room',
       icon: <Utensils className="h-6 w-6" />,
       path: '/room-service'
-    },
-    {
-      id: 'spa',
-      title: 'Spa & Wellness',
-      description: 'Book relaxing spa treatments and massages',
-      icon: <Scissors className="h-6 w-6" />,
-      path: '/spa'
-    },
-    {
-      id: 'activities',
-      title: 'Activities',
-      description: 'Discover and book exciting activities and experiences',
-      icon: <MapPin className="h-6 w-6" />,
-      path: '/activities'
-    },
-    {
-      id: 'profile',
-      title: 'My Profile',
-      description: 'View your orders, bookings and preferences',
-      icon: <UserIcon className="h-6 w-6" />,
-      path: '/profile'
     }
   ];
   
@@ -149,6 +164,14 @@ const Home: React.FC = () => {
           </p>
         </motion.div>
         
+        {/* Delivery Status Section - New */}
+        {currentOrder && (
+          <DeliveryStatus 
+            orderDetails={currentOrder} 
+            showDetailsModal={() => setIsDeliveryDetailsOpen(true)}
+          />
+        )}
+        
         {/* Activities Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -193,12 +216,12 @@ const Home: React.FC = () => {
           </div>
         </motion.div>
         
-        {/* Services Grid */}
+        {/* Services Grid - Showing only Room Service now */}
         <motion.div
           variants={container}
           initial="hidden"
           animate="show"
-          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+          className="grid grid-cols-1 gap-4"
         >
           {services.map((service) => (
             <motion.div key={service.id} variants={item}>
@@ -211,6 +234,13 @@ const Home: React.FC = () => {
             </motion.div>
           ))}
         </motion.div>
+        
+        {/* Delivery details modal */}
+        <DeliveryFollowUp
+          isOpen={isDeliveryDetailsOpen}
+          onClose={() => setIsDeliveryDetailsOpen(false)}
+          orderDetails={currentOrder || undefined}
+        />
       </div>
     </Layout>
   );

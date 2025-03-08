@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { MenuItemType } from '@/components/MenuItem';
@@ -13,7 +12,6 @@ export const useRoomService = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('all');
   
-  // Delivery follow-up state
   const [isDeliveryTracking, setIsDeliveryTracking] = useState(false);
   const [currentOrder, setCurrentOrder] = useState<{
     orderId: string;
@@ -22,7 +20,6 @@ export const useRoomService = () => {
     orderTime: string;
   } | null>(null);
   
-  // Check for ongoing order in localStorage
   useEffect(() => {
     const savedOrder = localStorage.getItem('currentRoomServiceOrder');
     if (savedOrder) {
@@ -34,7 +31,6 @@ export const useRoomService = () => {
     }
   }, []);
 
-  // Categories for filtering
   const categories = [
     { id: 'all', name: 'All Items' },
     { id: 'breakfast', name: 'Breakfast' },
@@ -43,13 +39,11 @@ export const useRoomService = () => {
     { id: 'drinks', name: 'Drinks' }
   ];
 
-  // Fetch menu items from database or use mock data if error
   useEffect(() => {
     const fetchMenuItems = async () => {
       try {
         setIsLoading(true);
         
-        // Attempt to get data from Supabase
         const { data, error } = await supabase
           .from('menu_items')
           .select('*')
@@ -60,7 +54,6 @@ export const useRoomService = () => {
           throw error;
         }
         
-        // Transform data to match MenuItemType
         const transformedData = data.map(item => ({
           id: item.id,
           name: item.name,
@@ -74,7 +67,6 @@ export const useRoomService = () => {
       } catch (error) {
         console.error('Error fetching menu items:', error);
         
-        // Use mock data if there's an error with Supabase
         const mockMenuItems: MenuItemType[] = [
           {
             id: '1',
@@ -151,15 +143,12 @@ export const useRoomService = () => {
     
     fetchMenuItems();
   }, []);
-  
-  // Store cart in localStorage and dispatch event for header badge
+
   useEffect(() => {
     localStorage.setItem('roomServiceCart', JSON.stringify(cart));
-    // Dispatch event for header to update cart badge
     window.dispatchEvent(new Event('cartUpdated'));
   }, [cart]);
-  
-  // Listen for cart open event
+
   useEffect(() => {
     const handleOpenCart = () => {
       setIsCartOpen(true);
@@ -167,7 +156,6 @@ export const useRoomService = () => {
     
     window.addEventListener('openCart', handleOpenCart);
     
-    // Check if we should open cart on load (from navigation)
     const shouldOpenCart = sessionStorage.getItem('openCartOnLoad');
     if (shouldOpenCart === 'true') {
       setIsCartOpen(true);
@@ -178,8 +166,7 @@ export const useRoomService = () => {
       window.removeEventListener('openCart', handleOpenCart);
     };
   }, []);
-  
-  // Load cart from localStorage on initial render
+
   useEffect(() => {
     const savedCart = localStorage.getItem('roomServiceCart');
     if (savedCart) {
@@ -193,47 +180,42 @@ export const useRoomService = () => {
 
   const handleAddToCart = (item: MenuItemType, quantity: number) => {
     setCart(prevCart => {
-      // Check if item already exists in cart
       const existingItemIndex = prevCart.findIndex(cartItem => cartItem.item.id === item.id);
       
       if (existingItemIndex >= 0) {
-        // Update quantity if item exists
         const updatedCart = [...prevCart];
         updatedCart[existingItemIndex].quantity += quantity;
         toast.success(`Updated ${item.name} quantity in cart`, {
-          duration: 2000 // 2 seconds duration
+          duration: 2000
         });
         return updatedCart;
       } else {
-        // Add new item to cart
         toast.success(`Added ${item.name} to cart`, {
-          duration: 2000 // 2 seconds duration
+          duration: 2000
         });
         return [...prevCart, { item, quantity }];
       }
     });
   };
-  
+
   const handleRemoveFromCart = (itemId: string) => {
     setCart(prevCart => prevCart.filter(cartItem => cartItem.item.id !== itemId));
     toast.info('Item removed from cart', {
-      duration: 2000 // 2 seconds duration
+      duration: 2000
     });
   };
-  
+
   const calculateTotal = () => {
     return cart.reduce((sum, cartItem) => sum + (cartItem.item.price * cartItem.quantity), 0);
   };
-  
+
   const handleSubmitOrder = () => {
     if (cart.length === 0 || !paymentMethod) return;
     
     setIsSubmitting(true);
     
-    // Generate order ID
     const orderId = `ORD-${Math.floor(Math.random() * 10000)}`;
     
-    // Get estimated delivery time
     const now = new Date();
     const minTime = new Date(now.getTime() + 20 * 60000);
     const maxTime = new Date(now.getTime() + 40 * 60000);
@@ -243,13 +225,11 @@ export const useRoomService = () => {
       max: maxTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
     
-    // Create order items
     const orderItems = cart.map(item => ({
       name: item.item.name,
       quantity: item.quantity
     }));
     
-    // Create order object
     const orderDetails = {
       orderId,
       estimatedDelivery: deliveryEstimate,
@@ -257,39 +237,33 @@ export const useRoomService = () => {
       orderTime: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
     
-    // Simulate API call
     setTimeout(() => {
       setCart([]);
       setIsCartOpen(false);
       setIsSubmitting(false);
       setPaymentMethod(null);
       
-      // Store order in state and localStorage
       setCurrentOrder(orderDetails);
       localStorage.setItem('currentRoomServiceOrder', JSON.stringify(orderDetails));
       
-      // Clear localStorage cart
       localStorage.removeItem('roomServiceCart');
       
-      // Update cart badge
       window.dispatchEvent(new Event('cartUpdated'));
       
-      // Show success toast
+      window.dispatchEvent(new Event('orderUpdated'));
+      
       toast.success('Your order has been placed successfully!', {
         duration: 2000
       });
       
-      // Open delivery tracking
       setIsDeliveryTracking(true);
     }, 1500);
   };
 
-  // Close delivery tracking
   const closeDeliveryTracking = () => {
     setIsDeliveryTracking(false);
   };
-  
-  // Filter menu items by category
+
   const filteredMenuItems = activeCategory === 'all'
     ? menuItems
     : menuItems.filter(item => item.category === activeCategory);
