@@ -18,11 +18,17 @@ const LanguageSwitcher: React.FC = () => {
     { code: 'fr', name: 'Français' }
   ];
   
+  // Get the full name of the currently selected language
+  const getCurrentLanguageName = () => {
+    const currentLang = languages.find(lang => lang.code === language);
+    return currentLang ? currentLang.name : 'English';
+  };
+  
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex items-center space-x-1 p-1 rounded-md hover:bg-muted transition-colors">
         <Globe className="h-5 w-5" />
-        <span className="text-sm font-medium uppercase">{language}</span>
+        <span className="text-sm font-medium">{getCurrentLanguageName()}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-background">
         {languages.map((lang) => (

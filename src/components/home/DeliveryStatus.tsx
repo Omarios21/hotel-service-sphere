@@ -5,6 +5,7 @@ import { Package, Timer, MapPin, X } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface DeliveryStatusProps {
   orderDetails?: {
@@ -24,6 +25,7 @@ const DeliveryStatus: React.FC<DeliveryStatusProps> = ({
   showDetailsModal
 }) => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   
   if (!orderDetails) return null;
   
@@ -37,9 +39,9 @@ const DeliveryStatus: React.FC<DeliveryStatusProps> = ({
   if (elapsedMinutes >= 10) currentStep = 3; // On the way (after 10 minutes)
   
   const steps = [
-    { id: 1, name: 'Order Received', icon: <Package className="h-5 w-5" />, color: 'bg-primary' },
-    { id: 2, name: 'Preparing Order', icon: <Timer className="h-5 w-5" />, color: 'bg-muted-foreground' },
-    { id: 3, name: 'Order on the Way', icon: <MapPin className="h-5 w-5" />, color: 'bg-muted-foreground' },
+    { id: 1, name: t('roomService.orderReceived') || 'Order Received', icon: <Package className="h-5 w-5" />, color: 'bg-primary' },
+    { id: 2, name: t('roomService.preparingOrder') || 'Preparing Order', icon: <Timer className="h-5 w-5" />, color: 'bg-muted-foreground' },
+    { id: 3, name: t('roomService.orderOnWay') || 'Order on the Way', icon: <MapPin className="h-5 w-5" />, color: 'bg-muted-foreground' },
   ];
   
   return (
@@ -51,18 +53,18 @@ const DeliveryStatus: React.FC<DeliveryStatusProps> = ({
     >
       <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
         <Package className="h-5 w-5 text-primary" />
-        Room Service Delivery
+        {t('roomService.deliveryTitle') || 'Room Service Delivery'}
       </h2>
       
       <Card className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-slate-900 dark:to-indigo-950/50 border shadow">
         <CardHeader className="pb-2">
           <div className="flex justify-between items-start">
             <div>
-              <h3 className="font-medium">Order #{orderDetails.orderId}</h3>
-              <p className="text-sm text-muted-foreground">Ordered at: {orderDetails.orderTime}</p>
+              <h3 className="font-medium">{t('roomService.orderNumber') || 'Order'} #{orderDetails.orderId}</h3>
+              <p className="text-sm text-muted-foreground">{t('roomService.orderedAt') || 'Ordered at'}: {orderDetails.orderTime}</p>
             </div>
             <Button variant="ghost" size="sm" className="h-8 px-2" onClick={showDetailsModal}>
-              View Details
+              {t('button.view') || 'View Details'}
             </Button>
           </div>
         </CardHeader>
@@ -97,9 +99,9 @@ const DeliveryStatus: React.FC<DeliveryStatusProps> = ({
           
           {/* Delivery estimate */}
           <div className="bg-muted/30 p-3 rounded-md text-sm">
-            <p className="font-medium">Estimated Delivery</p>
+            <p className="font-medium">{t('roomService.estimatedDelivery') || 'Estimated Delivery'}</p>
             <p className="text-muted-foreground">
-              Between {orderDetails.estimatedDelivery.min} and {orderDetails.estimatedDelivery.max}
+              {t('roomService.betweenTimes') || 'Between'} {orderDetails.estimatedDelivery.min} {t('roomService.and') || 'and'} {orderDetails.estimatedDelivery.max}
             </p>
           </div>
         </CardContent>

@@ -14,6 +14,7 @@ import ActivityBookingStatus from '@/components/activities/ActivityBookingStatus
 import ActivityBookingDetails from '@/components/activities/ActivityBookingDetails';
 import { SpaBooking } from '@/hooks/useSpaBookings';
 import { ActivityBooking } from '@/hooks/useActivityBookings';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Activity {
   id: string;
@@ -25,6 +26,7 @@ interface Activity {
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const roomId = localStorage.getItem('roomId');
   const [isDeliveryDetailsOpen, setIsDeliveryDetailsOpen] = useState(false);
   const [isSpaDetailsOpen, setIsSpaDetailsOpen] = useState(false);
@@ -140,14 +142,14 @@ const Home: React.FC = () => {
     localStorage.removeItem('currentSpaBooking');
     setCurrentSpaBooking(null);
     setIsSpaDetailsOpen(false);
-    toast.success('Spa appointment cancelled successfully');
+    toast.success(t('spa.cancelSuccess') || 'Spa appointment cancelled successfully');
   };
   
   const clearActivityBooking = () => {
     localStorage.removeItem('currentActivityBooking');
     setCurrentActivityBooking(null);
     setIsActivityDetailsOpen(false);
-    toast.success('Activity booking cancelled successfully');
+    toast.success(t('activities.cancelSuccess') || 'Activity booking cancelled successfully');
   };
   
   useEffect(() => {
@@ -183,10 +185,10 @@ const Home: React.FC = () => {
           className="text-center mb-8"
         >
           <h1 className="text-4xl font-light tracking-wide text-primary sm:text-5xl mb-2 font-serif">
-            Welcome to Suite {roomId}
+            {t('home.welcomeTitle')} {roomId}
           </h1>
           <p className="text-muted-foreground font-light italic">
-            We're delighted to have you with us
+            {t('home.welcomeText')}
           </p>
         </motion.div>
         
@@ -210,7 +212,7 @@ const Home: React.FC = () => {
                         <Clock className="h-5 w-5 text-primary/80" />
                       </div>
                       <div>
-                        <span className="text-muted-foreground font-light">Check-out</span>
+                        <span className="text-muted-foreground font-light">{t('home.checkout')}</span>
                         <p className="font-medium text-base">{hotelInfo.checkoutTime}</p>
                       </div>
                     </div>
@@ -220,7 +222,7 @@ const Home: React.FC = () => {
                         <Wifi className="h-5 w-5 text-primary/80" />
                       </div>
                       <div>
-                        <span className="text-muted-foreground font-light">WiFi Access</span>
+                        <span className="text-muted-foreground font-light">{t('home.wifiAccess') || 'WiFi Access'}</span>
                         <p className="font-medium font-mono text-base">{hotelInfo.wifiCode}</p>
                       </div>
                     </div>
@@ -243,9 +245,9 @@ const Home: React.FC = () => {
                 <div className="mb-4 bg-primary/10 p-3 rounded-full">
                   <Calendar className="h-6 w-6 text-primary/80" />
                 </div>
-                <h3 className="text-lg font-medium mb-2">No Current Reservations</h3>
+                <h3 className="text-lg font-medium mb-2">{t('home.noReservations')}</h3>
                 <p className="text-muted-foreground font-light mb-4">
-                  You don't have any active <strong>room service</strong> orders, <strong>spa</strong> appointments, or <strong>activity</strong> bookings.
+                  {t('home.noReservationsDesc')}
                 </p>
               </div>
             </Card>
@@ -282,14 +284,14 @@ const Home: React.FC = () => {
           <div className="flex justify-between items-center mb-5">
             <h2 className="text-2xl font-serif font-light text-primary flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary/70" />
-              Today's Activities
+              {t('home.todayActivities')}
             </h2>
             <Button 
               variant="ghost" 
               className="text-muted-foreground font-light hover:text-primary text-sm"
               onClick={() => navigate('/activities')}
             >
-              View All <ChevronRight className="h-4 w-4" />
+              {t('home.viewAll')} <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
           
@@ -321,7 +323,7 @@ const Home: React.FC = () => {
                       <h3 className="font-medium text-primary">{activity.title}</h3>
                       {activity.status === 'ongoing' && (
                         <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
-                          Now
+                          {t('status.ongoing')}
                         </span>
                       )}
                     </div>
@@ -341,7 +343,7 @@ const Home: React.FC = () => {
                   className="text-primary/70 hover:text-primary hover:bg-primary/5"
                   onClick={() => navigate('/activities')}
                 >
-                  Details
+                  {t('button.view')}
                 </Button>
               </motion.div>
             ))}

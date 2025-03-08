@@ -68,14 +68,14 @@ export const translations: Translations = {
   
   // Home page
   'home.welcomeTitle': {
-    en: 'Welcome to Your Stay',
-    es: 'Bienvenido a su estancia',
-    fr: 'Bienvenue pour votre séjour'
+    en: 'Welcome to Suite',
+    es: 'Bienvenido a la Suite',
+    fr: 'Bienvenue dans la Suite'
   },
   'home.welcomeText': {
-    en: 'Experience premium services and amenities',
-    es: 'Experimente servicios y comodidades premium',
-    fr: 'Découvrez des services et équipements premium'
+    en: "We're delighted to have you with us",
+    es: 'Estamos encantados de tenerle con nosotros',
+    fr: 'Nous sommes ravis de vous avoir parmi nous'
   },
   'home.roomInfo': {
     en: 'Room Information',
@@ -88,9 +88,14 @@ export const translations: Translations = {
     fr: 'Chambre'
   },
   'home.checkout': {
-    en: 'Checkout',
+    en: 'Check-out',
     es: 'Salida',
     fr: 'Départ'
+  },
+  'home.wifiAccess': {
+    en: 'WiFi Access',
+    es: 'Acceso WiFi',
+    fr: 'Accès WiFi'
   },
   'home.todayActivities': {
     en: "Today's Activities",
@@ -126,6 +131,65 @@ export const translations: Translations = {
     en: 'View Activities',
     es: 'Ver actividades',
     fr: 'Voir les activités'
+  },
+  
+  // Room Service
+  'roomService.deliveryTitle': {
+    en: 'Room Service Delivery',
+    es: 'Entrega de Servicio a la Habitación',
+    fr: 'Livraison du Service de Chambre'
+  },
+  'roomService.orderNumber': {
+    en: 'Order',
+    es: 'Pedido',
+    fr: 'Commande'
+  },
+  'roomService.orderedAt': {
+    en: 'Ordered at',
+    es: 'Ordenado a las',
+    fr: 'Commandé à'
+  },
+  'roomService.estimatedDelivery': {
+    en: 'Estimated Delivery',
+    es: 'Entrega Estimada',
+    fr: 'Livraison Estimée'
+  },
+  'roomService.betweenTimes': {
+    en: 'Between',
+    es: 'Entre',
+    fr: 'Entre'
+  },
+  'roomService.and': {
+    en: 'and',
+    es: 'y',
+    fr: 'et'
+  },
+  'roomService.orderReceived': {
+    en: 'Order Received',
+    es: 'Pedido Recibido',
+    fr: 'Commande Reçue'
+  },
+  'roomService.preparingOrder': {
+    en: 'Preparing Order',
+    es: 'Preparando Pedido',
+    fr: 'Préparation de la Commande'
+  },
+  'roomService.orderOnWay': {
+    en: 'Order on the Way',
+    es: 'Pedido en Camino',
+    fr: 'Commande en Route'
+  },
+  
+  // Spa and Activities
+  'spa.cancelSuccess': {
+    en: 'Spa appointment cancelled successfully',
+    es: 'Cita de spa cancelada con éxito',
+    fr: 'Rendez-vous spa annulé avec succès'
+  },
+  'activities.cancelSuccess': {
+    en: 'Activity booking cancelled successfully',
+    es: 'Reserva de actividad cancelada con éxito',
+    fr: 'Réservation d\'activité annulée avec succès'
   },
   
   // Currency settings
