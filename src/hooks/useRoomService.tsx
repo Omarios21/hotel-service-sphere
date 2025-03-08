@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { MenuItemType } from '@/components/MenuItem';
@@ -79,7 +78,6 @@ export const useRoomService = () => {
     };
     
     const useFallbackMenuData = () => {
-      // Fallback menu data without showing a toast notification
       const mockMenuItems: MenuItemType[] = [
         {
           id: '1',
@@ -154,7 +152,9 @@ export const useRoomService = () => {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('roomServiceCart', JSON.stringify(cart));
+    if (cart.length > 0) {
+      localStorage.setItem('roomServiceCart', JSON.stringify(cart));
+    }
     window.dispatchEvent(new Event('cartUpdated'));
   }, [cart]);
 
@@ -180,7 +180,10 @@ export const useRoomService = () => {
     const savedCart = localStorage.getItem('roomServiceCart');
     if (savedCart) {
       try {
-        setCart(JSON.parse(savedCart));
+        const parsedCart = JSON.parse(savedCart);
+        if (Array.isArray(parsedCart) && parsedCart.length > 0) {
+          setCart(parsedCart);
+        }
       } catch (e) {
         console.error('Error parsing saved cart', e);
       }

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { MenuItemType } from '../MenuItem';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -27,6 +27,13 @@ const MenuItemDetails: React.FC<MenuItemDetailsProps> = ({
 }) => {
   const { formatPrice } = useLanguage();
   const [quantity, setQuantity] = useState(1);
+  
+  // Reset quantity to 1 when a different item is selected
+  useEffect(() => {
+    if (isOpen && item) {
+      setQuantity(1);
+    }
+  }, [isOpen, item?.id]);
   
   if (!item) return null;
   
