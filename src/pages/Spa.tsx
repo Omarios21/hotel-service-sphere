@@ -123,7 +123,7 @@ const Spa: React.FC = () => {
         description: 'Enjoy a relaxing massage experience with a partner in the same room.',
         duration: '60 min',
         price: 240,
-        image: 'https://images.unsplash.com/photo-1591343395082-e120087004b4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
+        image: 'https://media.istockphoto.com/id/508838512/fr/photo/jeune-couple-profiter-du-spa-durant-un-massage-du-dos.jpg?s=612x612&w=0&k=20&c=z8vawtuTVkGMl-8GVsdg8U7H_U5yS9Kg4USEGznpU_c='
       }
     ];
   };
