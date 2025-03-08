@@ -61,15 +61,15 @@ const SpaBookingStatus: React.FC<SpaBookingStatusProps> = ({
       className="mb-6"
     >
       <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
-        <Bath className="h-5 w-5 text-[#B8860B]" />
+        <Bath className="h-5 w-5 text-primary" />
         Spa Appointment
       </h2>
       
-      <Card className="bg-gradient-to-r from-[#0A2647]/5 to-[#144272]/10 dark:from-[#0A2647]/50 dark:to-[#144272]/50 border border-[#B8860B]/20 shadow">
+      <Card className="bg-gradient-to-r from-purple-50/50 to-blue-50/50 dark:from-purple-900/50 dark:to-blue-950/50 border shadow">
         <CardHeader className="pb-2">
           <div className="flex justify-between items-start">
             <div>
-              <h3 className="font-medium text-[#0A2647]">{bookingDetails.serviceName}</h3>
+              <h3 className="font-medium">{bookingDetails.serviceName}</h3>
               <p className="text-sm text-muted-foreground">
                 {new Date(bookingDetails.date).toLocaleDateString('en-US', {
                   weekday: 'long',
@@ -78,7 +78,7 @@ const SpaBookingStatus: React.FC<SpaBookingStatusProps> = ({
                 })} at {bookingDetails.time}
               </p>
             </div>
-            <Button variant="ghost" size="sm" className="h-8 px-2 text-[#0A2647] hover:text-[#B8860B]" onClick={showDetailsModal}>
+            <Button variant="ghost" size="sm" className="h-8 px-2" onClick={showDetailsModal}>
               View Details
             </Button>
           </div>
@@ -89,7 +89,7 @@ const SpaBookingStatus: React.FC<SpaBookingStatusProps> = ({
           <div className="relative mb-4 mt-2">
             <div className="overflow-hidden h-2 text-xs flex rounded bg-muted">
               <div 
-                className="bg-[#B8860B] rounded transition-all duration-500 ease-out"
+                className="bg-primary rounded transition-all duration-500 ease-out"
                 style={{ width: `${(currentStep / 3) * 100}%` }} 
               />
             </div>
@@ -98,12 +98,12 @@ const SpaBookingStatus: React.FC<SpaBookingStatusProps> = ({
               {steps.map((step) => (
                 <div key={step.id} className="flex flex-col items-center">
                   <div className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                    currentStep >= step.id ? 'bg-[#B8860B] text-white' : 'bg-muted text-muted-foreground'
+                    currentStep >= step.id ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
                   }`}>
                     {step.icon}
                   </div>
                   <span className={`text-xs mt-1 ${
-                    currentStep >= step.id ? 'text-[#0A2647] font-medium' : 'text-muted-foreground'
+                    currentStep >= step.id ? 'text-foreground' : 'text-muted-foreground'
                   }`}>
                     {step.name}
                   </span>
@@ -114,10 +114,10 @@ const SpaBookingStatus: React.FC<SpaBookingStatusProps> = ({
           
           {/* Time remaining */}
           {timeRemaining > 0 ? (
-            <div className="bg-muted/30 p-3 rounded-md text-sm border border-[#B8860B]/10">
+            <div className="bg-muted/30 p-3 rounded-md text-sm">
               <div className="flex items-center gap-2">
-                <Timer className="h-4 w-4 text-[#B8860B]" />
-                <p className="font-medium text-[#0A2647]">Time Until Appointment</p>
+                <Timer className="h-4 w-4 text-primary" />
+                <p className="font-medium">Time Until Appointment</p>
               </div>
               <p className="text-muted-foreground pl-6">
                 {hoursRemaining > 0 ? `${hoursRemaining} hours and ` : ''}
@@ -125,10 +125,10 @@ const SpaBookingStatus: React.FC<SpaBookingStatusProps> = ({
               </p>
             </div>
           ) : (
-            <div className="bg-[#B8860B]/10 p-3 rounded-md text-sm border border-[#B8860B]/20">
+            <div className="bg-primary/10 p-3 rounded-md text-sm">
               <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-[#B8860B]" />
-                <p className="font-medium text-[#0A2647]">Your appointment is now!</p>
+                <Clock className="h-4 w-4 text-primary" />
+                <p className="font-medium">Your appointment is now!</p>
               </div>
               <p className="text-muted-foreground pl-6">
                 Please proceed to the spa reception
