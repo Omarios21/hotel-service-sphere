@@ -1,13 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Layout from '../components/Layout';
 import { motion } from 'framer-motion';
-import { Calendar, Users, MapPin, Clock } from 'lucide-react';
+import { Calendar, Users, MapPin, Clock, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useActivityBookings } from '@/hooks/useActivityBookings';
 import ActivityBookingStatus from '@/components/activities/ActivityBookingStatus';
 import ActivityBookingDetails from '@/components/activities/ActivityBookingDetails';
-import { supabase } from '@/integrations/supabase/client';
 
 interface Activity {
   id: string;
@@ -33,76 +32,70 @@ const Activities: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [guestCount, setGuestCount] = useState(1);
   const [isBooking, setIsBooking] = useState(false);
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
-  useEffect(() => {
-    const fetchActivities = async () => {
-      setIsLoading(true);
-      setErrorMessage(null);
-      
-      try {
-        console.log('Fetching activities from database...');
-        // Fetch activities
-        const { data: activitiesData, error: activitiesError } = await supabase
-          .from('activities')
-          .select('*');
-        
-        if (activitiesError) {
-          console.error('Error fetching activities:', activitiesError);
-          throw activitiesError;
-        }
-
-        console.log('Raw activities data:', activitiesData);
-
-        if (!activitiesData || activitiesData.length === 0) {
-          console.log('No activities found in database');
-          setErrorMessage('No activities available. Please check back later.');
-          setActivities([]);
-          setIsLoading(false);
-          return;
-        }
-
-        // For each activity, fetch its available dates
-        const activitiesWithDates = await Promise.all(
-          activitiesData.map(async (activity) => {
-            console.log('Fetching dates for activity:', activity.id);
-            const { data: datesData, error: datesError } = await supabase
-              .from('activity_dates')
-              .select('date')
-              .eq('activity_id', activity.id);
-            
-            if (datesError) {
-              console.error('Error fetching dates for activity:', datesError);
-              return {
-                ...activity,
-                availableDates: []
-              };
-            }
-
-            console.log('Dates for activity', activity.id, ':', datesData);
-
-            return {
-              ...activity,
-              availableDates: datesData ? datesData.map(d => d.date) : []
-            };
-          })
-        );
-
-        console.log('Activities with dates:', activitiesWithDates);
-        setActivities(activitiesWithDates);
-      } catch (error) {
-        console.error('Error fetching activities:', error);
-        setErrorMessage('Failed to load activities. Please try again later.');
-        toast.error('Failed to load activities.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchActivities();
-  }, []);
+  // Sample activities
+  const activities: Activity[] = [
+    {
+      id: '1',
+      name: 'Guided Snorkeling Tour',
+      description: 'Explore the vibrant coral reefs and underwater life with an experienced guide.',
+      location: 'Hotel Beach',
+      duration: '2 hours',
+      price: 75,
+      image: 'https://images.unsplash.com/photo-1560275619-4cc5fa59d3be?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      availableDates: ['2023-10-05', '2023-10-06', '2023-10-08']
+    },
+    {
+      id: '2',
+      name: 'Sunset Sailing Cruise',
+      description: 'Enjoy the spectacular sunset views while cruising on a luxury catamaran.',
+      location: 'Marina Dock',
+      duration: '3 hours',
+      price: 120,
+      image: 'https://images.unsplash.com/photo-1500514966906-fe245eea9344?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      availableDates: ['2023-10-05', '2023-10-07', '2023-10-09']
+    },
+    {
+      id: '3',
+      name: 'Wine Tasting Experience',
+      description: 'Sample a selection of premium local and international wines with our sommelier.',
+      location: 'Hotel Wine Cellar',
+      duration: '1.5 hours',
+      price: 90,
+      image: 'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      availableDates: ['2023-10-06', '2023-10-08', '2023-10-10']
+    },
+    {
+      id: '4',
+      name: 'Helicopter Island Tour',
+      description: 'See the island from above with breathtaking aerial views of beaches and mountains.',
+      location: 'Helipad',
+      duration: '45 minutes',
+      price: 350,
+      image: 'https://images.unsplash.com/photo-1608322368986-0cc6274ae0c3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      availableDates: ['2023-10-07', '2023-10-09', '2023-10-11']
+    },
+    {
+      id: '5',
+      name: 'Cooking Class with Chef',
+      description: 'Learn to prepare local dishes with our executive chef using fresh, local ingredients.',
+      location: 'Hotel Kitchen',
+      duration: '2.5 hours',
+      price: 110,
+      image: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      availableDates: ['2023-10-06', '2023-10-08', '2023-10-10']
+    },
+    {
+      id: '6',
+      name: 'Guided Hiking Tour',
+      description: 'Explore scenic mountain trails with stunning views of the coastline.',
+      location: 'Mountain Trails',
+      duration: '4 hours',
+      price: 65,
+      image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      availableDates: ['2023-10-05', '2023-10-07', '2023-10-09']
+    }
+  ];
   
   const handleSelectActivity = (activity: Activity) => {
     setSelectedActivity(activity);
@@ -115,22 +108,21 @@ const Activities: React.FC = () => {
     
     setIsBooking(true);
     
-    // Create booking
-    createBooking({
-      id: selectedActivity.id,
-      name: selectedActivity.name,
-      date: selectedDate,
-      location: selectedActivity.location,
-      guestCount: guestCount,
-      price: selectedActivity.price
-    }).then(() => {
+    // Simulate API call
+    setTimeout(() => {
+      createBooking({
+        name: selectedActivity.name,
+        date: selectedDate,
+        location: selectedActivity.location,
+        guestCount: guestCount,
+        price: selectedActivity.price
+      });
+      
       setIsBooking(false);
       setSelectedActivity(null);
       setSelectedDate('');
       setGuestCount(1);
-    }).catch(() => {
-      setIsBooking(false);
-    });
+    }, 1500);
   };
   
   const handleCancelBooking = () => {
@@ -162,19 +154,7 @@ const Activities: React.FC = () => {
           />
         )}
         
-        {isLoading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-          </div>
-        ) : errorMessage && activities.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">{errorMessage}</p>
-          </div>
-        ) : activities.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No activities are currently available.</p>
-          </div>
-        ) : !selectedActivity ? (
+        {!selectedActivity ? (
           // Activity selection view
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {activities.map(activity => (
