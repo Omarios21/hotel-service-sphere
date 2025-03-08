@@ -48,6 +48,33 @@ const Auth: React.FC = () => {
     setPassword('password123');
   };
 
+  const createAdminUser = async (userId: string) => {
+    try {
+      // Check if admin record already exists
+      const { data: existingAdmin } = await supabase
+        .from('admins')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      // Only create admin if it doesn't exist
+      if (!existingAdmin) {
+        const { error: insertError } = await supabase
+          .from('admins')
+          .insert({ user_id: userId });
+          
+        if (insertError) {
+          console.error('Error creating admin:', insertError);
+          toast.error('Error setting up admin access');
+        } else {
+          toast.success('Admin access granted');
+        }
+      }
+    } catch (error) {
+      console.error('Admin creation error:', error);
+    }
+  };
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -55,7 +82,7 @@ const Auth: React.FC = () => {
     
     try {
       if (mode === 'login') {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
@@ -69,14 +96,25 @@ const Auth: React.FC = () => {
           }
           throw error;
         }
+        
+        // Create admin record for this user
+        if (data.user) {
+          await createAdminUser(data.user.id);
+        }
+        
         toast.success('Logged in successfully');
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
         });
         
         if (error) throw error;
+        
+        // Create admin record for this user if user was created
+        if (data.user) {
+          await createAdminUser(data.user.id);
+        }
         
         toast.success('Signup successful! Please check your email for confirmation if required.');
         setEmailConfirmationRequired(true);

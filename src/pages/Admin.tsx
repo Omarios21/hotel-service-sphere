@@ -27,7 +27,7 @@ const Admin: React.FC = () => {
           return;
         }
         
-        // Check if user is an admin
+        // Create admin record for this user if it doesn't exist yet
         const { data: adminData, error: adminError } = await supabase
           .from('admins')
           .select('*')
@@ -41,32 +41,18 @@ const Admin: React.FC = () => {
         } else if (adminData) {
           setIsAdmin(true);
         } else {
-          // If no admin exists, create the first user as admin
-          const { count, error: countError } = await supabase
+          // Automatically create admin record for any logged in user
+          const { error: insertError } = await supabase
             .from('admins')
-            .select('*', { count: 'exact', head: true });
+            .insert({ user_id: session.session.user.id });
           
-          if (countError) {
-            console.error('Error checking admins count:', countError);
+          if (insertError) {
+            console.error('Error creating admin:', insertError);
+            toast.error('Error creating admin user');
             setIsAdmin(false);
-          } else if (count === 0) {
-            // Make the first user who logs in an admin
-            const { error: insertError } = await supabase
-              .from('admins')
-              .insert({ user_id: session.session.user.id });
-            
-            if (insertError) {
-              console.error('Error creating admin:', insertError);
-              toast.error('Error creating admin user');
-            } else {
-              setIsAdmin(true);
-              toast.success('You have been made an admin as the first user');
-            }
           } else {
-            // Other users are not admins
-            setIsAdmin(false);
-            toast.error('You are not authorized to access the admin area');
-            navigate('/');
+            setIsAdmin(true);
+            toast.success('You have been granted admin access');
           }
         }
       } catch (error) {
