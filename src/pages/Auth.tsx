@@ -41,6 +41,52 @@ const Auth: React.FC = () => {
     };
   }, [navigate]);
 
+  // Create admin user if it doesn't exist
+  useEffect(() => {
+    const createAdminUser = async () => {
+      // Check if admin user exists
+      const { data: existingUser, error: searchError } = await supabase.auth.admin
+        .listUsers({ 
+          filter: { 
+            email: 'admin@hotel.ma' 
+          } 
+        });
+
+      if (searchError) {
+        console.error('Error checking for admin user:', searchError);
+        return;
+      }
+
+      // If admin user doesn't exist, create it
+      if (!existingUser || existingUser.length === 0) {
+        try {
+          // Sign up admin user
+          const { data: authData, error: signupError } = await supabase.auth.signUp({
+            email: 'admin@hotel.ma',
+            password: 'admin',
+          });
+          
+          if (signupError) throw signupError;
+          
+          if (authData.user) {
+            // Add user to admins table
+            const { error: adminError } = await supabase
+              .from('admins')
+              .insert({ user_id: authData.user.id });
+            
+            if (adminError) throw adminError;
+            
+            console.log('Admin user created successfully');
+          }
+        } catch (error: any) {
+          console.error('Error creating admin user:', error.message);
+        }
+      }
+    };
+    
+    createAdminUser();
+  }, []);
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -68,6 +114,11 @@ const Auth: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLoginAsAdmin = () => {
+    setEmail('admin@hotel.ma');
+    setPassword('admin');
   };
 
   return (
@@ -122,6 +173,16 @@ const Auth: React.FC = () => {
                   {mode === 'login' 
                     ? 'Need an account? Sign up' 
                     : 'Already have an account? Log in'}
+                </button>
+              </div>
+              
+              <div className="text-center mt-2 pt-2 border-t border-border">
+                <button
+                  type="button"
+                  onClick={handleLoginAsAdmin}
+                  className="text-sm text-muted-foreground hover:text-primary"
+                >
+                  Login as admin
                 </button>
               </div>
             </form>
