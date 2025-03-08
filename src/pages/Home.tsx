@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
@@ -35,7 +34,6 @@ const Home: React.FC = () => {
   const [currentSpaBooking, setCurrentSpaBooking] = useState<SpaBooking | null>(null);
   const [currentActivityBooking, setCurrentActivityBooking] = useState<ActivityBooking | null>(null);
   
-  // Sample hotel information
   const hotelInfo = {
     name: "Grand Azure Resort & Spa",
     tagline: "Where luxury meets tranquility",
@@ -43,7 +41,6 @@ const Home: React.FC = () => {
     wifiCode: "AZURE2025"
   };
   
-  // Sample upcoming and ongoing activities
   const [activities, setActivities] = useState<Activity[]>([
     {
       id: '1',
@@ -68,7 +65,6 @@ const Home: React.FC = () => {
     }
   ]);
 
-  // Sort activities to show ongoing events first
   useEffect(() => {
     const sortedActivities = [...activities].sort((a, b) => {
       if (a.status === 'ongoing' && b.status !== 'ongoing') {
@@ -84,10 +80,8 @@ const Home: React.FC = () => {
     }
   }, [activities]);
   
-  // Listen for order and booking updates
   useEffect(() => {
     const checkCurrentBookings = () => {
-      // Check room service order
       const savedOrder = localStorage.getItem('currentRoomServiceOrder');
       if (savedOrder) {
         try {
@@ -100,7 +94,6 @@ const Home: React.FC = () => {
         setCurrentOrder(null);
       }
       
-      // Check spa booking
       const savedSpaBooking = localStorage.getItem('currentSpaBooking');
       if (savedSpaBooking) {
         try {
@@ -113,7 +106,6 @@ const Home: React.FC = () => {
         setCurrentSpaBooking(null);
       }
       
-      // Check activity booking
       const savedActivityBooking = localStorage.getItem('currentActivityBooking');
       if (savedActivityBooking) {
         try {
@@ -127,13 +119,10 @@ const Home: React.FC = () => {
       }
     };
     
-    // Check on initial load
     checkCurrentBookings();
     
-    // Listen for storage changes
     window.addEventListener('storage', checkCurrentBookings);
     
-    // Listen for custom events
     const handleOrderUpdate = () => checkCurrentBookings();
     window.addEventListener('orderUpdated', handleOrderUpdate);
     window.addEventListener('spaBookingUpdated', handleOrderUpdate);
@@ -162,13 +151,11 @@ const Home: React.FC = () => {
   };
   
   useEffect(() => {
-    // If no roomId is found in localStorage, redirect to authentication page
     if (!roomId) {
       navigate('/');
     }
   }, [roomId, navigate]);
   
-  // Animation variants
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -184,20 +171,18 @@ const Home: React.FC = () => {
     show: { opacity: 1, y: 0 }
   };
 
-  // Check if there are any reservations
   const hasAnyReservations = currentOrder || currentSpaBooking || currentActivityBooking;
   
   return (
     <Layout>
       <div className="py-8 md:py-10">
-        {/* Welcome Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="text-center mb-8"
         >
-          <h1 className="text-4xl font-light tracking-wide text-primary sm:text-5xl mb-2 font-serif">
+          <h1 className="text-4xl font-light tracking-wide text-[#B8860B] sm:text-5xl mb-2 font-serif">
             Welcome to Suite {roomId}
           </h1>
           <p className="text-muted-foreground font-light italic">
@@ -205,39 +190,38 @@ const Home: React.FC = () => {
           </p>
         </motion.div>
         
-        {/* Hotel Information Card */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.2 }}
           className="mb-8"
         >
-          <Card className="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-indigo-950 overflow-hidden border-none shadow-md rounded-2xl">
+          <Card className="bg-gradient-to-r from-[#0A2647] to-[#144272] overflow-hidden border-none shadow-md rounded-2xl">
             <div className="relative">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full"></div>
+              <div className="absolute top-0 right-0 w-24 h-24 bg-[#B8860B]/10 rounded-bl-full"></div>
               <CardContent className="p-6 md:p-8">
                 <div className="flex flex-col">
-                  <h2 className="text-3xl font-serif font-light text-primary mb-1">{hotelInfo.name}</h2>
-                  <p className="text-muted-foreground/80 mb-6 font-light italic">{hotelInfo.tagline}</p>
+                  <h2 className="text-3xl font-serif font-light text-[#FFD700] mb-1">{hotelInfo.name}</h2>
+                  <p className="text-white/80 mb-6 font-light italic">{hotelInfo.tagline}</p>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-center gap-3 bg-white/40 dark:bg-white/5 p-4 rounded-xl">
-                      <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-full">
-                        <Clock className="h-5 w-5 text-primary/80" />
+                    <div className="flex items-center gap-3 bg-white/10 p-4 rounded-xl">
+                      <div className="flex items-center justify-center w-10 h-10 bg-[#B8860B]/20 rounded-full">
+                        <Clock className="h-5 w-5 text-[#FFD700]" />
                       </div>
                       <div>
-                        <span className="text-muted-foreground font-light">Check-out</span>
-                        <p className="font-medium text-base">{hotelInfo.checkoutTime}</p>
+                        <span className="text-white/70 font-light">Check-out</span>
+                        <p className="font-medium text-base text-white">{hotelInfo.checkoutTime}</p>
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-3 bg-white/40 dark:bg-white/5 p-4 rounded-xl">
-                      <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-full">
-                        <Wifi className="h-5 w-5 text-primary/80" />
+                    <div className="flex items-center gap-3 bg-white/10 p-4 rounded-xl">
+                      <div className="flex items-center justify-center w-10 h-10 bg-[#B8860B]/20 rounded-full">
+                        <Wifi className="h-5 w-5 text-[#FFD700]" />
                       </div>
                       <div>
-                        <span className="text-muted-foreground font-light">WiFi Access</span>
-                        <p className="font-medium font-mono text-base">{hotelInfo.wifiCode}</p>
+                        <span className="text-white/70 font-light">WiFi Access</span>
+                        <p className="font-medium font-mono text-base text-white">{hotelInfo.wifiCode}</p>
                       </div>
                     </div>
                   </div>
@@ -247,7 +231,6 @@ const Home: React.FC = () => {
           </Card>
         </motion.div>
         
-        {/* No Reservations Message */}
         {!hasAnyReservations && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -255,10 +238,10 @@ const Home: React.FC = () => {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="mb-8"
           >
-            <Card className="p-6 bg-primary/5 border border-primary/10 rounded-xl shadow-sm">
+            <Card className="p-6 bg-[#144272]/10 border border-[#B8860B]/20 rounded-xl shadow-sm">
               <div className="flex flex-col items-center text-center">
-                <div className="mb-4 bg-primary/10 p-3 rounded-full">
-                  <Calendar className="h-6 w-6 text-primary/80" />
+                <div className="mb-4 bg-[#B8860B]/20 p-3 rounded-full">
+                  <Calendar className="h-6 w-6 text-[#B8860B]" />
                 </div>
                 <h3 className="text-lg font-medium mb-2">No Current Reservations</h3>
                 <p className="text-muted-foreground font-light mb-4">
@@ -267,21 +250,21 @@ const Home: React.FC = () => {
                 <div className="flex flex-wrap gap-3 justify-center">
                   <Button 
                     variant="outline" 
-                    className="border-primary/20 hover:bg-primary/5"
+                    className="border-[#B8860B]/30 text-[#0A2647] hover:bg-[#B8860B]/10 hover:border-[#B8860B]"
                     onClick={() => navigate('/room-service')}
                   >
                     Order Room Service
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="border-primary/20 hover:bg-primary/5"
+                    className="border-[#B8860B]/30 text-[#0A2647] hover:bg-[#B8860B]/10 hover:border-[#B8860B]"
                     onClick={() => navigate('/spa')}
                   >
                     Book Spa Treatment
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="border-primary/20 hover:bg-primary/5"
+                    className="border-[#B8860B]/30 text-[#0A2647] hover:bg-[#B8860B]/10 hover:border-[#B8860B]"
                     onClick={() => navigate('/activities')}
                   >
                     View Activities
@@ -292,7 +275,6 @@ const Home: React.FC = () => {
           </motion.div>
         )}
         
-        {/* Delivery Status Section */}
         {currentOrder && (
           <DeliveryStatus 
             orderDetails={currentOrder} 
@@ -300,7 +282,6 @@ const Home: React.FC = () => {
           />
         )}
         
-        {/* Spa Booking Status Section */}
         {currentSpaBooking && (
           <SpaBookingStatus
             bookingDetails={currentSpaBooking}
@@ -308,7 +289,6 @@ const Home: React.FC = () => {
           />
         )}
         
-        {/* Activity Booking Status Section */}
         {currentActivityBooking && (
           <ActivityBookingStatus
             bookingDetails={currentActivityBooking}
@@ -316,7 +296,6 @@ const Home: React.FC = () => {
           />
         )}
         
-        {/* Activities Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -324,13 +303,13 @@ const Home: React.FC = () => {
           className="mb-8"
         >
           <div className="flex justify-between items-center mb-5">
-            <h2 className="text-2xl font-serif font-light text-primary flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-primary/70" />
+            <h2 className="text-2xl font-serif font-light text-[#0A2647] flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-[#B8860B]" />
               Today's Activities
             </h2>
             <Button 
               variant="ghost" 
-              className="text-muted-foreground font-light hover:text-primary text-sm"
+              className="text-[#0A2647] font-light hover:text-[#B8860B] text-sm"
               onClick={() => navigate('/activities')}
             >
               View All <ChevronRight className="h-4 w-4" />
@@ -342,29 +321,29 @@ const Home: React.FC = () => {
               <motion.div 
                 key={activity.id}
                 whileHover={{ scale: 1.01, transition: { duration: 0.3 } }}
-                className={`p-4 rounded-xl border border-slate-100 flex justify-between items-center ${
+                className={`p-4 rounded-xl border flex justify-between items-center ${
                   activity.status === 'ongoing' 
-                    ? 'bg-primary/5 border-primary/10' 
-                    : 'bg-white/60 dark:bg-white/5'
+                    ? 'bg-[#144272]/10 border-[#B8860B]/30' 
+                    : 'bg-white/60 dark:bg-white/5 border-slate-100'
                 }`}
               >
                 <div className="flex items-center gap-4">
                   <div className={`flex items-center justify-center w-12 h-12 rounded-xl ${
                     activity.status === 'ongoing' 
-                      ? 'bg-primary/10' 
+                      ? 'bg-[#B8860B]/20' 
                       : 'bg-slate-50 dark:bg-white/5'
                   }`}>
                     {activity.status === 'ongoing' ? (
-                      <Gem className="h-6 w-6 text-primary/80" />
+                      <Gem className="h-6 w-6 text-[#B8860B]" />
                     ) : (
                       <Star className="h-6 w-6 text-slate-400/80" />
                     )}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-medium text-primary">{activity.title}</h3>
+                      <h3 className="font-medium text-[#0A2647]">{activity.title}</h3>
                       {activity.status === 'ongoing' && (
-                        <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
+                        <span className="text-xs bg-[#B8860B]/20 text-[#B8860B] px-2 py-0.5 rounded-full">
                           Now
                         </span>
                       )}
@@ -382,7 +361,7 @@ const Home: React.FC = () => {
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  className="text-primary/70 hover:text-primary hover:bg-primary/5"
+                  className="text-[#0A2647]/70 hover:text-[#B8860B] hover:bg-[#B8860B]/5"
                   onClick={() => navigate('/activities')}
                 >
                   Details
@@ -392,14 +371,12 @@ const Home: React.FC = () => {
           </div>
         </motion.div>
         
-        {/* Delivery details modal */}
         <DeliveryFollowUp
           isOpen={isDeliveryDetailsOpen}
           onClose={() => setIsDeliveryDetailsOpen(false)}
           orderDetails={currentOrder || undefined}
         />
         
-        {/* Spa booking details modal */}
         <SpaBookingDetails
           isOpen={isSpaDetailsOpen}
           onClose={() => setIsSpaDetailsOpen(false)}
@@ -407,7 +384,6 @@ const Home: React.FC = () => {
           onCancelBooking={clearSpaBooking}
         />
         
-        {/* Activity booking details modal */}
         <ActivityBookingDetails
           isOpen={isActivityDetailsOpen}
           onClose={() => setIsActivityDetailsOpen(false)}
