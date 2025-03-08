@@ -6,12 +6,15 @@ import { motion } from 'framer-motion';
 import { ShoppingBag, X, Clock, CreditCard, Banknote } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
 
 const RoomService: React.FC = () => {
   const [cart, setCart] = useState<{ item: MenuItemType; quantity: number }[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'checkout' | 'card' | null>(null);
+  const [menuItems, setMenuItems] = useState<MenuItemType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Estimate delivery time (20-40 minutes from now)
   const getEstimatedDeliveryTime = () => {
@@ -24,6 +27,40 @@ const RoomService: React.FC = () => {
       max: maxTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
   };
+  
+  // Fetch menu items from database
+  useEffect(() => {
+    const fetchMenuItems = async () => {
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from('menu_items')
+          .select('*')
+          .eq('available', true)
+          .order('name');
+        
+        if (error) throw error;
+        
+        // Transform data to match MenuItemType
+        const transformedData = data.map(item => ({
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          price: item.price,
+          image: item.image_url
+        }));
+        
+        setMenuItems(transformedData);
+      } catch (error) {
+        console.error('Error fetching menu items:', error);
+        toast.error('Failed to load menu items');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchMenuItems();
+  }, []);
   
   // Store cart in localStorage and dispatch event for header badge
   useEffect(() => {
@@ -63,52 +100,6 @@ const RoomService: React.FC = () => {
       }
     }
   }, []);
-  
-  // Sample menu items
-  const menuItems: MenuItemType[] = [
-    {
-      id: '1',
-      name: 'Continental Breakfast',
-      description: 'Assorted pastries, fresh fruit, yogurt, and coffee or tea',
-      price: 24.99,
-      image: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-    },
-    {
-      id: '2',
-      name: 'Avocado Toast',
-      description: 'Sourdough bread with avocado, poached eggs, and microgreens',
-      price: 18.99,
-      image: 'https://images.unsplash.com/photo-1603046891744-76e6481cf539?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-    },
-    {
-      id: '3',
-      name: 'Caesar Salad',
-      description: 'Romaine lettuce with parmesan, croutons, and caesar dressing',
-      price: 16.99,
-      image: 'https://images.unsplash.com/photo-1551248429-40975aa4de74?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-    },
-    {
-      id: '4',
-      name: 'Grilled Salmon',
-      description: 'Fresh salmon with seasonal vegetables and lemon butter sauce',
-      price: 32.99,
-      image: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-    },
-    {
-      id: '5',
-      name: 'Truffle Pasta',
-      description: 'Homemade pasta with truffle cream sauce and parmesan',
-      price: 28.99,
-      image: 'https://images.unsplash.com/photo-1663591971243-5a66eaa102cc?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-    },
-    {
-      id: '6',
-      name: 'Chocolate Cake',
-      description: 'Rich chocolate cake with ganache and berries',
-      price: 14.99,
-      image: 'https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-    }
-  ];
   
   const categories = [
     { id: 'all', name: 'All Items' },
@@ -178,6 +169,14 @@ const RoomService: React.FC = () => {
     }, 1500);
   };
   
+  // Filter menu items by category
+  const filteredMenuItems = activeCategory === 'all'
+    ? menuItems
+    : menuItems.filter(item => {
+        const menuItem = menuItems.find(mi => mi.id === item.id);
+        return menuItem && menuItem.category === activeCategory;
+      });
+  
   const deliveryTime = getEstimatedDeliveryTime();
   
   return (
@@ -215,18 +214,28 @@ const RoomService: React.FC = () => {
         </div>
         
         {/* Menu grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {menuItems.map(item => (
-            <motion.div
-              key={item.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              <MenuItem item={item} onAddToCart={handleAddToCart} />
-            </motion.div>
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin-slow h-10 w-10 border-4 border-primary border-t-transparent rounded-full"></div>
+          </div>
+        ) : filteredMenuItems.length === 0 ? (
+          <div className="text-center py-16">
+            <p className="text-muted-foreground">No items available in this category.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredMenuItems.map(item => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                <MenuItem item={item} onAddToCart={handleAddToCart} />
+              </motion.div>
+            ))}
+          </div>
+        )}
         
         {/* Cart button */}
         {cart.length > 0 && (

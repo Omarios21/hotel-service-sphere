@@ -8,6 +8,8 @@ export interface MenuItemType {
   description: string;
   price: number;
   image: string;
+  category?: string;
+  available?: boolean;
 }
 
 interface MenuItemProps {

@@ -1,11 +1,40 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { User, ShoppingBag, Home, ShoppingCart } from 'lucide-react';
+import { User, ShoppingBag, Home, ShoppingCart, Shield } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [cartItemCount, setCartItemCount] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
+  
+  // Check if user is admin
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) return;
+      
+      const { data } = await supabase
+        .from('admins')
+        .select('*')
+        .eq('user_id', sessionData.session.user.id)
+        .maybeSingle();
+      
+      setIsAdmin(!!data);
+    };
+    
+    checkAdmin();
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      checkAdmin();
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
   
   // Track cart items from localStorage
   useEffect(() => {
@@ -140,6 +169,20 @@ const Header: React.FC = () => {
               <User className="h-4 w-4" />
               <span>Profile</span>
             </button>
+            
+            {isAdmin && (
+              <button
+                onClick={() => handleNavigation('/admin')}
+                className={`flex items-center space-x-1 transition-colors ${
+                  isActive('/admin') 
+                    ? 'text-primary font-medium' 
+                    : 'text-muted-foreground hover:text-primary'
+                }`}
+              >
+                <Shield className="h-4 w-4" />
+                <span>Admin</span>
+              </button>
+            )}
           </nav>
         </div>
       </div>
