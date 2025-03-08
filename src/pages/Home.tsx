@@ -1,12 +1,18 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { motion } from 'framer-motion';
 import { Calendar, Clock } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { toast } from 'sonner';
 import DeliveryStatus from '@/components/home/DeliveryStatus';
 import DeliveryFollowUp from '@/components/room-service/DeliveryFollowUp';
+import SpaBookingStatus from '@/components/spa/SpaBookingStatus';
+import SpaBookingDetails from '@/components/spa/SpaBookingDetails';
+import ActivityBookingStatus from '@/components/activities/ActivityBookingStatus';
+import ActivityBookingDetails from '@/components/activities/ActivityBookingDetails';
+import { SpaBooking } from '@/hooks/useSpaBookings';
+import { ActivityBooking } from '@/hooks/useActivityBookings';
 
 interface Activity {
   id: string;
@@ -20,7 +26,12 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
   const roomId = localStorage.getItem('roomId');
   const [isDeliveryDetailsOpen, setIsDeliveryDetailsOpen] = useState(false);
+  const [isSpaDetailsOpen, setIsSpaDetailsOpen] = useState(false);
+  const [isActivityDetailsOpen, setIsActivityDetailsOpen] = useState(false);
+  
   const [currentOrder, setCurrentOrder] = useState<any>(null);
+  const [currentSpaBooking, setCurrentSpaBooking] = useState<SpaBooking | null>(null);
+  const [currentActivityBooking, setCurrentActivityBooking] = useState<ActivityBooking | null>(null);
   
   // Sample hotel information
   const hotelInfo = {
@@ -55,9 +66,10 @@ const Home: React.FC = () => {
     }
   ]);
   
-  // Listen for order updates
+  // Listen for order and booking updates
   useEffect(() => {
-    const checkCurrentOrder = () => {
+    const checkCurrentBookings = () => {
+      // Check room service order
       const savedOrder = localStorage.getItem('currentRoomServiceOrder');
       if (savedOrder) {
         try {
@@ -69,23 +81,67 @@ const Home: React.FC = () => {
       } else {
         setCurrentOrder(null);
       }
+      
+      // Check spa booking
+      const savedSpaBooking = localStorage.getItem('currentSpaBooking');
+      if (savedSpaBooking) {
+        try {
+          setCurrentSpaBooking(JSON.parse(savedSpaBooking));
+        } catch (e) {
+          console.error('Error parsing saved spa booking', e);
+          setCurrentSpaBooking(null);
+        }
+      } else {
+        setCurrentSpaBooking(null);
+      }
+      
+      // Check activity booking
+      const savedActivityBooking = localStorage.getItem('currentActivityBooking');
+      if (savedActivityBooking) {
+        try {
+          setCurrentActivityBooking(JSON.parse(savedActivityBooking));
+        } catch (e) {
+          console.error('Error parsing saved activity booking', e);
+          setCurrentActivityBooking(null);
+        }
+      } else {
+        setCurrentActivityBooking(null);
+      }
     };
     
     // Check on initial load
-    checkCurrentOrder();
+    checkCurrentBookings();
     
     // Listen for storage changes
-    window.addEventListener('storage', checkCurrentOrder);
+    window.addEventListener('storage', checkCurrentBookings);
     
-    // Listen for custom event when order is placed
-    const handleOrderUpdate = () => checkCurrentOrder();
+    // Listen for custom events
+    const handleOrderUpdate = () => checkCurrentBookings();
     window.addEventListener('orderUpdated', handleOrderUpdate);
+    window.addEventListener('spaBookingUpdated', handleOrderUpdate);
+    window.addEventListener('activityBookingUpdated', handleOrderUpdate);
     
     return () => {
-      window.removeEventListener('storage', checkCurrentOrder);
+      window.removeEventListener('storage', checkCurrentBookings);
       window.removeEventListener('orderUpdated', handleOrderUpdate);
+      window.removeEventListener('spaBookingUpdated', handleOrderUpdate);
+      window.removeEventListener('activityBookingUpdated', handleOrderUpdate);
     };
   }, []);
+  
+  const clearSpaBooking = () => {
+    localStorage.removeItem('currentSpaBooking');
+    setCurrentSpaBooking(null);
+    setIsSpaDetailsOpen(false);
+    toast.success('Spa appointment cancelled successfully');
+  };
+  
+  const clearActivityBooking = () => {
+    localStorage.removeItem('currentActivityBooking');
+    setCurrentActivityBooking(null);
+    setIsActivityDetailsOpen(false);
+    toast.success('Activity booking cancelled successfully');
+  };
   
   useEffect(() => {
     // If no roomId is found in localStorage, redirect to authentication page
@@ -94,8 +150,7 @@ const Home: React.FC = () => {
     }
   }, [roomId, navigate]);
   
-  // Removed services array since we're not displaying any shortcuts anymore
-  
+  // Animation variants
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -160,6 +215,22 @@ const Home: React.FC = () => {
           />
         )}
         
+        {/* Spa Booking Status Section */}
+        {currentSpaBooking && (
+          <SpaBookingStatus
+            bookingDetails={currentSpaBooking}
+            showDetailsModal={() => setIsSpaDetailsOpen(true)}
+          />
+        )}
+        
+        {/* Activity Booking Status Section */}
+        {currentActivityBooking && (
+          <ActivityBookingStatus
+            bookingDetails={currentActivityBooking}
+            showDetailsModal={() => setIsActivityDetailsOpen(true)}
+          />
+        )}
+        
         {/* Activities Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -204,13 +275,27 @@ const Home: React.FC = () => {
           </div>
         </motion.div>
         
-        {/* Services grid - Completely removed since no services are showing */}
-        
         {/* Delivery details modal */}
         <DeliveryFollowUp
           isOpen={isDeliveryDetailsOpen}
           onClose={() => setIsDeliveryDetailsOpen(false)}
           orderDetails={currentOrder || undefined}
+        />
+        
+        {/* Spa booking details modal */}
+        <SpaBookingDetails
+          isOpen={isSpaDetailsOpen}
+          onClose={() => setIsSpaDetailsOpen(false)}
+          bookingDetails={currentSpaBooking || undefined}
+          onCancelBooking={clearSpaBooking}
+        />
+        
+        {/* Activity booking details modal */}
+        <ActivityBookingDetails
+          isOpen={isActivityDetailsOpen}
+          onClose={() => setIsActivityDetailsOpen(false)}
+          bookingDetails={currentActivityBooking || undefined}
+          onCancelBooking={clearActivityBooking}
         />
       </div>
     </Layout>

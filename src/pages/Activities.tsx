@@ -4,6 +4,9 @@ import Layout from '../components/Layout';
 import { motion } from 'framer-motion';
 import { Calendar, Users, MapPin, Clock, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import { useActivityBookings } from '@/hooks/useActivityBookings';
+import ActivityBookingStatus from '@/components/activities/ActivityBookingStatus';
+import ActivityBookingDetails from '@/components/activities/ActivityBookingDetails';
 
 interface Activity {
   id: string;
@@ -17,6 +20,14 @@ interface Activity {
 }
 
 const Activities: React.FC = () => {
+  const {
+    currentBooking,
+    isBookingDetailsOpen,
+    setIsBookingDetailsOpen,
+    createBooking,
+    clearBooking
+  } = useActivityBookings();
+  
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [guestCount, setGuestCount] = useState(1);
@@ -99,12 +110,25 @@ const Activities: React.FC = () => {
     
     // Simulate API call
     setTimeout(() => {
-      toast.success('Activity booked successfully!');
+      createBooking({
+        name: selectedActivity.name,
+        date: selectedDate,
+        location: selectedActivity.location,
+        guestCount: guestCount,
+        price: selectedActivity.price
+      });
+      
       setIsBooking(false);
       setSelectedActivity(null);
       setSelectedDate('');
       setGuestCount(1);
     }, 1500);
+  };
+  
+  const handleCancelBooking = () => {
+    clearBooking();
+    setIsBookingDetailsOpen(false);
+    toast.success('Activity booking cancelled successfully');
   };
   
   return (
@@ -121,6 +145,14 @@ const Activities: React.FC = () => {
             Discover exciting experiences and adventures during your stay
           </p>
         </motion.div>
+        
+        {/* Display current booking status if it exists */}
+        {currentBooking && (
+          <ActivityBookingStatus 
+            bookingDetails={currentBooking}
+            showDetailsModal={() => setIsBookingDetailsOpen(true)}
+          />
+        )}
         
         {!selectedActivity ? (
           // Activity selection view
@@ -289,6 +321,14 @@ const Activities: React.FC = () => {
             </div>
           </motion.div>
         )}
+        
+        {/* Booking details modal */}
+        <ActivityBookingDetails
+          isOpen={isBookingDetailsOpen}
+          onClose={() => setIsBookingDetailsOpen(false)}
+          bookingDetails={currentBooking || undefined}
+          onCancelBooking={handleCancelBooking}
+        />
       </div>
     </Layout>
   );

@@ -1,9 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { motion } from 'framer-motion';
 import { Calendar, Clock, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSpaBookings } from '@/hooks/useSpaBookings';
+import SpaBookingStatus from '@/components/spa/SpaBookingStatus';
+import SpaBookingDetails from '@/components/spa/SpaBookingDetails';
 
 interface SpaService {
   id: string;
@@ -21,6 +24,14 @@ interface TimeSlot {
 }
 
 const Spa: React.FC = () => {
+  const {
+    currentBooking,
+    isBookingDetailsOpen,
+    setIsBookingDetailsOpen,
+    createBooking,
+    clearBooking
+  } = useSpaBookings();
+  
   const [selectedService, setSelectedService] = useState<SpaService | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0]
@@ -108,11 +119,18 @@ const Spa: React.FC = () => {
     
     setIsBooking(true);
     
+    // Get the selected time
+    const selectedTime = timeSlots.find(slot => slot.id === selectedTimeSlot)?.time || '';
+    
     // Simulate API call
     setTimeout(() => {
-      const selectedTime = timeSlots.find(slot => slot.id === selectedTimeSlot)?.time;
+      createBooking({
+        name: selectedService.name,
+        price: selectedService.price,
+        date: selectedDate,
+        time: selectedTime
+      });
       
-      toast.success('Spa treatment booked successfully!');
       setIsBooking(false);
       setSelectedService(null);
       setSelectedTimeSlot(null);
@@ -129,6 +147,12 @@ const Spa: React.FC = () => {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
   
+  const handleCancelBooking = () => {
+    clearBooking();
+    setIsBookingDetailsOpen(false);
+    toast.success('Spa appointment cancelled successfully');
+  };
+  
   return (
     <Layout>
       <div className="py-8">
@@ -143,6 +167,14 @@ const Spa: React.FC = () => {
             Relax and rejuvenate with our selection of spa treatments
           </p>
         </motion.div>
+        
+        {/* Display current booking status if it exists */}
+        {currentBooking && (
+          <SpaBookingStatus 
+            bookingDetails={currentBooking}
+            showDetailsModal={() => setIsBookingDetailsOpen(true)}
+          />
+        )}
         
         {!selectedService ? (
           // Service selection view
@@ -287,6 +319,14 @@ const Spa: React.FC = () => {
             </div>
           </motion.div>
         )}
+        
+        {/* Booking details modal */}
+        <SpaBookingDetails
+          isOpen={isBookingDetailsOpen}
+          onClose={() => setIsBookingDetailsOpen(false)}
+          bookingDetails={currentBooking || undefined}
+          onCancelBooking={handleCancelBooking}
+        />
       </div>
     </Layout>
   );
