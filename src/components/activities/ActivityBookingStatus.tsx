@@ -1,8 +1,9 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Users, MapPin } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import { Calendar, Clock, Users, MapPin, Timer, Trophy } from 'lucide-react';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { ActivityBooking } from '@/hooks/useActivityBookings';
 
 interface ActivityBookingStatusProps {
@@ -14,55 +15,136 @@ const ActivityBookingStatus: React.FC<ActivityBookingStatusProps> = ({
   bookingDetails,
   showDetailsModal
 }) => {
+  // Calculate activity time details
+  const activityDate = new Date(bookingDetails.date);
+  const now = new Date();
+  
+  // Determine if the activity is today
+  const isToday = now.toDateString() === activityDate.toDateString();
+  
+  // Calculate hours until activity (rough estimate)
+  const timeUntilActivity = activityDate.getTime() - now.getTime();
+  const hoursUntil = Math.floor(timeUntilActivity / (1000 * 60 * 60));
+  const minutesUntil = Math.floor((timeUntilActivity % (1000 * 60 * 60)) / (1000 * 60));
+  
+  // Steps for the activity preparation
+  const steps = [
+    { id: 1, name: 'Booked', icon: <Calendar className="h-5 w-5" />, complete: true },
+    { id: 2, name: 'Preparation', icon: <Users className="h-5 w-5" />, complete: isToday },
+    { id: 3, name: 'Ready', icon: <Trophy className="h-5 w-5" />, complete: isToday && hoursUntil <= 1 }
+  ];
+  
+  // Determine current step
+  let currentStep = 1;
+  if (isToday) currentStep = 2;
+  if (isToday && hoursUntil <= 1) currentStep = 3;
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
       className="mb-6"
     >
-      <Card className="p-4 border-primary/20 shadow-sm bg-primary/5">
-        <div className="flex flex-col">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-lg flex items-center">
-              <Calendar className="h-5 w-5 text-primary mr-2" />
-              Upcoming Activity
-            </h3>
-            <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">
-              Booked
-            </span>
-          </div>
-          
-          <div className="mb-3">
-            <p className="font-medium">{bookingDetails.activityName}</p>
-            <div className="flex items-center text-sm text-muted-foreground mt-1">
-              <Calendar className="h-4 w-4 mr-1" />
-              <span>
+      <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
+        <Trophy className="h-5 w-5 text-primary" />
+        Upcoming Activity
+      </h2>
+      
+      <Card className="bg-gradient-to-r from-green-50/50 to-blue-50/50 dark:from-green-900/50 dark:to-blue-950/50 border shadow">
+        <CardHeader className="pb-2">
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="font-medium">{bookingDetails.activityName}</h3>
+              <p className="text-sm text-muted-foreground">
                 {new Date(bookingDetails.date).toLocaleDateString('en-US', {
                   weekday: 'long',
                   month: 'long',
                   day: 'numeric'
                 })}
-              </span>
+              </p>
+            </div>
+            <Button variant="ghost" size="sm" className="h-8 px-2" onClick={showDetailsModal}>
+              View Details
+            </Button>
+          </div>
+        </CardHeader>
+        
+        <CardContent>
+          {/* Activity progress bar */}
+          <div className="relative mb-4 mt-2">
+            <div className="overflow-hidden h-2 text-xs flex rounded bg-muted">
+              <div 
+                className="bg-primary rounded transition-all duration-500 ease-out"
+                style={{ width: `${(currentStep / 3) * 100}%` }} 
+              />
             </div>
             
-            <div className="flex items-center text-sm text-muted-foreground mt-1">
-              <MapPin className="h-4 w-4 mr-1" />
-              <span>{bookingDetails.location}</span>
-            </div>
-            
-            <div className="flex items-center text-sm text-muted-foreground mt-1">
-              <Users className="h-4 w-4 mr-1" />
-              <span>{bookingDetails.guestCount} {bookingDetails.guestCount === 1 ? 'guest' : 'guests'}</span>
+            <div className="flex justify-between mt-2">
+              {steps.map((step) => (
+                <div key={step.id} className="flex flex-col items-center">
+                  <div className={`flex h-8 w-8 items-center justify-center rounded-full ${
+                    currentStep >= step.id ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                  }`}>
+                    {step.icon}
+                  </div>
+                  <span className={`text-xs mt-1 ${
+                    currentStep >= step.id ? 'text-foreground' : 'text-muted-foreground'
+                  }`}>
+                    {step.name}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
           
-          <button
-            onClick={showDetailsModal}
-            className="text-primary text-sm self-end hover:underline underline-offset-4"
-          >
-            View Details
-          </button>
-        </div>
+          {/* Activity details */}
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div className="bg-muted/30 p-3 rounded-md text-sm">
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-primary" />
+                <p className="font-medium">Location</p>
+              </div>
+              <p className="text-muted-foreground pl-6">
+                {bookingDetails.location}
+              </p>
+            </div>
+            
+            <div className="bg-muted/30 p-3 rounded-md text-sm">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-primary" />
+                <p className="font-medium">Guests</p>
+              </div>
+              <p className="text-muted-foreground pl-6">
+                {bookingDetails.guestCount} {bookingDetails.guestCount === 1 ? 'person' : 'people'}
+              </p>
+            </div>
+          </div>
+          
+          {/* Time until activity */}
+          {timeUntilActivity > 0 ? (
+            <div className="bg-muted/30 p-3 rounded-md text-sm">
+              <div className="flex items-center gap-2">
+                <Timer className="h-4 w-4 text-primary" />
+                <p className="font-medium">Time Until Activity</p>
+              </div>
+              <p className="text-muted-foreground pl-6">
+                {hoursUntil > 0 ? `${hoursUntil} hours and ` : ''}
+                {minutesUntil} minutes remaining
+              </p>
+            </div>
+          ) : (
+            <div className="bg-primary/10 p-3 rounded-md text-sm">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-primary" />
+                <p className="font-medium">Your activity is starting now!</p>
+              </div>
+              <p className="text-muted-foreground pl-6">
+                Please proceed to {bookingDetails.location}
+              </p>
+            </div>
+          )}
+        </CardContent>
       </Card>
     </motion.div>
   );
