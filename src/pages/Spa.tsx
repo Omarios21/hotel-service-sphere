@@ -8,6 +8,7 @@ import { useSpaBookings } from '@/hooks/useSpaBookings';
 import SpaBookingStatus from '@/components/spa/SpaBookingStatus';
 import SpaBookingDetails from '@/components/spa/SpaBookingDetails';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SpaService {
   id: string;
@@ -40,60 +41,10 @@ const Spa: React.FC = () => {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
   const [isBooking, setIsBooking] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("services");
+  const [spaServices, setSpaServices] = useState<SpaService[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Sample spa services
-  const spaServices: SpaService[] = [
-    {
-      id: '1',
-      name: 'Swedish Massage',
-      description: 'A classic massage technique that uses long, flowing strokes to promote relaxation and wellbeing.',
-      duration: '60 min',
-      price: 120,
-      image: 'https://images.unsplash.com/photo-1600334129128-685c5582fd35?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-    },
-    {
-      id: '2',
-      name: 'Deep Tissue Massage',
-      description: 'Focuses on realigning deeper layers of muscles. It helps with chronic muscle tension and pain.',
-      duration: '60 min',
-      price: 140,
-      image: 'https://images.unsplash.com/photo-1519823551278-64ac92734fb1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-    },
-    {
-      id: '3',
-      name: 'Aromatherapy Massage',
-      description: 'Combines massage therapy with the therapeutic benefits of essential oils.',
-      duration: '75 min',
-      price: 160,
-      image: 'https://images.unsplash.com/photo-1571375390890-0323e21e0528?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-    },
-    {
-      id: '4',
-      name: 'Hot Stone Massage',
-      description: 'Uses heated stones to promote deep relaxation and ease muscle tension.',
-      duration: '90 min',
-      price: 180,
-      image: 'https://images.unsplash.com/photo-1554057009-8da3c333a053?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-    },
-    {
-      id: '5',
-      name: 'Facial Treatment',
-      description: 'Cleanses, exfoliates, and nourishes the skin to promote clear, well-hydrated skin.',
-      duration: '60 min',
-      price: 130,
-      image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-    },
-    {
-      id: '6',
-      name: 'Couples Massage',
-      description: 'Enjoy a relaxing massage experience with a partner in the same room.',
-      duration: '60 min',
-      price: 240,
-      image: 'https://images.unsplash.com/photo-1591343395082-e120087004b4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-    }
-  ];
-  
-  // Sample time slots
+  // Sample time slots - In a real app, these could be fetched from the server based on date
   const timeSlots: TimeSlot[] = [
     { id: '1', time: '9:00 AM', available: true },
     { id: '2', time: '10:00 AM', available: true },
@@ -105,6 +56,31 @@ const Spa: React.FC = () => {
     { id: '8', time: '4:00 PM', available: true },
     { id: '9', time: '5:00 PM', available: true }
   ];
+  
+  useEffect(() => {
+    const fetchSpaServices = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('spa_services')
+          .select('*')
+          .eq('available', true);
+        
+        if (error) {
+          throw error;
+        }
+        
+        setSpaServices(data);
+      } catch (error) {
+        console.error('Error fetching spa services:', error);
+        toast.error('Failed to load spa services. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSpaServices();
+  }, []);
   
   const handleSelectService = (service: SpaService) => {
     setSelectedService(service);
@@ -125,20 +101,21 @@ const Spa: React.FC = () => {
     // Get the selected time
     const selectedTime = timeSlots.find(slot => slot.id === selectedTimeSlot)?.time || '';
     
-    // Simulate API call
-    setTimeout(() => {
-      createBooking({
-        name: selectedService.name,
-        price: selectedService.price,
-        date: selectedDate,
-        time: selectedTime
-      });
-      
+    // Create booking
+    createBooking({
+      id: selectedService.id,
+      name: selectedService.name,
+      price: selectedService.price,
+      date: selectedDate,
+      time: selectedTime
+    }).then(() => {
       setIsBooking(false);
       setSelectedService(null);
       setSelectedTimeSlot(null);
       setActiveTab("services");
-    }, 1500);
+    }).catch(() => {
+      setIsBooking(false);
+    });
   };
   
   const formatDate = (dateString: string) => {
@@ -199,36 +176,42 @@ const Spa: React.FC = () => {
           </TabsList>
           
           <TabsContent value="services">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {spaServices.map(service => (
-                <motion.div
-                  key={service.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3 }}
-                  className="bg-white border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer"
-                  onClick={() => handleSelectService(service)}
-                >
-                  <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-                    <img 
-                      src={service.image} 
-                      alt={service.name} 
-                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-medium text-lg">{service.name}</h3>
-                    <p className="text-muted-foreground text-sm mt-1 mb-3 line-clamp-2">
-                      {service.description}
-                    </p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">{service.duration}</span>
-                      <span className="font-medium text-primary">${service.price}</span>
+            {isLoading ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {spaServices.map(service => (
+                  <motion.div
+                    key={service.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3 }}
+                    className="bg-white border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer"
+                    onClick={() => handleSelectService(service)}
+                  >
+                    <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+                      <img 
+                        src={service.image} 
+                        alt={service.name} 
+                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                      />
                     </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+                    <div className="p-4">
+                      <h3 className="font-medium text-lg">{service.name}</h3>
+                      <p className="text-muted-foreground text-sm mt-1 mb-3 line-clamp-2">
+                        {service.description}
+                      </p>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-muted-foreground">{service.duration}</span>
+                        <span className="font-medium text-primary">${service.price}</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </TabsContent>
           
           <TabsContent value="booking">
