@@ -11,15 +11,71 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import { Button } from '@/components/ui/button';
 
 const Admin: React.FC = () => {
-  const [loading, setLoading] = useState(false); // Changed initial value to false
-  const [isAdmin, setIsAdmin] = useState(true); // Set to true to bypass authentication
+  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
-  // Simplified useEffect - just for show, doesn't actually check authentication
   useEffect(() => {
-    // Temporarily disabled authentication checks
-    console.log('Admin authentication checks temporarily disabled for testing');
-    setLoading(false);
+    const checkAuth = async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        
+        if (!sessionData.session) {
+          navigate('/auth');
+          return;
+        }
+        
+        // Check if user is an admin
+        const { data: adminData, error: adminError } = await supabase
+          .from('admins')
+          .select('*')
+          .eq('user_id', sessionData.session.user.id)
+          .single();
+        
+        if (adminData) {
+          setIsAdmin(true);
+        } else {
+          // First user to login becomes an admin automatically (for demo purposes)
+          const { count, error: countError } = await supabase
+            .from('admins')
+            .select('*', { count: 'exact', head: true });
+          
+          if (countError) {
+            console.error('Error checking admin count:', countError);
+            toast.error('Error checking admin status');
+            return;
+          }
+          
+          if (count === 0) {
+            // Make the first user an admin
+            const { error: insertError } = await supabase
+              .from('admins')
+              .insert({
+                user_id: sessionData.session.user.id
+              });
+              
+            if (insertError) {
+              console.error('Error creating admin:', insertError);
+              toast.error('Error creating admin');
+              return;
+            }
+            
+            setIsAdmin(true);
+            toast.success('You have been made an admin as the first user');
+          } else {
+            toast.error('You are not authorized to access the admin panel');
+            navigate('/');
+          }
+        }
+      } catch (error) {
+        console.error('Error in admin authentication:', error);
+        toast.error('An error occurred while checking admin status');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    checkAuth();
   }, [navigate]);
 
   const handleSignOut = async () => {
@@ -30,12 +86,15 @@ const Admin: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin-slow h-10 w-10 border-4 border-primary border-t-transparent rounded-full"></div>
+        <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
   }
 
-  // Always allow access to the admin panel
+  if (!isAdmin) {
+    return null;
+  }
+
   return (
     <div className="flex h-screen overflow-hidden">
       <AdminSidebar />
@@ -45,10 +104,6 @@ const Admin: React.FC = () => {
         
         <main className="flex-1 overflow-y-auto p-6">
           <div className="max-w-7xl mx-auto">
-            <div className="mb-4 p-2 bg-yellow-100 text-yellow-800 rounded-md">
-              <p className="font-medium">⚠️ Admin authentication is temporarily disabled for testing.</p>
-            </div>
-
             <Tabs defaultValue="menu-items">
               <TabsList className="mb-6">
                 <TabsTrigger value="menu-items">Menu Items</TabsTrigger>
