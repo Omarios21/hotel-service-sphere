@@ -1,184 +1,34 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Layout from '../components/Layout';
-import MenuItem, { MenuItemType } from '../components/MenuItem';
 import { motion } from 'framer-motion';
-import { ShoppingBag, X, Clock, CreditCard, Banknote } from 'lucide-react';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
+import { useRoomService } from '@/hooks/useRoomService';
+
+// Room Service Components
+import MenuCategoryFilter from '@/components/room-service/MenuCategoryFilter';
+import MenuGrid from '@/components/room-service/MenuGrid';
+import Cart from '@/components/room-service/Cart';
+import CartButton from '@/components/room-service/CartButton';
 
 const RoomService: React.FC = () => {
-  const [cart, setCart] = useState<{ item: MenuItemType; quantity: number }[]>([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'checkout' | 'card' | null>(null);
-  const [menuItems, setMenuItems] = useState<MenuItemType[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // Estimate delivery time (20-40 minutes from now)
-  const getEstimatedDeliveryTime = () => {
-    const now = new Date();
-    const minTime = new Date(now.getTime() + 20 * 60000);
-    const maxTime = new Date(now.getTime() + 40 * 60000);
-    
-    return {
-      min: minTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      max: maxTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-  };
-  
-  // Fetch menu items from database
-  useEffect(() => {
-    const fetchMenuItems = async () => {
-      try {
-        setIsLoading(true);
-        const { data, error } = await supabase
-          .from('menu_items')
-          .select('*')
-          .eq('available', true)
-          .order('name');
-        
-        if (error) throw error;
-        
-        // Transform data to match MenuItemType
-        const transformedData = data.map(item => ({
-          id: item.id,
-          name: item.name,
-          description: item.description,
-          price: item.price,
-          image: item.image_url
-        }));
-        
-        setMenuItems(transformedData);
-      } catch (error) {
-        console.error('Error fetching menu items:', error);
-        toast.error('Failed to load menu items');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchMenuItems();
-  }, []);
-  
-  // Store cart in localStorage and dispatch event for header badge
-  useEffect(() => {
-    localStorage.setItem('roomServiceCart', JSON.stringify(cart));
-    // Dispatch event for header to update cart badge
-    window.dispatchEvent(new Event('cartUpdated'));
-  }, [cart]);
-  
-  // Listen for cart open event
-  useEffect(() => {
-    const handleOpenCart = () => {
-      setIsCartOpen(true);
-    };
-    
-    window.addEventListener('openCart', handleOpenCart);
-    
-    // Check if we should open cart on load (from navigation)
-    const shouldOpenCart = sessionStorage.getItem('openCartOnLoad');
-    if (shouldOpenCart === 'true') {
-      setIsCartOpen(true);
-      sessionStorage.removeItem('openCartOnLoad');
-    }
-    
-    return () => {
-      window.removeEventListener('openCart', handleOpenCart);
-    };
-  }, []);
-  
-  // Load cart from localStorage on initial render
-  useEffect(() => {
-    const savedCart = localStorage.getItem('roomServiceCart');
-    if (savedCart) {
-      try {
-        setCart(JSON.parse(savedCart));
-      } catch (e) {
-        console.error('Error parsing saved cart', e);
-      }
-    }
-  }, []);
-  
-  const categories = [
-    { id: 'all', name: 'All Items' },
-    { id: 'breakfast', name: 'Breakfast' },
-    { id: 'main', name: 'Main Courses' },
-    { id: 'desserts', name: 'Desserts' },
-    { id: 'drinks', name: 'Drinks' }
-  ];
-  
-  const [activeCategory, setActiveCategory] = useState('all');
-  
-  const handleAddToCart = (item: MenuItemType, quantity: number) => {
-    setCart(prevCart => {
-      // Check if item already exists in cart
-      const existingItemIndex = prevCart.findIndex(cartItem => cartItem.item.id === item.id);
-      
-      if (existingItemIndex >= 0) {
-        // Update quantity if item exists
-        const updatedCart = [...prevCart];
-        updatedCart[existingItemIndex].quantity += quantity;
-        toast.success(`Updated ${item.name} quantity in cart`, {
-          duration: 2000 // 2 seconds duration (reduced from default)
-        });
-        return updatedCart;
-      } else {
-        // Add new item to cart
-        toast.success(`Added ${item.name} to cart`, {
-          duration: 2000 // 2 seconds duration (reduced from default)
-        });
-        return [...prevCart, { item, quantity }];
-      }
-    });
-  };
-  
-  const handleRemoveFromCart = (itemId: string) => {
-    setCart(prevCart => prevCart.filter(cartItem => cartItem.item.id !== itemId));
-    toast.info('Item removed from cart', {
-      duration: 2000 // 2 seconds duration
-    });
-  };
-  
-  const calculateTotal = () => {
-    return cart.reduce((sum, cartItem) => sum + (cartItem.item.price * cartItem.quantity), 0);
-  };
-  
-  const handleSubmitOrder = () => {
-    if (cart.length === 0 || !paymentMethod) return;
-    
-    setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setCart([]);
-      setIsCartOpen(false);
-      setIsSubmitting(false);
-      setPaymentMethod(null);
-      
-      // Clear localStorage cart
-      localStorage.removeItem('roomServiceCart');
-      
-      // Update cart badge
-      window.dispatchEvent(new Event('cartUpdated'));
-      
-      toast.success('Your order has been placed successfully!', {
-        duration: 2000 // 2 seconds duration
-      });
-    }, 1500);
-  };
-  
-  // Filter menu items by category
-  const filteredMenuItems = activeCategory === 'all'
-    ? menuItems
-    : menuItems.filter(item => {
-        const menuItem = menuItems.find(mi => mi.id === item.id);
-        return menuItem && menuItem.category === activeCategory;
-      });
-  
-  const deliveryTime = getEstimatedDeliveryTime();
-  
+  const {
+    cart,
+    isCartOpen,
+    setIsCartOpen,
+    isSubmitting,
+    paymentMethod,
+    setPaymentMethod,
+    isLoading,
+    activeCategory,
+    setActiveCategory,
+    categories,
+    filteredMenuItems,
+    handleAddToCart,
+    handleRemoveFromCart,
+    calculateTotal,
+    handleSubmitOrder
+  } = useRoomService();
+
   return (
     <Layout>
       <div className="py-8">
@@ -194,196 +44,38 @@ const RoomService: React.FC = () => {
           </p>
         </motion.div>
         
-        {/* Categories */}
-        <div className="mb-8 overflow-x-auto pb-2">
-          <div className="flex space-x-2">
-            {categories.map(category => (
-              <button
-                key={category.id}
-                onClick={() => setActiveCategory(category.id)}
-                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors
-                  ${activeCategory === category.id 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                  }`}
-              >
-                {category.name}
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* Categories Filter */}
+        <MenuCategoryFilter 
+          categories={categories}
+          activeCategory={activeCategory}
+          onCategoryChange={setActiveCategory}
+        />
         
-        {/* Menu grid */}
-        {isLoading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin-slow h-10 w-10 border-4 border-primary border-t-transparent rounded-full"></div>
-          </div>
-        ) : filteredMenuItems.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-muted-foreground">No items available in this category.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredMenuItems.map(item => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3 }}
-              >
-                <MenuItem item={item} onAddToCart={handleAddToCart} />
-              </motion.div>
-            ))}
-          </div>
-        )}
+        {/* Menu Items Grid */}
+        <MenuGrid 
+          items={filteredMenuItems}
+          isLoading={isLoading}
+          onAddToCart={handleAddToCart}
+        />
         
-        {/* Cart button */}
-        {cart.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="fixed bottom-6 right-6 z-10"
-          >
-            <button
-              onClick={() => setIsCartOpen(true)}
-              className="flex items-center space-x-2 bg-primary text-primary-foreground px-4 py-3 rounded-full shadow-lg hover:opacity-90 transition-all"
-            >
-              <ShoppingBag className="h-5 w-5" />
-              <span className="font-medium">
-                {cart.length} {cart.length === 1 ? 'item' : 'items'}
-              </span>
-              <span className="font-bold">${calculateTotal().toFixed(2)}</span>
-            </button>
-          </motion.div>
-        )}
+        {/* Floating Cart Button */}
+        <CartButton 
+          cartItems={cart}
+          calculateTotal={calculateTotal}
+          openCart={() => setIsCartOpen(true)}
+        />
         
-        {/* Cart sidebar */}
-        {isCartOpen && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex justify-end">
-            <motion.div
-              initial={{ x: 300 }}
-              animate={{ x: 0 }}
-              exit={{ x: 300 }}
-              transition={{ type: 'spring', damping: 25 }}
-              className="w-full max-w-md bg-background h-full overflow-auto"
-            >
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold">Your Order</h2>
-                  <button
-                    onClick={() => setIsCartOpen(false)}
-                    className="p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted transition-colors"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-                
-                {cart.length > 0 ? (
-                  <>
-                    <div className="mb-4 p-4 bg-muted/50 rounded-lg border border-border flex items-center">
-                      <Clock className="h-5 w-5 mr-3 text-muted-foreground" />
-                      <div>
-                        <h3 className="font-medium text-sm">Estimated Delivery Time</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Between {deliveryTime.min} and {deliveryTime.max}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-4 mb-8">
-                      {cart.map(cartItem => (
-                        <div 
-                          key={cartItem.item.id}
-                          className="flex justify-between items-center py-3 border-b border-border"
-                        >
-                          <div className="flex-1">
-                            <h3 className="font-medium">{cartItem.item.name}</h3>
-                            <div className="flex items-center mt-1">
-                              <span className="text-sm text-muted-foreground">
-                                ${cartItem.item.price.toFixed(2)} × {cartItem.quantity}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex items-center">
-                            <span className="font-medium mr-4">
-                              ${(cartItem.item.price * cartItem.quantity).toFixed(2)}
-                            </span>
-                            <button
-                              onClick={() => handleRemoveFromCart(cartItem.item.id)}
-                              className="p-1 text-muted-foreground hover:text-destructive rounded-full hover:bg-muted transition-colors"
-                            >
-                              <X className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    <div className="border-t border-border pt-4 mb-8">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-muted-foreground">Subtotal</span>
-                        <span className="font-medium">${calculateTotal().toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-muted-foreground">Service charge (10%)</span>
-                        <span className="font-medium">${(calculateTotal() * 0.1).toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between items-center font-bold text-lg mt-4">
-                        <span>Total</span>
-                        <span>${(calculateTotal() * 1.1).toFixed(2)}</span>
-                      </div>
-                    </div>
-                    
-                    {/* Payment Method Selection */}
-                    <div className="mb-6">
-                      <h3 className="font-medium mb-3">Payment Method</h3>
-                      <div className="grid grid-cols-2 gap-3">
-                        <Button
-                          onClick={() => setPaymentMethod('checkout')}
-                          variant={paymentMethod === 'checkout' ? 'default' : 'outline'}
-                          className="flex items-center justify-center py-6"
-                        >
-                          <Banknote className="h-5 w-5 mr-2" />
-                          <span>Pay at Checkout</span>
-                        </Button>
-                        <Button
-                          onClick={() => setPaymentMethod('card')}
-                          variant={paymentMethod === 'card' ? 'default' : 'outline'}
-                          className="flex items-center justify-center py-6"
-                        >
-                          <CreditCard className="h-5 w-5 mr-2" />
-                          <span>Pay by Card</span>
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <button
-                      onClick={handleSubmitOrder}
-                      disabled={isSubmitting || !paymentMethod}
-                      className={`w-full py-3 rounded-lg font-medium text-center transition-all
-                        ${isSubmitting 
-                          ? 'bg-muted text-muted-foreground cursor-wait' 
-                          : !paymentMethod
-                            ? 'bg-muted text-muted-foreground' 
-                            : 'bg-primary text-primary-foreground hover:opacity-90'
-                        }`}
-                    >
-                      {isSubmitting ? 'Processing...' : paymentMethod ? 'Place Order' : 'Select Payment Method'}
-                    </button>
-                  </>
-                ) : (
-                  <div className="text-center py-12">
-                    <ShoppingBag className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="font-medium text-lg mb-2">Your cart is empty</h3>
-                    <p className="text-muted-foreground">
-                      Add some delicious items from the menu
-                    </p>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </div>
-        )}
+        {/* Cart Sidebar */}
+        <Cart
+          isOpen={isCartOpen}
+          cart={cart}
+          onClose={() => setIsCartOpen(false)}
+          onRemoveFromCart={handleRemoveFromCart}
+          isSubmitting={isSubmitting}
+          paymentMethod={paymentMethod}
+          setPaymentMethod={setPaymentMethod}
+          onSubmitOrder={handleSubmitOrder}
+        />
       </div>
     </Layout>
   );
