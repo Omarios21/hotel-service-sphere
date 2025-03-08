@@ -42,7 +42,7 @@ const Activities: React.FC = () => {
       location: 'Hotel Beach',
       duration: '2 hours',
       price: 75,
-      image: 'https://images.unsplash.com/photo-1560275619-4cc5fa59d3be?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      image: 'https://bluetribemoofushi.com/wp-content/uploads/2022/10/Snorkeling-extravaganza.jpg',
       availableDates: ['2023-10-05', '2023-10-06', '2023-10-08']
     },
     {
