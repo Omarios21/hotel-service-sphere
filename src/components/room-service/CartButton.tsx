@@ -11,7 +11,7 @@ interface CartButtonProps {
 }
 
 const CartButton: React.FC<CartButtonProps> = ({ cartItems, calculateTotal, openCart }) => {
-  const { formatPrice } = useLanguage();
+  const { formatPrice, t } = useLanguage();
   
   if (cartItems.length === 0) return null;
 
@@ -27,7 +27,7 @@ const CartButton: React.FC<CartButtonProps> = ({ cartItems, calculateTotal, open
       >
         <ShoppingBag className="h-5 w-5" />
         <span className="font-medium">
-          {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'}
+          {cartItems.length} {cartItems.length === 1 ? t('roomService.item') : t('roomService.items')}
         </span>
         <span className="font-bold">{formatPrice(calculateTotal())}</span>
       </button>

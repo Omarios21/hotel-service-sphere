@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 // Define supported languages
@@ -226,6 +227,108 @@ export const translations: Translations = {
     en: 'The reception team has been notified.',
     es: 'El equipo de recepción ha sido notificado.',
     fr: 'L\'équipe de réception a été notifiée.'
+  },
+  
+  // Room service
+  'roomService.title': {
+    en: 'Room Service',
+    es: 'Servicio de habitación',
+    fr: 'Service de chambre'
+  },
+  'roomService.subtitle': {
+    en: 'Order delicious meals and refreshments directly to your room',
+    es: 'Pida deliciosas comidas y refrescos directamente a su habitación',
+    fr: 'Commandez de délicieux repas et rafraîchissements directement dans votre chambre'
+  },
+  'roomService.trackDelivery': {
+    en: 'Track Delivery',
+    es: 'Seguir entrega',
+    fr: 'Suivre la livraison'
+  },
+  'roomService.item': {
+    en: 'item',
+    es: 'artículo',
+    fr: 'article'
+  },
+  'roomService.items': {
+    en: 'items',
+    es: 'artículos',
+    fr: 'articles'
+  },
+  'roomService.add': {
+    en: 'Add',
+    es: 'Añadir',
+    fr: 'Ajouter'
+  },
+  'roomService.empty': {
+    en: 'Your cart is empty',
+    es: 'Su carrito está vacío',
+    fr: 'Votre panier est vide'
+  },
+  'roomService.emptyDesc': {
+    en: 'Add some delicious items from the menu',
+    es: 'Añada algunos artículos deliciosos del menú',
+    fr: 'Ajoutez des articles délicieux du menu'
+  },
+  'roomService.deliveryTime': {
+    en: 'Estimated Delivery Time',
+    es: 'Tiempo estimado de entrega',
+    fr: 'Heure de livraison estimée'
+  },
+  'roomService.between': {
+    en: 'Between',
+    es: 'Entre',
+    fr: 'Entre'
+  },
+  'roomService.and': {
+    en: 'and',
+    es: 'y',
+    fr: 'et'
+  },
+  'roomService.paymentMethod': {
+    en: 'Payment Method',
+    es: 'Método de pago',
+    fr: 'Méthode de paiement'
+  },
+  'roomService.payCheckout': {
+    en: 'Pay at Checkout',
+    es: 'Pagar al salir',
+    fr: 'Payer au départ'
+  },
+  'roomService.payCard': {
+    en: 'Pay by Card',
+    es: 'Pagar con tarjeta',
+    fr: 'Payer par carte'
+  },
+  'roomService.selectPayment': {
+    en: 'Select Payment Method',
+    es: 'Seleccione método de pago',
+    fr: 'Sélectionnez le mode de paiement'
+  },
+  'roomService.placeOrder': {
+    en: 'Place Order',
+    es: 'Realizar pedido',
+    fr: 'Passer la commande'
+  },
+  'roomService.processing': {
+    en: 'Processing...',
+    es: 'Procesando...',
+    fr: 'Traitement en cours...'
+  },
+  'roomService.subtotal': {
+    en: 'Subtotal',
+    es: 'Subtotal',
+    fr: 'Sous-total'
+  },
+  'roomService.serviceCharge': {
+    en: 'Service charge (10%)',
+    es: 'Cargo por servicio (10%)',
+    fr: 'Frais de service (10%)'
+  },
+  'roomService.total': {
+    en: 'Total',
+    es: 'Total',
+    fr: 'Total'
   }
 };
 
@@ -278,20 +381,29 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     return translations[key][language] || translations[key]['en'] || key;
   };
 
-  // Price formatting function that considers the selected currency
+  // Helper function to round up to the nearest 0.25
+  const roundUpToNearest25Cents = (price: number): number => {
+    return Math.ceil(price * 4) / 4;
+  };
+
+  // Price formatting function that considers the selected currency and rounds to nearest 0.25
   const formatPrice = (priceInUSD: number): string => {
+    // Convert based on currency
     const convertedPrice = priceInUSD * currencyRates[currency];
+    
+    // Round up to nearest 0.25
+    const roundedPrice = roundUpToNearest25Cents(convertedPrice);
     
     // Format based on currency
     if (currency === 'USD') {
-      return `$${convertedPrice.toFixed(2)}`;
+      return `$${roundedPrice.toFixed(2)}`;
     } else if (currency === 'EUR') {
-      return `€${convertedPrice.toFixed(2)}`;
+      return `€${roundedPrice.toFixed(2)}`;
     } else if (currency === 'MAD') {
-      return `${convertedPrice.toFixed(2)} MAD`;
+      return `${roundedPrice.toFixed(2)} MAD`;
     }
     
-    return `${convertedPrice.toFixed(2)}`;
+    return `${roundedPrice.toFixed(2)}`;
   };
 
   return (

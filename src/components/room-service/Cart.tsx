@@ -28,7 +28,7 @@ const Cart: React.FC<CartProps> = ({
   setPaymentMethod,
   onSubmitOrder,
 }) => {
-  const { formatPrice } = useLanguage();
+  const { formatPrice, t } = useLanguage();
   
   if (!isOpen) return null;
 
@@ -75,9 +75,9 @@ const Cart: React.FC<CartProps> = ({
               <div className="mb-4 p-4 bg-muted/50 rounded-lg border border-border flex items-center">
                 <Clock className="h-5 w-5 mr-3 text-muted-foreground" />
                 <div>
-                  <h3 className="font-medium text-sm">Estimated Delivery Time</h3>
+                  <h3 className="font-medium text-sm">{t('roomService.deliveryTime')}</h3>
                   <p className="text-sm text-muted-foreground">
-                    Between {deliveryTime.min} and {deliveryTime.max}
+                    {t('roomService.between')} {deliveryTime.min} {t('roomService.and')} {deliveryTime.max}
                   </p>
                 </div>
               </div>
@@ -113,22 +113,22 @@ const Cart: React.FC<CartProps> = ({
               
               <div className="border-t border-border pt-4 mb-8">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="text-muted-foreground">{t('roomService.subtotal')}</span>
                   <span className="font-medium">{formatPrice(calculateTotal())}</span>
                 </div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-muted-foreground">Service charge (10%)</span>
+                  <span className="text-muted-foreground">{t('roomService.serviceCharge')}</span>
                   <span className="font-medium">{formatPrice(calculateTotal() * 0.1)}</span>
                 </div>
                 <div className="flex justify-between items-center font-bold text-lg mt-4">
-                  <span>Total</span>
+                  <span>{t('roomService.total')}</span>
                   <span>{formatPrice(calculateTotal() * 1.1)}</span>
                 </div>
               </div>
               
               {/* Payment Method Selection */}
               <div className="mb-6">
-                <h3 className="font-medium mb-3">Payment Method</h3>
+                <h3 className="font-medium mb-3">{t('roomService.paymentMethod')}</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <Button
                     onClick={() => setPaymentMethod('checkout')}
@@ -136,7 +136,7 @@ const Cart: React.FC<CartProps> = ({
                     className="flex items-center justify-center py-6"
                   >
                     <Banknote className="h-5 w-5 mr-2" />
-                    <span>Pay at Checkout</span>
+                    <span>{t('roomService.payCheckout')}</span>
                   </Button>
                   <Button
                     onClick={() => setPaymentMethod('card')}
@@ -144,7 +144,7 @@ const Cart: React.FC<CartProps> = ({
                     className="flex items-center justify-center py-6"
                   >
                     <CreditCard className="h-5 w-5 mr-2" />
-                    <span>Pay by Card</span>
+                    <span>{t('roomService.payCard')}</span>
                   </Button>
                 </div>
               </div>
@@ -160,15 +160,19 @@ const Cart: React.FC<CartProps> = ({
                       : 'bg-primary text-primary-foreground hover:opacity-90'
                   }`}
               >
-                {isSubmitting ? 'Processing...' : paymentMethod ? 'Place Order' : 'Select Payment Method'}
+                {isSubmitting 
+                  ? t('roomService.processing') 
+                  : paymentMethod 
+                    ? t('roomService.placeOrder') 
+                    : t('roomService.selectPayment')}
               </button>
             </>
           ) : (
             <div className="text-center py-12">
               <ShoppingBag className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="font-medium text-lg mb-2">Your cart is empty</h3>
+              <h3 className="font-medium text-lg mb-2">{t('roomService.empty')}</h3>
               <p className="text-muted-foreground">
-                Add some delicious items from the menu
+                {t('roomService.emptyDesc')}
               </p>
             </div>
           )}

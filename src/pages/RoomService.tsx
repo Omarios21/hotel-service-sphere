@@ -1,8 +1,10 @@
+
 import React from 'react';
 import Layout from '../components/Layout';
 import { motion } from 'framer-motion';
 import { useRoomService } from '@/hooks/useRoomService';
 import { Package } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // Room Service Components
 import MenuCategoryFilter from '@/components/room-service/MenuCategoryFilter';
@@ -12,6 +14,7 @@ import CartButton from '@/components/room-service/CartButton';
 import DeliveryFollowUp from '@/components/room-service/DeliveryFollowUp';
 
 const RoomService: React.FC = () => {
+  const { t } = useLanguage();
   const {
     cart,
     isCartOpen,
@@ -44,9 +47,9 @@ const RoomService: React.FC = () => {
           className="mb-8 flex justify-between items-center"
         >
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-primary">Room Service</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-primary">{t('roomService.title')}</h1>
             <p className="mt-2 text-lg text-muted-foreground">
-              Order delicious meals and refreshments directly to your room
+              {t('roomService.subtitle')}
             </p>
           </div>
           
@@ -55,7 +58,7 @@ const RoomService: React.FC = () => {
             <button
               onClick={() => setIsDeliveryTracking(true)}
               className="bg-primary/10 hover:bg-primary/20 text-primary rounded-full p-3 transition-colors"
-              title="Track Delivery"
+              title={t('roomService.trackDelivery')}
             >
               <Package className="h-5 w-5" />
             </button>
