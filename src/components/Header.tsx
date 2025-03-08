@@ -4,12 +4,15 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { User, ShoppingCart, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import LanguageSwitcher from './LanguageSwitcher';
+import CurrencySwitcher from './CurrencySwitcher';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [cartItemCount, setCartItemCount] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
+  const { t } = useLanguage();
   
   // Check if user is admin
   useEffect(() => {
@@ -97,9 +100,10 @@ const Header: React.FC = () => {
             </button>
           </div>
           
-          {/* Language Switcher */}
-          <div className="flex-1 flex justify-center">
+          {/* Language and Currency Switcher */}
+          <div className="flex-1 flex justify-center items-center space-x-4">
             <LanguageSwitcher />
+            <CurrencySwitcher />
           </div>
           
           {/* Cart icon */}

@@ -140,6 +140,13 @@ export const translations: Translations = {
     fr: 'Dirham marocain'
   },
   
+  // Admin section
+  'admin.dashboard': {
+    en: 'Hotel Admin Dashboard',
+    es: 'Panel de administración del hotel',
+    fr: 'Tableau de bord d\'administration de l\'hôtel'
+  },
+  
   // Buttons and actions
   'button.add': {
     en: 'Add',
@@ -160,6 +167,11 @@ export const translations: Translations = {
     en: 'Book Now',
     es: 'Reservar ahora',
     fr: 'Réserver maintenant'
+  },
+  'button.signOut': {
+    en: 'Sign Out',
+    es: 'Cerrar sesión',
+    fr: 'Se déconnecter'
   },
   
   // Status labels
