@@ -19,7 +19,7 @@ const CartButton: React.FC<CartButtonProps> = ({ cartItems, calculateTotal, open
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50"
+      className="fixed bottom-20 inset-x-0 mx-auto flex justify-center z-50"
     >
       <motion.button
         whileHover={{ scale: 1.05 }}
