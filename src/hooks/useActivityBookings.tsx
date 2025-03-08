@@ -22,9 +22,12 @@ export const useActivityBookings = () => {
     if (savedBooking) {
       try {
         setCurrentBooking(JSON.parse(savedBooking));
+        console.log('Loaded activity booking from localStorage:', JSON.parse(savedBooking));
       } catch (e) {
         console.error('Error parsing saved activity booking', e);
       }
+    } else {
+      console.log('No saved activity booking found in localStorage');
     }
   }, []);
 

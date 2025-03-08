@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { motion } from 'framer-motion';
-import { Calendar, Users, MapPin, Clock, Check } from 'lucide-react';
+import { Calendar, Users, MapPin, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { useActivityBookings } from '@/hooks/useActivityBookings';
 import ActivityBookingStatus from '@/components/activities/ActivityBookingStatus';
@@ -43,21 +43,23 @@ const Activities: React.FC = () => {
       setErrorMessage(null);
       
       try {
-        console.log('Fetching activities...');
+        console.log('Fetching activities from database...');
         // Fetch activities
         const { data: activitiesData, error: activitiesError } = await supabase
           .from('activities')
           .select('*');
         
         if (activitiesError) {
+          console.error('Error fetching activities:', activitiesError);
           throw activitiesError;
         }
 
-        console.log('Activities data:', activitiesData);
+        console.log('Raw activities data:', activitiesData);
 
         if (!activitiesData || activitiesData.length === 0) {
-          console.log('No activities found');
+          console.log('No activities found in database');
           setErrorMessage('No activities available. Please check back later.');
+          setActivities([]);
           setIsLoading(false);
           return;
         }
@@ -164,7 +166,7 @@ const Activities: React.FC = () => {
           <div className="flex justify-center py-12">
             <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
           </div>
-        ) : errorMessage ? (
+        ) : errorMessage && activities.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground">{errorMessage}</p>
           </div>
