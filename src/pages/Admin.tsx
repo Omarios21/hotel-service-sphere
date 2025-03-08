@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,15 +10,75 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import { Button } from '@/components/ui/button';
 
 const Admin: React.FC = () => {
-  const [loading, setLoading] = useState(false); // Changed initial value to false
-  const [isAdmin, setIsAdmin] = useState(true); // Set to true to bypass authentication
+  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
-  // Simplified useEffect - just for show, doesn't actually check authentication
   useEffect(() => {
-    // Temporarily disabled authentication checks
-    console.log('Admin authentication checks temporarily disabled for testing');
-    setLoading(false);
+    const checkAdmin = async () => {
+      try {
+        setLoading(true);
+        
+        // Check if user is logged in
+        const { data: session } = await supabase.auth.getSession();
+        if (!session.session) {
+          toast.error('You must be logged in to access the admin area');
+          navigate('/auth');
+          return;
+        }
+        
+        // Check if user is an admin
+        const { data: adminData, error: adminError } = await supabase
+          .from('admins')
+          .select('*')
+          .eq('user_id', session.session.user.id)
+          .maybeSingle();
+        
+        if (adminError) {
+          console.error('Error checking admin status:', adminError);
+          toast.error('Error checking admin status');
+          setIsAdmin(false);
+        } else if (adminData) {
+          setIsAdmin(true);
+        } else {
+          // If no admin exists, create the first user as admin
+          const { count, error: countError } = await supabase
+            .from('admins')
+            .select('*', { count: 'exact', head: true });
+          
+          if (countError) {
+            console.error('Error checking admins count:', countError);
+            setIsAdmin(false);
+          } else if (count === 0) {
+            // Make the first user who logs in an admin
+            const { error: insertError } = await supabase
+              .from('admins')
+              .insert({ user_id: session.session.user.id });
+            
+            if (insertError) {
+              console.error('Error creating admin:', insertError);
+              toast.error('Error creating admin user');
+            } else {
+              setIsAdmin(true);
+              toast.success('You have been made an admin as the first user');
+            }
+          } else {
+            // Other users are not admins
+            setIsAdmin(false);
+            toast.error('You are not authorized to access the admin area');
+            navigate('/');
+          }
+        }
+      } catch (error) {
+        console.error('Admin check error:', error);
+        toast.error('An error occurred checking admin status');
+        setIsAdmin(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    checkAdmin();
   }, [navigate]);
 
   const handleSignOut = async () => {
@@ -35,7 +94,16 @@ const Admin: React.FC = () => {
     );
   }
 
-  // Always allow access to the admin panel
+  if (!isAdmin) {
+    return (
+      <div className="flex items-center justify-center h-screen flex-col">
+        <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
+        <p className="mb-4">You don't have permission to access the admin area.</p>
+        <Button onClick={() => navigate('/')}>Go Home</Button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen overflow-hidden">
       <AdminSidebar />
@@ -45,10 +113,6 @@ const Admin: React.FC = () => {
         
         <main className="flex-1 overflow-y-auto p-6">
           <div className="max-w-7xl mx-auto">
-            <div className="mb-4 p-2 bg-yellow-100 text-yellow-800 rounded-md">
-              <p className="font-medium">⚠️ Admin authentication is temporarily disabled for testing.</p>
-            </div>
-
             <Tabs defaultValue="menu-items">
               <TabsList className="mb-6">
                 <TabsTrigger value="menu-items">Menu Items</TabsTrigger>

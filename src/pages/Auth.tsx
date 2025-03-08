@@ -8,12 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import Layout from '@/components/Layout';
+import { AlertCircle } from 'lucide-react';
 
 const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const [emailConfirmationRequired, setEmailConfirmationRequired] = useState(false);
   const navigate = useNavigate();
 
   // Check if already logged in
@@ -41,9 +43,15 @@ const Auth: React.FC = () => {
     };
   }, [navigate]);
 
+  const fillDemoCredentials = () => {
+    setEmail('demo@example.com');
+    setPassword('password123');
+  };
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setEmailConfirmationRequired(false);
     
     try {
       if (mode === 'login') {
@@ -52,7 +60,15 @@ const Auth: React.FC = () => {
           password,
         });
         
-        if (error) throw error;
+        if (error) {
+          if (error.message.includes('Email not confirmed')) {
+            setEmailConfirmationRequired(true);
+            toast.error('Email not confirmed. Please check your inbox or disable email confirmation in Supabase dashboard.');
+          } else {
+            toast.error(error.message || 'Failed to login');
+          }
+          throw error;
+        }
         toast.success('Logged in successfully');
       } else {
         const { error } = await supabase.auth.signUp({
@@ -61,10 +77,12 @@ const Auth: React.FC = () => {
         });
         
         if (error) throw error;
-        toast.success('Signup successful! Please check your email for confirmation.');
+        
+        toast.success('Signup successful! Please check your email for confirmation if required.');
+        setEmailConfirmationRequired(true);
       }
     } catch (error: any) {
-      toast.error(error.message || 'An error occurred');
+      console.error('Authentication error:', error);
     } finally {
       setLoading(false);
     }
@@ -85,6 +103,18 @@ const Auth: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {emailConfirmationRequired && (
+              <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md flex gap-2 items-start">
+                <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-amber-800">Email confirmation required</p>
+                  <p className="text-xs text-amber-700 mt-1">
+                    Please check your email for a confirmation link or disable email confirmation in your Supabase dashboard.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleAuth} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -113,7 +143,15 @@ const Auth: React.FC = () => {
                 {loading ? 'Processing...' : mode === 'login' ? 'Login' : 'Sign Up'}
               </Button>
               
-              <div className="text-center mt-4">
+              <div className="flex justify-between items-center pt-2">
+                <button
+                  type="button"
+                  onClick={fillDemoCredentials}
+                  className="text-xs text-gray-500 hover:underline"
+                >
+                  Demo Credentials
+                </button>
+                
                 <button
                   type="button"
                   onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
