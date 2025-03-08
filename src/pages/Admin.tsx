@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import MenuItemsManager from '@/components/admin/MenuItemsManager';
 import AdminHeader from '@/components/admin/AdminHeader';
 import AdminSidebar from '@/components/admin/AdminSidebar';
+import { Button } from '@/components/ui/button';
 
 const Admin: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -17,17 +18,9 @@ const Admin: React.FC = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error('Session error:', sessionError);
-          toast.error('Authentication error. Please log in again.');
-          navigate('/auth');
-          return;
-        }
+        const { data: sessionData } = await supabase.auth.getSession();
         
         if (!sessionData.session) {
-          toast.error('Please log in to access the admin panel');
           navigate('/auth');
           return;
         }
@@ -38,12 +31,6 @@ const Admin: React.FC = () => {
           .select('*')
           .eq('user_id', sessionData.session.user.id)
           .single();
-        
-        if (adminError && adminError.code !== 'PGRST116') { // Not found error
-          console.error('Error checking admin status:', adminError);
-          toast.error('Error checking admin status');
-          return;
-        }
         
         if (adminData) {
           setIsAdmin(true);

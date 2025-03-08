@@ -8,15 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import Layout from '@/components/Layout';
-import { AlertCircle, Info } from 'lucide-react';
 
 const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'login' | 'signup'>('login');
-  const [error, setError] = useState<string | null>(null);
-  const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false);
   const navigate = useNavigate();
 
   // Check if already logged in
@@ -47,13 +44,6 @@ const Auth: React.FC = () => {
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
-    setNeedsEmailConfirmation(false);
-    
-    // Ensure email uses a custom domain that should work with Supabase
-    if (!email.endsWith('@hotel-app.com')) {
-      setEmail(email.split('@')[0] + '@hotel-app.com');
-    }
     
     try {
       if (mode === 'login') {
@@ -62,41 +52,22 @@ const Auth: React.FC = () => {
           password,
         });
         
-        if (error) {
-          if (error.message === 'Email not confirmed') {
-            setNeedsEmailConfirmation(true);
-            throw new Error('Please check your email and confirm your account before logging in.');
-          }
-          throw error;
-        }
+        if (error) throw error;
         toast.success('Logged in successfully');
       } else {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            // For demo purposes, we can auto-confirm the email
-            // This won't actually work unless you configure Supabase to allow it
-            emailRedirectTo: window.location.origin + '/auth',
-          }
         });
         
         if (error) throw error;
-        setNeedsEmailConfirmation(true);
-        toast.success('Signup successful! Check your email for confirmation link.');
+        toast.success('Signup successful! Please check your email for confirmation.');
       }
     } catch (error: any) {
-      console.error('Auth error:', error);
-      setError(error.message);
       toast.error(error.message || 'An error occurred');
     } finally {
       setLoading(false);
     }
-  };
-
-  const fillDemoCredentials = () => {
-    setEmail('admin@hotel-app.com');
-    setPassword('password123');
   };
 
   return (
@@ -114,44 +85,12 @@ const Auth: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-md flex items-start gap-2 mb-4">
-              <Info className="h-5 w-5 mt-0.5 flex-shrink-0" />
-              <div className="text-sm">
-                <p className="font-medium">Important:</p>
-                <p>All emails will be automatically converted to use the @hotel-app.com domain for compatibility with this demo.</p>
-                <p className="mt-1 font-medium">For Demo Access:</p>
-                <p>1. Click "Demo Credentials" to fill in demo details</p>
-                <p>2. Click "Sign Up" to create an account first</p>
-                <p>3. Then switch to "Login" to log in with the same credentials</p>
-              </div>
-            </div>
-            
-            {needsEmailConfirmation && (
-              <div className="bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-md flex items-start gap-2 mb-4">
-                <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                <div className="text-sm">
-                  <p className="font-medium">Email Confirmation Required</p>
-                  <p>For this demo, please visit the Supabase dashboard to manually confirm your user.</p>
-                  <p className="mt-2">
-                    Alternatively, you can disable email confirmation in the Supabase authentication settings.
-                  </p>
-                </div>
-              </div>
-            )}
-            
             <form onSubmit={handleAuth} className="space-y-4">
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md flex items-start gap-2">
-                  <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm">{error}</p>
-                </div>
-              )}
-              
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
-                  type="text"
+                  type="email"
                   placeholder="your@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -174,7 +113,7 @@ const Auth: React.FC = () => {
                 {loading ? 'Processing...' : mode === 'login' ? 'Login' : 'Sign Up'}
               </Button>
               
-              <div className="flex justify-between items-center mt-4">
+              <div className="text-center mt-4">
                 <button
                   type="button"
                   onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
@@ -183,14 +122,6 @@ const Auth: React.FC = () => {
                   {mode === 'login' 
                     ? 'Need an account? Sign up' 
                     : 'Already have an account? Log in'}
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={fillDemoCredentials}
-                  className="text-sm text-gray-500 hover:underline"
-                >
-                  Demo Credentials
                 </button>
               </div>
             </form>
