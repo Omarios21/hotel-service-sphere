@@ -1,10 +1,12 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { motion } from 'framer-motion';
-import { Calendar, Clock } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import { Calendar, Clock, MapPin, Wifi, Star, ChevronRight, Gem } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 import DeliveryStatus from '@/components/home/DeliveryStatus';
 import DeliveryFollowUp from '@/components/room-service/DeliveryFollowUp';
 import SpaBookingStatus from '@/components/spa/SpaBookingStatus';
@@ -168,41 +170,60 @@ const Home: React.FC = () => {
   
   return (
     <Layout>
-      <div className="py-6 md:py-8">
-        {/* Welcome Message - Moved to top */}
+      <div className="py-8 md:py-10">
+        {/* Welcome Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-6"
+          transition={{ duration: 0.6 }}
+          className="text-center mb-8"
         >
-          <h1 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-            Welcome to Room {roomId}
+          <h1 className="text-4xl font-light tracking-wide text-primary sm:text-5xl mb-2 font-serif">
+            Welcome to Suite {roomId}
           </h1>
+          <p className="text-muted-foreground font-light italic">
+            We're delighted to have you with us
+          </p>
         </motion.div>
         
         {/* Hotel Information Card */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-6"
+          transition={{ duration: 0.7, delay: 0.2 }}
+          className="mb-8"
         >
-          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-indigo-950 p-4 md:p-6 border-none shadow-md">
-            <div className="flex flex-col">
-              <h2 className="text-2xl font-bold text-primary mb-1">{hotelInfo.name}</h2>
-              <p className="text-muted-foreground italic mb-3">{hotelInfo.tagline}</p>
-              
-              <div className="flex justify-between items-center text-sm">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-primary" />
-                  <span>Checkout: {hotelInfo.checkoutTime}</span>
+          <Card className="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-indigo-950 overflow-hidden border-none shadow-md rounded-2xl">
+            <div className="relative">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full"></div>
+              <CardContent className="p-6 md:p-8">
+                <div className="flex flex-col">
+                  <h2 className="text-3xl font-serif font-light text-primary mb-1">{hotelInfo.name}</h2>
+                  <p className="text-muted-foreground/80 mb-6 font-light italic">{hotelInfo.tagline}</p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div className="flex items-center gap-3 bg-white/40 dark:bg-white/5 p-4 rounded-xl">
+                      <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-full">
+                        <Clock className="h-5 w-5 text-primary/80" />
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground font-light">Check-out</span>
+                        <p className="font-medium text-base">{hotelInfo.checkoutTime}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 bg-white/40 dark:bg-white/5 p-4 rounded-xl">
+                      <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-full">
+                        <Wifi className="h-5 w-5 text-primary/80" />
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground font-light">WiFi Access</span>
+                        <p className="font-medium font-mono text-base">{hotelInfo.wifiCode}</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">WiFi:</span>
-                  <code className="bg-primary/10 px-2 py-0.5 rounded">{hotelInfo.wifiCode}</code>
-                </div>
-              </div>
+              </CardContent>
             </div>
           </Card>
         </motion.div>
@@ -235,42 +256,74 @@ const Home: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
           className="mb-8"
         >
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-primary" />
-            Activities
-          </h2>
+          <div className="flex justify-between items-center mb-5">
+            <h2 className="text-2xl font-serif font-light text-primary flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary/70" />
+              Today's Activities
+            </h2>
+            <Button 
+              variant="ghost" 
+              className="text-muted-foreground font-light hover:text-primary text-sm"
+              onClick={() => navigate('/activities')}
+            >
+              View All <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
           
           <div className="space-y-3">
             {activities.map((activity) => (
-              <div 
+              <motion.div 
                 key={activity.id}
-                className={`p-3 rounded-lg border flex justify-between items-center ${
+                whileHover={{ scale: 1.01, transition: { duration: 0.3 } }}
+                className={`p-4 rounded-xl border border-slate-100 flex justify-between items-center ${
                   activity.status === 'ongoing' 
-                    ? 'bg-primary/10 border-primary/20' 
-                    : 'bg-card border-border'
+                    ? 'bg-primary/5 border-primary/10' 
+                    : 'bg-white/60 dark:bg-white/5'
                 }`}
               >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-medium">{activity.title}</h3>
-                    {activity.status === 'ongoing' && (
-                      <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
-                        Now
-                      </span>
+                <div className="flex items-center gap-4">
+                  <div className={`flex items-center justify-center w-12 h-12 rounded-xl ${
+                    activity.status === 'ongoing' 
+                      ? 'bg-primary/10' 
+                      : 'bg-slate-50 dark:bg-white/5'
+                  }`}>
+                    {activity.status === 'ongoing' ? (
+                      <Gem className="h-6 w-6 text-primary/80" />
+                    ) : (
+                      <Star className="h-6 w-6 text-slate-400/80" />
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground">{activity.time} • {activity.location}</p>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium text-primary">{activity.title}</h3>
+                      {activity.status === 'ongoing' && (
+                        <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
+                          Now
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground/80 font-light mt-1">
+                      <span>{activity.time}</span>
+                      <span className="w-1 h-1 rounded-full bg-muted-foreground/30"></span>
+                      <span className="flex items-center">
+                        <MapPin className="h-3 w-3 mr-1 inline-block" /> 
+                        {activity.location}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <button 
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-primary/70 hover:text-primary hover:bg-primary/5"
                   onClick={() => navigate('/activities')}
-                  className="text-primary text-sm underline-offset-4 hover:underline"
                 >
                   Details
-                </button>
-              </div>
+                </Button>
+              </motion.div>
             ))}
           </div>
         </motion.div>
