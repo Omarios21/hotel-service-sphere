@@ -8,12 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import Layout from '@/components/Layout';
+import { AlertCircle } from 'lucide-react';
 
 const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // Check if already logged in
@@ -44,6 +46,7 @@ const Auth: React.FC = () => {
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     
     try {
       if (mode === 'login') {
@@ -64,10 +67,17 @@ const Auth: React.FC = () => {
         toast.success('Signup successful! Please check your email for confirmation.');
       }
     } catch (error: any) {
+      console.error('Auth error:', error);
+      setError(error.message);
       toast.error(error.message || 'An error occurred');
     } finally {
       setLoading(false);
     }
+  };
+
+  const fillDemoCredentials = () => {
+    setEmail('admin@example.com');
+    setPassword('password123');
   };
 
   return (
@@ -86,6 +96,13 @@ const Auth: React.FC = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleAuth} className="space-y-4">
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md flex items-start gap-2">
+                  <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm">{error}</p>
+                </div>
+              )}
+              
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -113,7 +130,7 @@ const Auth: React.FC = () => {
                 {loading ? 'Processing...' : mode === 'login' ? 'Login' : 'Sign Up'}
               </Button>
               
-              <div className="text-center mt-4">
+              <div className="flex justify-between items-center mt-4">
                 <button
                   type="button"
                   onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
@@ -122,6 +139,14 @@ const Auth: React.FC = () => {
                   {mode === 'login' 
                     ? 'Need an account? Sign up' 
                     : 'Already have an account? Log in'}
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={fillDemoCredentials}
+                  className="text-sm text-gray-500 hover:underline"
+                >
+                  Demo Credentials
                 </button>
               </div>
             </form>
