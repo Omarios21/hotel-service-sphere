@@ -67,6 +67,22 @@ const Home: React.FC = () => {
       status: 'ongoing'
     }
   ]);
+
+  // Sort activities to show ongoing events first
+  useEffect(() => {
+    const sortedActivities = [...activities].sort((a, b) => {
+      if (a.status === 'ongoing' && b.status !== 'ongoing') {
+        return -1;
+      } else if (a.status !== 'ongoing' && b.status === 'ongoing') {
+        return 1;
+      }
+      return 0;
+    });
+    
+    if (JSON.stringify(sortedActivities) !== JSON.stringify(activities)) {
+      setActivities(sortedActivities);
+    }
+  }, [activities]);
   
   // Listen for order and booking updates
   useEffect(() => {
@@ -167,6 +183,9 @@ const Home: React.FC = () => {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0 }
   };
+
+  // Check if there are any reservations
+  const hasAnyReservations = currentOrder || currentSpaBooking || currentActivityBooking;
   
   return (
     <Layout>
@@ -227,6 +246,51 @@ const Home: React.FC = () => {
             </div>
           </Card>
         </motion.div>
+        
+        {/* No Reservations Message */}
+        {!hasAnyReservations && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="mb-8"
+          >
+            <Card className="p-6 bg-primary/5 border border-primary/10 rounded-xl shadow-sm">
+              <div className="flex flex-col items-center text-center">
+                <div className="mb-4 bg-primary/10 p-3 rounded-full">
+                  <Calendar className="h-6 w-6 text-primary/80" />
+                </div>
+                <h3 className="text-lg font-medium mb-2">No Current Reservations</h3>
+                <p className="text-muted-foreground font-light mb-4">
+                  You don't have any active room service orders, spa appointments, or activity bookings.
+                </p>
+                <div className="flex flex-wrap gap-3 justify-center">
+                  <Button 
+                    variant="outline" 
+                    className="border-primary/20 hover:bg-primary/5"
+                    onClick={() => navigate('/room-service')}
+                  >
+                    Order Room Service
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="border-primary/20 hover:bg-primary/5"
+                    onClick={() => navigate('/spa')}
+                  >
+                    Book Spa Treatment
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="border-primary/20 hover:bg-primary/5"
+                    onClick={() => navigate('/activities')}
+                  >
+                    View Activities
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        )}
         
         {/* Delivery Status Section */}
         {currentOrder && (
