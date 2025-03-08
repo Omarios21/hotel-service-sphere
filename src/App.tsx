@@ -16,6 +16,7 @@ import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import Chat from "./pages/Chat";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/spa" element={<Spa />} />
             <Route path="/activities" element={<Activities />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/chat" element={<Chat />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
