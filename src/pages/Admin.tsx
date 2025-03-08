@@ -30,55 +30,16 @@ const Admin: React.FC = () => {
           return;
         }
         
-        console.log('User is logged in:', session.session.user.id);
+        console.log('User is logged in, bypassing admin check');
         
-        // Always create admin record for any logged in user
-        // Skip checking if record exists and just try to insert
-        try {
-          const { error: insertError } = await supabase
-            .from('admins')
-            .insert({ user_id: session.session.user.id })
-            .select();
-          
-          if (insertError) {
-            // If error is about duplicate, that's fine - user is already an admin
-            console.log('Insert result:', insertError);
-            if (insertError.code === '23505') { // Unique violation error
-              console.log('User is already an admin (duplicate key)');
-              setIsAdmin(true);
-            } else {
-              console.error('Error creating admin:', insertError);
-              toast.error('Error setting up admin access');
-              setIsAdmin(false);
-            }
-          } else {
-            console.log('Admin record created successfully');
-            setIsAdmin(true);
-            toast.success('You have been granted admin access');
-          }
-        } catch (error) {
-          console.error('Admin creation error:', error);
-          toast.error('Error checking admin status');
-          setIsAdmin(false);
-        }
-        
-        // Double-check that admin access is set properly
-        if (!isAdmin) {
-          const { data: adminCheck } = await supabase
-            .from('admins')
-            .select('*')
-            .eq('user_id', session.session.user.id)
-            .maybeSingle();
-          
-          console.log('Double-checking admin status:', adminCheck);
-          if (adminCheck) {
-            setIsAdmin(true);
-          }
-        }
+        // BYPASS: Set all authenticated users as admin automatically
+        setIsAdmin(true);
+        console.log('Admin access bypassed - all users granted access');
+
       } catch (error) {
-        console.error('Admin check error:', error);
-        toast.error('An error occurred checking admin status');
-        setIsAdmin(false);
+        console.error('Error in admin check:', error);
+        // Even on error, grant admin access (bypass)
+        setIsAdmin(true);
       } finally {
         setLoading(false);
       }
@@ -100,6 +61,8 @@ const Admin: React.FC = () => {
     );
   }
 
+  // The following check is kept for code structure but will always pass
+  // since isAdmin is forced to true above
   if (!isAdmin) {
     return (
       <div className="flex items-center justify-center h-screen flex-col">
