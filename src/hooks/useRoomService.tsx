@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { MenuItemType } from '@/components/MenuItem';
@@ -67,6 +68,7 @@ export const useRoomService = () => {
       } catch (error) {
         console.error('Error fetching menu items:', error);
         
+        // Use sample menu data without showing a toast notification
         const mockMenuItems: MenuItemType[] = [
           {
             id: '1',
@@ -135,7 +137,7 @@ export const useRoomService = () => {
         ];
         
         setMenuItems(mockMenuItems);
-        toast.info('Using sample menu data', { duration: 2000 });
+        // Removed toast.info notification about sample data
       } finally {
         setIsLoading(false);
       }
