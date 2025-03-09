@@ -5,7 +5,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
+    --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
 
     --card: 0 0% 100%;
@@ -14,17 +14,17 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
 
-    --primary: 220 70% 15%;
+    --primary: 222 47% 11%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 45 76% 53%;
-    --secondary-foreground: 240 5.9% 10%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222 47% 11.2%;
 
-    --muted: 240 4.8% 95.9%;
+    --muted: 210 40% 96.1%;
     --muted-foreground: 240 3.8% 46.1%;
 
-    --accent: 30 35% 94%;
-    --accent-foreground: 240 5.9% 10%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222 47% 11.2%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -87,22 +87,5 @@
   
   .page-transition-exit-active {
     @apply opacity-0 transition-opacity duration-300;
-  }
-
-  /* New gradient classes for different sections */
-  .hotel-gradient {
-    @apply bg-gradient-to-r from-hotel-light to-amber-50;
-  }
-  
-  .spa-gradient {
-    @apply bg-gradient-to-r from-spa-light to-spa-light/50;
-  }
-  
-  .dining-gradient {
-    @apply bg-gradient-to-r from-dining-light to-amber-50/70;
-  }
-  
-  .activities-gradient {
-    @apply bg-gradient-to-r from-activities-light to-lime-50;
   }
 }

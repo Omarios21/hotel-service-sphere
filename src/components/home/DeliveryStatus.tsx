@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Package, Timer, MapPin, Eye } from 'lucide-react';
+import { Package, Timer, MapPin, X } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -52,20 +52,19 @@ const DeliveryStatus: React.FC<DeliveryStatusProps> = ({
       className="mb-6"
     >
       <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
-        <Package className="h-5 w-5 text-dining-DEFAULT" />
+        <Package className="h-5 w-5 text-primary" />
         {t('roomService.deliveryTitle') || 'Room Service Delivery'}
       </h2>
       
-      <Card className="dining-gradient border-dining-accent/20 shadow">
+      <Card className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-slate-900 dark:to-indigo-950/50 border shadow">
         <CardHeader className="pb-2">
           <div className="flex justify-between items-start">
             <div>
-              <h3 className="font-medium text-dining-DEFAULT">{t('roomService.orderNumber') || 'Order'} #{orderDetails.orderId}</h3>
+              <h3 className="font-medium">{t('roomService.orderNumber') || 'Order'} #{orderDetails.orderId}</h3>
               <p className="text-sm text-muted-foreground">{t('roomService.orderedAt') || 'Ordered at'}: {orderDetails.orderTime}</p>
             </div>
-            <Button variant="ghost" size="icon" className="text-dining-DEFAULT hover:text-dining-DEFAULT/80 hover:bg-dining-accent/10" onClick={showDetailsModal}>
-              <Eye className="h-5 w-5" />
-              <span className="sr-only">{t('button.view')}</span>
+            <Button variant="ghost" size="sm" className="h-8 px-2" onClick={showDetailsModal}>
+              {t('button.view') || 'View Details'}
             </Button>
           </div>
         </CardHeader>
@@ -75,7 +74,7 @@ const DeliveryStatus: React.FC<DeliveryStatusProps> = ({
           <div className="relative mb-4 mt-2">
             <div className="overflow-hidden h-2 text-xs flex rounded bg-muted">
               <div 
-                className="bg-dining-DEFAULT rounded transition-all duration-500 ease-out"
+                className="bg-primary rounded transition-all duration-500 ease-out"
                 style={{ width: `${(currentStep / 3) * 100}%` }} 
               />
             </div>
@@ -84,7 +83,7 @@ const DeliveryStatus: React.FC<DeliveryStatusProps> = ({
               {steps.map((step) => (
                 <div key={step.id} className="flex flex-col items-center">
                   <div className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                    currentStep >= step.id ? 'bg-dining-DEFAULT text-white' : 'bg-muted text-muted-foreground'
+                    currentStep >= step.id ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
                   }`}>
                     {step.icon}
                   </div>
@@ -99,7 +98,7 @@ const DeliveryStatus: React.FC<DeliveryStatusProps> = ({
           </div>
           
           {/* Delivery estimate */}
-          <div className="bg-dining-light p-3 rounded-md text-sm">
+          <div className="bg-muted/30 p-3 rounded-md text-sm">
             <p className="font-medium">{t('roomService.estimatedDelivery') || 'Estimated Delivery'}</p>
             <p className="text-muted-foreground">
               {t('roomService.betweenTimes') || 'Between'} {orderDetails.estimatedDelivery.min} {t('roomService.and') || 'and'} {orderDetails.estimatedDelivery.max}
