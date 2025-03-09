@@ -13,7 +13,7 @@ const LanguageSwitcher: React.FC = () => {
   const { language, setLanguage } = useLanguage();
   
   const languages = [
-    { code: 'en', name: 'English', acronym: 'EN' },
+    { code: 'eng', name: 'English', acronym: 'EN' },
     { code: 'es', name: 'Español', acronym: 'ES' },
     { code: 'fr', name: 'Français', acronym: 'FR' }
   ];
