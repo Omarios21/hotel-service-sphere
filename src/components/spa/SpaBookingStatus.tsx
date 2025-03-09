@@ -5,6 +5,7 @@ import { Calendar, Clock, Bath, Sparkles, Timer } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { SpaBooking } from '@/hooks/useSpaBookings';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SpaBookingStatusProps {
   bookingDetails: SpaBooking;
@@ -15,6 +16,8 @@ const SpaBookingStatus: React.FC<SpaBookingStatusProps> = ({
   bookingDetails,
   showDetailsModal
 }) => {
+  const { t } = useLanguage();
+  
   // Calculate booking progress
   const bookingDate = new Date(bookingDetails.date);
   const bookingTime = bookingDetails.time;
@@ -43,9 +46,9 @@ const SpaBookingStatus: React.FC<SpaBookingStatusProps> = ({
   
   // Steps for the spa appointment
   const steps = [
-    { id: 1, name: 'Booked', icon: <Calendar className="h-5 w-5" />, complete: true },
-    { id: 2, name: 'Preparation', icon: <Bath className="h-5 w-5" />, complete: isToday },
-    { id: 3, name: 'Ready', icon: <Sparkles className="h-5 w-5" />, complete: isToday && hoursRemaining <= 1 }
+    { id: 1, name: t('status.booked'), icon: <Calendar className="h-5 w-5" />, complete: true },
+    { id: 2, name: t('roomService.preparingOrder'), icon: <Bath className="h-5 w-5" />, complete: isToday },
+    { id: 3, name: t('status.ready'), icon: <Sparkles className="h-5 w-5" />, complete: isToday && hoursRemaining <= 1 }
   ];
   
   // Determine current step
@@ -62,7 +65,7 @@ const SpaBookingStatus: React.FC<SpaBookingStatusProps> = ({
     >
       <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
         <Bath className="h-5 w-5 text-primary" />
-        Spa Appointment
+        {t('nav.spa')}
       </h2>
       
       <Card className="bg-gradient-to-r from-purple-50/50 to-blue-50/50 dark:from-purple-900/50 dark:to-blue-950/50 border shadow">
@@ -79,7 +82,7 @@ const SpaBookingStatus: React.FC<SpaBookingStatusProps> = ({
               </p>
             </div>
             <Button variant="ghost" size="sm" className="h-8 px-2" onClick={showDetailsModal}>
-              View Details
+              {t('button.view')}
             </Button>
           </div>
         </CardHeader>
@@ -117,21 +120,21 @@ const SpaBookingStatus: React.FC<SpaBookingStatusProps> = ({
             <div className="bg-muted/30 p-3 rounded-md text-sm">
               <div className="flex items-center gap-2">
                 <Timer className="h-4 w-4 text-primary" />
-                <p className="font-medium">Time Until Appointment</p>
+                <p className="font-medium">{t('taxi.estimatedTime')}</p>
               </div>
               <p className="text-muted-foreground pl-6">
-                {hoursRemaining > 0 ? `${hoursRemaining} hours and ` : ''}
-                {minutesRemaining} minutes remaining
+                {hoursRemaining > 0 ? `${hoursRemaining} ${t('taxi.estimatedTime')} ${t('roomService.and')} ` : ''}
+                {minutesRemaining} {t('taxi.estimatedTime')} {t('roomService.betweenTimes')}
               </p>
             </div>
           ) : (
             <div className="bg-primary/10 p-3 rounded-md text-sm">
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-primary" />
-                <p className="font-medium">Your appointment is now!</p>
+                <p className="font-medium">{t('spa.appointmentNow')}</p>
               </div>
               <p className="text-muted-foreground pl-6">
-                Please proceed to the spa reception
+                {t('spa.proceedToReception')}
               </p>
             </div>
           )}

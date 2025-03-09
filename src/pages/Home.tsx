@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, MapPin, Wifi, Star, ChevronRight, Gem } from 'lucide-react';
+import { Calendar, Clock, Wifi, ChevronRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import SpaBookingStatus from '@/components/spa/SpaBookingStatus';
 import SpaBookingDetails from '@/components/spa/SpaBookingDetails';
 import ActivityBookingStatus from '@/components/activities/ActivityBookingStatus';
 import ActivityBookingDetails from '@/components/activities/ActivityBookingDetails';
+import HomeActivity from '@/components/home/HomeActivity';
 import { SpaBooking } from '@/hooks/useSpaBookings';
 import { ActivityBooking } from '@/hooks/useActivityBookings';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -142,14 +143,14 @@ const Home: React.FC = () => {
     localStorage.removeItem('currentSpaBooking');
     setCurrentSpaBooking(null);
     setIsSpaDetailsOpen(false);
-    toast.success(t('spa.cancelSuccess') || 'Spa appointment cancelled successfully');
+    toast.success(t('spa.cancelSuccess'));
   };
   
   const clearActivityBooking = () => {
     localStorage.removeItem('currentActivityBooking');
     setCurrentActivityBooking(null);
     setIsActivityDetailsOpen(false);
-    toast.success(t('activities.cancelSuccess') || 'Activity booking cancelled successfully');
+    toast.success(t('activities.cancelSuccess'));
   };
   
   useEffect(() => {
@@ -222,7 +223,7 @@ const Home: React.FC = () => {
                         <Wifi className="h-5 w-5 text-primary/80" />
                       </div>
                       <div>
-                        <span className="text-muted-foreground font-light">{t('home.wifiAccess') || 'WiFi Access'}</span>
+                        <span className="text-muted-foreground font-light">{t('home.wifiAccess')}</span>
                         <p className="font-medium font-mono text-base">{hotelInfo.wifiCode}</p>
                       </div>
                     </div>
@@ -295,57 +296,9 @@ const Home: React.FC = () => {
             </Button>
           </div>
           
-          <div className="space-y-3">
+          <div className="space-y-4">
             {activities.map((activity) => (
-              <motion.div 
-                key={activity.id}
-                whileHover={{ scale: 1.01, transition: { duration: 0.3 } }}
-                className={`p-4 rounded-xl border border-slate-100 flex justify-between items-center ${
-                  activity.status === 'ongoing' 
-                    ? 'bg-primary/5 border-primary/10' 
-                    : 'bg-white/60 dark:bg-white/5'
-                }`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`flex items-center justify-center w-12 h-12 rounded-xl ${
-                    activity.status === 'ongoing' 
-                      ? 'bg-primary/10' 
-                      : 'bg-slate-50 dark:bg-white/5'
-                  }`}>
-                    {activity.status === 'ongoing' ? (
-                      <Gem className="h-6 w-6 text-primary/80" />
-                    ) : (
-                      <Star className="h-6 w-6 text-slate-400/80" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-medium text-primary">{activity.title}</h3>
-                      {activity.status === 'ongoing' && (
-                        <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
-                          {t('status.ongoing')}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground/80 font-light mt-1">
-                      <span>{activity.time}</span>
-                      <span className="w-1 h-1 rounded-full bg-muted-foreground/30"></span>
-                      <span className="flex items-center">
-                        <MapPin className="h-3 w-3 mr-1 inline-block" /> 
-                        {activity.location}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  className="text-primary/70 hover:text-primary hover:bg-primary/5"
-                  onClick={() => navigate('/activities')}
-                >
-                  {t('button.view')}
-                </Button>
-              </motion.div>
+              <HomeActivity key={activity.id} activity={activity} />
             ))}
           </div>
         </motion.div>

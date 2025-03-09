@@ -186,10 +186,60 @@ export const translations: Translations = {
     es: 'Cita de spa cancelada con éxito',
     fr: 'Rendez-vous spa annulé avec succès'
   },
+  'spa.appointmentNow': {
+    en: 'Your appointment is now!',
+    es: '¡Su cita es ahora!',
+    fr: 'Votre rendez-vous est maintenant!'
+  },
+  'spa.proceedToReception': {
+    en: 'Please proceed to the spa reception',
+    es: 'Por favor diríjase a la recepción del spa',
+    fr: 'Veuillez vous rendre à la réception du spa'
+  },
   'activities.cancelSuccess': {
     en: 'Activity booking cancelled successfully',
     es: 'Reserva de actividad cancelada con éxito',
     fr: 'Réservation d\'activité annulée avec succès'
+  },
+  'activities.timeUntil': {
+    en: 'Time Until Activity',
+    es: 'Tiempo hasta la actividad',
+    fr: 'Temps jusqu\'à l\'activité'
+  },
+  'activities.hours': {
+    en: 'hours',
+    es: 'horas',
+    fr: 'heures'
+  },
+  'activities.minutes': {
+    en: 'minutes',
+    es: 'minutos',
+    fr: 'minutes'
+  },
+  'activities.startingNow': {
+    en: 'Your activity is starting now!',
+    es: '¡Su actividad está comenzando ahora!',
+    fr: 'Votre activité commence maintenant!'
+  },
+  'activities.proceedTo': {
+    en: 'Please proceed to',
+    es: 'Por favor diríjase a',
+    fr: 'Veuillez vous rendre à'
+  },
+  'activities.person': {
+    en: 'person',
+    es: 'persona',
+    fr: 'personne'
+  },
+  'activities.people': {
+    en: 'people',
+    es: 'personas',
+    fr: 'personnes'
+  },
+  'status.ready': {
+    en: 'Ready',
+    es: 'Listo',
+    fr: 'Prêt'
   },
   
   // Currency settings
