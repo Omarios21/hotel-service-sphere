@@ -13,22 +13,22 @@ const LanguageSwitcher: React.FC = () => {
   const { language, setLanguage } = useLanguage();
   
   const languages = [
-    { code: 'en', name: 'English' },
-    { code: 'es', name: 'Español' },
-    { code: 'fr', name: 'Français' }
+    { code: 'en', name: 'English', acronym: 'EN' },
+    { code: 'es', name: 'Español', acronym: 'ES' },
+    { code: 'fr', name: 'Français', acronym: 'FR' }
   ];
   
-  // Get the full name of the currently selected language
-  const getCurrentLanguageName = () => {
+  // Get the acronym of the currently selected language
+  const getCurrentLanguageAcronym = () => {
     const currentLang = languages.find(lang => lang.code === language);
-    return currentLang ? currentLang.name : 'English';
+    return currentLang ? currentLang.acronym : 'EN';
   };
   
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex items-center space-x-1 p-1 rounded-md hover:bg-muted transition-colors">
-        <Globe className="h-5 w-5" />
-        <span className="text-sm font-medium">{getCurrentLanguageName()}</span>
+      <DropdownMenuTrigger className="flex items-center p-1 rounded-md hover:bg-muted transition-colors">
+        <Globe className="h-5 w-5 mr-1" />
+        <span className="text-sm font-medium">{getCurrentLanguageAcronym()}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-background">
         {languages.map((lang) => (

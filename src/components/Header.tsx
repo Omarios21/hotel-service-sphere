@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { User, ShoppingCart, Shield } from 'lucide-react';
@@ -83,14 +84,14 @@ const Header: React.FC = () => {
       <div className="container mx-auto px-4 sm:px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <LanguageSwitcher />
             <button 
               onClick={() => handleNavigation('/profile')}
-              className="flex items-center space-x-1 transition-colors ml-2"
+              className="flex items-center space-x-1 transition-colors"
               aria-label="Go to profile"
             >
               <User className="h-5 w-5" />
             </button>
+            <LanguageSwitcher />
           </div>
           
           <div className="flex items-center space-x-3">

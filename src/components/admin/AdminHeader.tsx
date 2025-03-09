@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LogOut } from 'lucide-react';
+import { LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSwitcher from '../LanguageSwitcher';
@@ -17,8 +17,16 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ onSignOut }) => {
     <header className="bg-white border-b border-border px-6 py-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="p-0"
+            aria-label="Admin profile"
+          >
+            <User className="h-5 w-5" />
+          </Button>
           <LanguageSwitcher />
-          <h1 className="text-xl font-bold ml-3">{t('admin.dashboard')}</h1>
+          <h1 className="text-xl font-bold ml-2">{t('admin.dashboard')}</h1>
         </div>
         
         <div className="flex items-center space-x-3">
