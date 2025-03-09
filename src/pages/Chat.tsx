@@ -79,7 +79,7 @@ const Chat: React.FC = () => {
 
   return (
     <Layout>
-      <div className="py-4 md:py-6 flex flex-col h-full max-h-[calc(100vh-8rem)]">
+      <div className="flex flex-col h-[calc(100vh-8rem)] py-4 md:py-6">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -113,20 +113,22 @@ const Chat: React.FC = () => {
           <div ref={messagesEndRef} />
         </div>
         
-        <form onSubmit={handleSendMessage} className="mt-auto">
-          <div className="flex gap-2">
-            <Input
-              value={newMessage}
-              onChange={e => setNewMessage(e.target.value)}
-              placeholder={t('chat.placeholder')}
-              className="flex-1"
-            />
-            <Button type="submit" disabled={!newMessage.trim()}>
-              <Send className="h-4 w-4" />
-              <span className="sr-only">Send</span>
-            </Button>
-          </div>
-        </form>
+        <div className="mt-auto sticky bottom-0 bg-background pb-2">
+          <form onSubmit={handleSendMessage} className="w-full">
+            <div className="flex gap-2">
+              <Input
+                value={newMessage}
+                onChange={e => setNewMessage(e.target.value)}
+                placeholder={t('chat.placeholder')}
+                className="flex-1"
+              />
+              <Button type="submit" disabled={!newMessage.trim()}>
+                <Send className="h-4 w-4" />
+                <span className="sr-only">Send</span>
+              </Button>
+            </div>
+          </form>
+        </div>
       </div>
     </Layout>
   );
