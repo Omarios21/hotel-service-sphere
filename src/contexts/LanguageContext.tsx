@@ -187,9 +187,9 @@ export const translations: Translations = {
     fr: 'Rendez-vous spa annulé avec succès'
   },
   'spa.appointmentNow': {
-    en: 'Your appointment is now!',
+    en: 'Your appointment is confirmed!',
     es: '¡Su cita es ahora!',
-    fr: 'Votre rendez-vous est maintenant!'
+    fr: 'Votre rendez-vous est confirmé!'
   },
   'spa.proceedToReception': {
     en: 'Please proceed to the spa reception',
@@ -217,7 +217,7 @@ export const translations: Translations = {
     fr: 'minutes'
   },
   'activities.startingNow': {
-    en: 'Your activity is starting now!',
+    en: 'Your activity is confirmed!',
     es: '¡Su actividad está comenzando ahora!',
     fr: 'Votre activité commence maintenant!'
   },
