@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 // Define supported languages
@@ -93,11 +92,6 @@ export const translations: Translations = {
     es: 'Salida',
     fr: 'Départ'
   },
-  'home.breakfast': {
-    en: 'Breakfast',
-    es: 'Desayuno',
-    fr: 'Petit-déjeuner'
-  },
   'home.wifiAccess': {
     en: 'WiFi Access',
     es: 'Acceso WiFi',
@@ -187,172 +181,15 @@ export const translations: Translations = {
   },
   
   // Spa and Activities
-  'spa.appointment': {
-    en: 'Spa Appointment',
-    es: 'Cita de Spa',
-    fr: 'Rendez-vous Spa'
-  },
-  'spa.preparation': {
-    en: 'Preparation',
-    es: 'Preparación',
-    fr: 'Préparation'
-  },
-  'spa.ready': {
-    en: 'Ready',
-    es: 'Listo',
-    fr: 'Prêt'
-  },
-  'spa.timeUntil': {
-    en: 'Time Until Appointment',
-    es: 'Tiempo Hasta la Cita',
-    fr: 'Temps Avant le Rendez-vous'
-  },
-  'spa.hours': {
-    en: 'hours',
-    es: 'horas',
-    fr: 'heures'
-  },
-  'spa.minutes': {
-    en: 'minutes',
-    es: 'minutos',
-    fr: 'minutes'
-  },
-  'spa.and': {
-    en: 'and',
-    es: 'y',
-    fr: 'et'
-  },
-  'spa.remaining': {
-    en: 'remaining',
-    es: 'restantes',
-    fr: 'restantes'
-  },
-  'spa.appointmentNow': {
-    en: 'Your appointment is now!',
-    es: '¡Su cita es ahora!',
-    fr: 'Votre rendez-vous est maintenant!'
-  },
-  'spa.proceedTo': {
-    en: 'Please proceed to the spa reception',
-    es: 'Por favor diríjase a la recepción del spa',
-    fr: 'Veuillez vous rendre à la réception du spa'
-  },
   'spa.cancelSuccess': {
     en: 'Spa appointment cancelled successfully',
     es: 'Cita de spa cancelada con éxito',
     fr: 'Rendez-vous spa annulé avec succès'
   },
-  
-  // Activities
-  'activities.upcoming': {
-    en: 'Upcoming Activity',
-    es: 'Actividad Próxima',
-    fr: 'Activité à Venir'
-  },
-  'activities.preparation': {
-    en: 'Preparation',
-    es: 'Preparación',
-    fr: 'Préparation'
-  },
-  'activities.ready': {
-    en: 'Ready',
-    es: 'Listo',
-    fr: 'Prêt'
-  },
-  'activities.location': {
-    en: 'Location',
-    es: 'Ubicación',
-    fr: 'Emplacement'
-  },
-  'activities.guests': {
-    en: 'Guests',
-    es: 'Invitados',
-    fr: 'Invités'
-  },
-  'activities.person': {
-    en: 'person',
-    es: 'persona',
-    fr: 'personne'
-  },
-  'activities.people': {
-    en: 'people',
-    es: 'personas',
-    fr: 'personnes'
-  },
-  'activities.timeUntil': {
-    en: 'Time Until Activity',
-    es: 'Tiempo Hasta la Actividad',
-    fr: 'Temps Avant l\'Activité'
-  },
-  'activities.hours': {
-    en: 'hours',
-    es: 'horas',
-    fr: 'heures'
-  },
-  'activities.minutes': {
-    en: 'minutes',
-    es: 'minutos',
-    fr: 'minutes'
-  },
-  'activities.and': {
-    en: 'and',
-    es: 'y',
-    fr: 'et'
-  },
-  'activities.remaining': {
-    en: 'remaining',
-    es: 'restantes',
-    fr: 'restantes'
-  },
-  'activities.startingNow': {
-    en: 'Your activity is starting now!',
-    es: '¡Su actividad está comenzando ahora!',
-    fr: 'Votre activité commence maintenant!'
-  },
-  'activities.proceedTo': {
-    en: 'Please proceed to',
-    es: 'Por favor diríjase a',
-    fr: 'Veuillez vous rendre à'
-  },
   'activities.cancelSuccess': {
     en: 'Activity booking cancelled successfully',
     es: 'Reserva de actividad cancelada con éxito',
     fr: 'Réservation d\'activité annulée avec succès'
-  },
-  'activities.morningYoga': {
-    en: 'Morning Yoga',
-    es: 'Yoga Matutino',
-    fr: 'Yoga du Matin'
-  },
-  'activities.wineTasting': {
-    en: 'Wine Tasting',
-    es: 'Cata de Vinos',
-    fr: 'Dégustation de Vin'
-  },
-  'activities.poolTournament': {
-    en: 'Pool Tournament',
-    es: 'Torneo de Billar',
-    fr: 'Tournoi de Billard'
-  },
-  'activities.beachDeck': {
-    en: 'Beach Deck',
-    es: 'Terraza de Playa',
-    fr: 'Terrasse de Plage'
-  },
-  'activities.wineCellar': {
-    en: 'Wine Cellar',
-    es: 'Bodega de Vinos',
-    fr: 'Cave à Vin'
-  },
-  'activities.gameRoom': {
-    en: 'Game Room',
-    es: 'Sala de Juegos',
-    fr: 'Salle de Jeux'
-  },
-  'activities.now': {
-    en: 'Now',
-    es: 'Ahora',
-    fr: 'Maintenant'
   },
   
   // Currency settings

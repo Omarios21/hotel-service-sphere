@@ -1,9 +1,8 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, MapPin, Wifi, Star, ChevronRight, Gem, Eye } from 'lucide-react';
+import { Calendar, Clock, MapPin, Wifi, Star, ChevronRight, Gem } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -41,61 +40,32 @@ const Home: React.FC = () => {
     name: "Grand Azure Resort & Spa",
     tagline: "Where luxury meets tranquility",
     checkoutTime: "11:00 AM",
-    wifiCode: "AZURE2025",
-    breakfastTime: "7:00 AM - 10:30 AM",
-    breakfastLocation: "Azure Restaurant - Level 2"
+    wifiCode: "AZURE2025"
   };
   
   const [activities, setActivities] = useState<Activity[]>([
     {
       id: '1',
-      title: t('activities.morningYoga'),
+      title: 'Morning Yoga',
       time: '8:00 AM - 9:00 AM',
-      location: t('activities.beachDeck'),
+      location: 'Beach Deck',
       status: 'upcoming'
     },
     {
       id: '2',
-      title: t('activities.wineTasting'),
+      title: 'Wine Tasting',
       time: '7:00 PM - 9:00 PM',
-      location: t('activities.wineCellar'),
+      location: 'Wine Cellar',
       status: 'upcoming'
     },
     {
       id: '3',
-      title: t('activities.poolTournament'),
-      time: t('activities.now') + ' - 4:00 PM',
-      location: t('activities.gameRoom'),
+      title: 'Pool Tournament',
+      time: 'Now - 4:00 PM',
+      location: 'Game Room',
       status: 'ongoing'
     }
   ]);
-
-  useEffect(() => {
-    // Update activity titles when language changes
-    setActivities([
-      {
-        id: '1',
-        title: t('activities.morningYoga'),
-        time: '8:00 AM - 9:00 AM',
-        location: t('activities.beachDeck'),
-        status: 'upcoming'
-      },
-      {
-        id: '2',
-        title: t('activities.wineTasting'),
-        time: '7:00 PM - 9:00 PM',
-        location: t('activities.wineCellar'),
-        status: 'upcoming'
-      },
-      {
-        id: '3',
-        title: t('activities.poolTournament'),
-        time: t('activities.now') + ' - 4:00 PM',
-        location: t('activities.gameRoom'),
-        status: 'ongoing'
-      }
-    ]);
-  }, [t]);
 
   useEffect(() => {
     const sortedActivities = [...activities].sort((a, b) => {
@@ -172,14 +142,14 @@ const Home: React.FC = () => {
     localStorage.removeItem('currentSpaBooking');
     setCurrentSpaBooking(null);
     setIsSpaDetailsOpen(false);
-    toast.success(t('spa.cancelSuccess'));
+    toast.success(t('spa.cancelSuccess') || 'Spa appointment cancelled successfully');
   };
   
   const clearActivityBooking = () => {
     localStorage.removeItem('currentActivityBooking');
     setCurrentActivityBooking(null);
     setIsActivityDetailsOpen(false);
-    toast.success(t('activities.cancelSuccess'));
+    toast.success(t('activities.cancelSuccess') || 'Activity booking cancelled successfully');
   };
   
   useEffect(() => {
@@ -228,18 +198,18 @@ const Home: React.FC = () => {
           transition={{ duration: 0.7, delay: 0.2 }}
           className="mb-8"
         >
-          <Card className="bg-gradient-to-r from-slate-50 to-amber-50 dark:from-slate-900 dark:to-amber-950 overflow-hidden border-none shadow-md rounded-2xl">
+          <Card className="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-indigo-950 overflow-hidden border-none shadow-md rounded-2xl">
             <div className="relative">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-amber-400/5 rounded-bl-full"></div>
+              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full"></div>
               <CardContent className="p-6 md:p-8">
                 <div className="flex flex-col">
                   <h2 className="text-3xl font-serif font-light text-primary mb-1">{hotelInfo.name}</h2>
                   <p className="text-muted-foreground/80 mb-6 font-light italic">{hotelInfo.tagline}</p>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div className="flex items-center gap-3 bg-white/40 dark:bg-white/5 p-4 rounded-xl">
-                      <div className="flex items-center justify-center w-10 h-10 bg-amber-400/10 rounded-full">
-                        <Clock className="h-5 w-5 text-amber-600/80" />
+                      <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-full">
+                        <Clock className="h-5 w-5 text-primary/80" />
                       </div>
                       <div>
                         <span className="text-muted-foreground font-light">{t('home.checkout')}</span>
@@ -248,23 +218,12 @@ const Home: React.FC = () => {
                     </div>
                     
                     <div className="flex items-center gap-3 bg-white/40 dark:bg-white/5 p-4 rounded-xl">
-                      <div className="flex items-center justify-center w-10 h-10 bg-amber-400/10 rounded-full">
-                        <Wifi className="h-5 w-5 text-amber-600/80" />
+                      <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-full">
+                        <Wifi className="h-5 w-5 text-primary/80" />
                       </div>
                       <div>
-                        <span className="text-muted-foreground font-light">{t('home.wifiAccess')}</span>
+                        <span className="text-muted-foreground font-light">{t('home.wifiAccess') || 'WiFi Access'}</span>
                         <p className="font-medium font-mono text-base">{hotelInfo.wifiCode}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-3 bg-white/40 dark:bg-white/5 p-4 rounded-xl">
-                      <div className="flex items-center justify-center w-10 h-10 bg-amber-400/10 rounded-full">
-                        <Calendar className="h-5 w-5 text-amber-600/80" />
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground font-light">{t('home.breakfast')}</span>
-                        <p className="font-medium text-base">{hotelInfo.breakfastTime}</p>
-                        <p className="text-xs text-muted-foreground">{hotelInfo.breakfastLocation}</p>
                       </div>
                     </div>
                   </div>
@@ -281,10 +240,10 @@ const Home: React.FC = () => {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="mb-8"
           >
-            <Card className="p-6 bg-amber-400/5 border border-amber-400/10 rounded-xl shadow-sm">
+            <Card className="p-6 bg-primary/5 border border-primary/10 rounded-xl shadow-sm">
               <div className="flex flex-col items-center text-center">
-                <div className="mb-4 bg-amber-400/10 p-3 rounded-full">
-                  <Calendar className="h-6 w-6 text-amber-600/80" />
+                <div className="mb-4 bg-primary/10 p-3 rounded-full">
+                  <Calendar className="h-6 w-6 text-primary/80" />
                 </div>
                 <h3 className="text-lg font-medium mb-2">{t('home.noReservations')}</h3>
                 <p className="text-muted-foreground font-light mb-4">
@@ -324,12 +283,12 @@ const Home: React.FC = () => {
         >
           <div className="flex justify-between items-center mb-5">
             <h2 className="text-2xl font-serif font-light text-primary flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-amber-600/70" />
+              <Calendar className="h-5 w-5 text-primary/70" />
               {t('home.todayActivities')}
             </h2>
             <Button 
               variant="ghost" 
-              className="text-muted-foreground font-light hover:text-amber-600 text-sm"
+              className="text-muted-foreground font-light hover:text-primary text-sm"
               onClick={() => navigate('/activities')}
             >
               {t('home.viewAll')} <ChevronRight className="h-4 w-4" />
@@ -341,20 +300,20 @@ const Home: React.FC = () => {
               <motion.div 
                 key={activity.id}
                 whileHover={{ scale: 1.01, transition: { duration: 0.3 } }}
-                className={`p-5 rounded-xl border border-slate-100 flex justify-between items-center ${
+                className={`p-4 rounded-xl border border-slate-100 flex justify-between items-center ${
                   activity.status === 'ongoing' 
-                    ? 'bg-amber-400/5 border-amber-400/10' 
+                    ? 'bg-primary/5 border-primary/10' 
                     : 'bg-white/60 dark:bg-white/5'
                 }`}
               >
                 <div className="flex items-center gap-4">
                   <div className={`flex items-center justify-center w-12 h-12 rounded-xl ${
                     activity.status === 'ongoing' 
-                      ? 'bg-amber-400/10' 
+                      ? 'bg-primary/10' 
                       : 'bg-slate-50 dark:bg-white/5'
                   }`}>
                     {activity.status === 'ongoing' ? (
-                      <Gem className="h-6 w-6 text-amber-600/80" />
+                      <Gem className="h-6 w-6 text-primary/80" />
                     ) : (
                       <Star className="h-6 w-6 text-slate-400/80" />
                     )}
@@ -363,7 +322,7 @@ const Home: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <h3 className="font-medium text-primary">{activity.title}</h3>
                       {activity.status === 'ongoing' && (
-                        <span className="text-xs bg-amber-400/20 text-amber-700 px-2 py-0.5 rounded-full">
+                        <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
                           {t('status.ongoing')}
                         </span>
                       )}
@@ -380,11 +339,11 @@ const Home: React.FC = () => {
                 </div>
                 <Button 
                   variant="ghost" 
-                  size="icon"
-                  className="text-amber-600/70 hover:text-amber-600 hover:bg-amber-400/5 rounded-full"
+                  size="sm"
+                  className="text-primary/70 hover:text-primary hover:bg-primary/5"
                   onClick={() => navigate('/activities')}
                 >
-                  <Eye className="h-5 w-5" />
+                  {t('button.view')}
                 </Button>
               </motion.div>
             ))}
