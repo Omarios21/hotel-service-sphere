@@ -147,7 +147,7 @@ const WalletPage: React.FC = () => {
                     <rect x="90" y="100" width="10" height="10" />
                     <rect x="110" y="100" width="10" height="10" />
                     <rect x="130" y="100" width="10" height="10" />
-                    <rect x="60" y="110" width="10" height="10" />
+                    <rect x="60" y="110" width="50" height="10" />
                     <rect x="80" y="110" width="10" height="10" />
                     <rect x="120" y="110" width="10" height="10" />
                     <rect x="70" y="120" width="10" height="10" />
