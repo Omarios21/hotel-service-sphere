@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, MapPin, Wifi, Star, ChevronRight, Gem, Eye } from 'lucide-react';
+import { Calendar, Clock, MapPin, Wifi, Star, ChevronRight, Gem } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -295,39 +295,39 @@ const Home: React.FC = () => {
             </Button>
           </div>
           
-          <div className="space-y-4">
+          <div className="space-y-3">
             {activities.map((activity) => (
               <motion.div 
                 key={activity.id}
                 whileHover={{ scale: 1.01, transition: { duration: 0.3 } }}
-                className={`p-5 rounded-xl border border-slate-100 flex justify-between items-center ${
+                className={`p-4 rounded-xl border border-slate-100 flex justify-between items-center ${
                   activity.status === 'ongoing' 
                     ? 'bg-primary/5 border-primary/10' 
                     : 'bg-white/60 dark:bg-white/5'
                 }`}
               >
-                <div className="flex items-center gap-5 flex-1">
-                  <div className={`flex items-center justify-center w-14 h-14 rounded-xl ${
+                <div className="flex items-center gap-4">
+                  <div className={`flex items-center justify-center w-12 h-12 rounded-xl ${
                     activity.status === 'ongoing' 
                       ? 'bg-primary/10' 
                       : 'bg-slate-50 dark:bg-white/5'
                   }`}>
                     {activity.status === 'ongoing' ? (
-                      <Gem className="h-7 w-7 text-primary/80" />
+                      <Gem className="h-6 w-6 text-primary/80" />
                     ) : (
-                      <Star className="h-7 w-7 text-slate-400/80" />
+                      <Star className="h-6 w-6 text-slate-400/80" />
                     )}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-medium text-primary text-lg">{activity.title}</h3>
+                      <h3 className="font-medium text-primary">{activity.title}</h3>
                       {activity.status === 'ongoing' && (
                         <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
                           {t('status.ongoing')}
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground/80 font-light mt-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground/80 font-light mt-1">
                       <span>{activity.time}</span>
                       <span className="w-1 h-1 rounded-full bg-muted-foreground/30"></span>
                       <span className="flex items-center">
@@ -339,11 +339,11 @@ const Home: React.FC = () => {
                 </div>
                 <Button 
                   variant="ghost" 
-                  size="icon"
-                  className="h-8 w-8 rounded-full text-primary/70 hover:text-primary hover:bg-primary/5"
+                  size="sm"
+                  className="text-primary/70 hover:text-primary hover:bg-primary/5"
                   onClick={() => navigate('/activities')}
                 >
-                  <Eye className="h-4 w-4" />
+                  {t('button.view')}
                 </Button>
               </motion.div>
             ))}
