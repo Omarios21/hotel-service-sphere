@@ -92,6 +92,11 @@ export const translations: Translations = {
     es: 'Salida',
     fr: 'Départ'
   },
+  'home.breakfast': {
+    en: 'Breakfast',
+    es: 'Desayuno',
+    fr: 'Petit-déjeuner'
+  },
   'home.wifiAccess': {
     en: 'WiFi Access',
     es: 'Acceso WiFi',
@@ -246,7 +251,7 @@ export const translations: Translations = {
   'currency.USD': {
     en: 'US Dollar',
     es: 'Dólar estadounidense',
-    fr: 'Dollar américain'
+    fr: 'Dollar americano'
   },
   'currency.EUR': {
     en: 'Euro',

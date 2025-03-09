@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, Wifi, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, Wifi, ChevronRight, Coffee } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -41,6 +41,7 @@ const Home: React.FC = () => {
     name: "Grand Azure Resort",
     tagline: "Where luxury meets tranquility",
     checkoutTime: "11:00 AM",
+    breakfastTime: "7:00 AM - 10:30 AM",
     wifiCode: "AZURE2025"
   };
   
@@ -225,6 +226,16 @@ const Home: React.FC = () => {
                       <div>
                         <span className="text-muted-foreground font-light">{t('home.wifiAccess')}</span>
                         <p className="font-medium font-mono text-base">{hotelInfo.wifiCode}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 bg-white/40 dark:bg-white/5 p-4 rounded-xl">
+                      <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-full">
+                        <Coffee className="h-5 w-5 text-primary/80" />
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground font-light">{t('home.breakfast')}</span>
+                        <p className="font-medium text-base">{hotelInfo.breakfastTime}</p>
                       </div>
                     </div>
                   </div>
