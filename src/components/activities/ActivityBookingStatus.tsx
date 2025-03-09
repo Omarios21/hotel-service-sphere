@@ -5,6 +5,7 @@ import { Calendar, Clock, Users, MapPin, Timer, Trophy } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ActivityBooking } from '@/hooks/useActivityBookings';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ActivityBookingStatusProps {
   bookingDetails: ActivityBooking;
@@ -15,6 +16,8 @@ const ActivityBookingStatus: React.FC<ActivityBookingStatusProps> = ({
   bookingDetails,
   showDetailsModal
 }) => {
+  const { t } = useLanguage();
+  
   // Calculate activity time details
   const activityDate = new Date(bookingDetails.date);
   const now = new Date();
@@ -29,9 +32,9 @@ const ActivityBookingStatus: React.FC<ActivityBookingStatusProps> = ({
   
   // Steps for the activity preparation
   const steps = [
-    { id: 1, name: 'Booked', icon: <Calendar className="h-5 w-5" />, complete: true },
-    { id: 2, name: 'Preparation', icon: <Users className="h-5 w-5" />, complete: isToday },
-    { id: 3, name: 'Ready', icon: <Trophy className="h-5 w-5" />, complete: isToday && hoursUntil <= 1 }
+    { id: 1, name: t('status.booked'), icon: <Calendar className="h-5 w-5" />, complete: true },
+    { id: 2, name: t('activities.preparation'), icon: <Users className="h-5 w-5" />, complete: isToday },
+    { id: 3, name: t('activities.ready'), icon: <Trophy className="h-5 w-5" />, complete: isToday && hoursUntil <= 1 }
   ];
   
   // Determine current step
@@ -48,7 +51,7 @@ const ActivityBookingStatus: React.FC<ActivityBookingStatusProps> = ({
     >
       <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
         <Trophy className="h-5 w-5 text-primary" />
-        Upcoming Activity
+        {t('activities.upcoming')}
       </h2>
       
       <Card className="bg-gradient-to-r from-green-50/50 to-blue-50/50 dark:from-green-900/50 dark:to-blue-950/50 border shadow">
@@ -65,7 +68,7 @@ const ActivityBookingStatus: React.FC<ActivityBookingStatusProps> = ({
               </p>
             </div>
             <Button variant="ghost" size="sm" className="h-8 px-2" onClick={showDetailsModal}>
-              View Details
+              {t('button.view')}
             </Button>
           </div>
         </CardHeader>
@@ -103,7 +106,7 @@ const ActivityBookingStatus: React.FC<ActivityBookingStatusProps> = ({
             <div className="bg-muted/30 p-3 rounded-md text-sm">
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-primary" />
-                <p className="font-medium">Location</p>
+                <p className="font-medium">{t('activities.location')}</p>
               </div>
               <p className="text-muted-foreground pl-6">
                 {bookingDetails.location}
@@ -113,10 +116,10 @@ const ActivityBookingStatus: React.FC<ActivityBookingStatusProps> = ({
             <div className="bg-muted/30 p-3 rounded-md text-sm">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-primary" />
-                <p className="font-medium">Guests</p>
+                <p className="font-medium">{t('activities.guests')}</p>
               </div>
               <p className="text-muted-foreground pl-6">
-                {bookingDetails.guestCount} {bookingDetails.guestCount === 1 ? 'person' : 'people'}
+                {bookingDetails.guestCount} {bookingDetails.guestCount === 1 ? t('activities.person') : t('activities.people')}
               </p>
             </div>
           </div>
@@ -126,21 +129,21 @@ const ActivityBookingStatus: React.FC<ActivityBookingStatusProps> = ({
             <div className="bg-muted/30 p-3 rounded-md text-sm">
               <div className="flex items-center gap-2">
                 <Timer className="h-4 w-4 text-primary" />
-                <p className="font-medium">Time Until Activity</p>
+                <p className="font-medium">{t('activities.timeUntil')}</p>
               </div>
               <p className="text-muted-foreground pl-6">
-                {hoursUntil > 0 ? `${hoursUntil} hours and ` : ''}
-                {minutesUntil} minutes remaining
+                {hoursUntil > 0 ? `${hoursUntil} ${t('activities.hours')} ${t('activities.and')} ` : ''}
+                {minutesUntil} {t('activities.minutes')} {t('activities.remaining')}
               </p>
             </div>
           ) : (
             <div className="bg-primary/10 p-3 rounded-md text-sm">
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-primary" />
-                <p className="font-medium">Your activity is starting now!</p>
+                <p className="font-medium">{t('activities.startingNow')}</p>
               </div>
               <p className="text-muted-foreground pl-6">
-                Please proceed to {bookingDetails.location}
+                {t('activities.proceedTo')} {bookingDetails.location}
               </p>
             </div>
           )}
