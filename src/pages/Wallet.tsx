@@ -155,7 +155,7 @@ const WalletPage: React.FC = () => {
                     <rect x="110" y="120" width="10" height="10" />
                     <rect x="80" y="130" width="10" height="10" />
                     <rect x="100" y="130" width="10" height="10" />
-                    <rect x="120" y="130" width="50" height="10" />
+                    <rect x="120" y="130" width="10" height="10" />
                   </g>
                 </svg>
                 <p className="text-center mt-2 font-medium">Room {roomId} Payment QR</p>
