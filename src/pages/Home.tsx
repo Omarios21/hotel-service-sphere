@@ -38,7 +38,7 @@ const Home: React.FC = () => {
   const [currentActivityBooking, setCurrentActivityBooking] = useState<ActivityBooking | null>(null);
   
   const hotelInfo = {
-    name: "Grand Azure Resort & Spa",
+    name: "Grand Azure Resort",
     tagline: "Where luxury meets tranquility",
     checkoutTime: "11:00 AM",
     wifiCode: "AZURE2025"

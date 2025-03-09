@@ -87,7 +87,7 @@ const Spa: React.FC = () => {
       },
       {
         id: '2',
-        name: 'Deep Tissue Massage',
+        name: 'Relaxation en profondeur',
         description: 'Focuses on realigning deeper layers of muscles. It helps with chronic muscle tension and pain.',
         duration: '60 min',
         price: 140,
