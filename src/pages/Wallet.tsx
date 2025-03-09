@@ -117,7 +117,7 @@ const WalletPage: React.FC = () => {
               </div>
             </CardHeader>
             <CardContent className="p-6 flex flex-col items-center">
-              <div className="border-4 border-primary p-3 rounded-xl mb-4 bg-white">
+            <div className="border-4 border-primary p-3 rounded-xl mb-4 bg-white">
                 {/* QR Code - using a placeholder that would be generated with actual wallet ID */}
                 <svg 
                   className="h-64 w-64" 
@@ -132,34 +132,45 @@ const WalletPage: React.FC = () => {
                     <rect x="130" y="50" width="20" height="20" />
                     <rect x="50" y="130" width="20" height="20" />
                     
-                    {/* QR data pattern - simplified for illustration */}
+                    {/* QR data pattern - more complex variation */}
                     <rect x="80" y="50" width="10" height="10" />
                     <rect x="100" y="50" width="10" height="10" />
+                    <rect x="120" y="50" width="10" height="10" />
                     <rect x="50" y="80" width="10" height="10" />
                     <rect x="70" y="80" width="10" height="10" />
                     <rect x="90" y="80" width="10" height="10" />
+                    <rect x="110" y="80" width="10" height="10" />
                     <rect x="130" y="80" width="10" height="10" />
                     <rect x="60" y="90" width="10" height="10" />
+                    <rect x="80" y="90" width="10" height="10" />
                     <rect x="100" y="90" width="10" height="10" />
                     <rect x="120" y="90" width="10" height="10" />
+                    <rect x="140" y="90" width="10" height="10" />
                     <rect x="50" y="100" width="10" height="10" />
                     <rect x="70" y="100" width="10" height="10" />
                     <rect x="90" y="100" width="10" height="10" />
                     <rect x="110" y="100" width="10" height="10" />
                     <rect x="130" y="100" width="10" height="10" />
-                    <rect x="60" y="110" width="50" height="10" />
+                    <rect x="150" y="100" width="10" height="10" />
+                    <rect x="60" y="110" width="10" height="10" />
                     <rect x="80" y="110" width="10" height="10" />
+                    <rect x="100" y="110" width="10" height="10" />
                     <rect x="120" y="110" width="10" height="10" />
+                    <rect x="140" y="110" width="10" height="10" />
                     <rect x="70" y="120" width="10" height="10" />
                     <rect x="90" y="120" width="10" height="10" />
                     <rect x="110" y="120" width="10" height="10" />
+                    <rect x="130" y="120" width="10" height="10" />
+                    <rect x="150" y="120" width="10" height="10" />
                     <rect x="80" y="130" width="10" height="10" />
                     <rect x="100" y="130" width="10" height="10" />
-                    <rect x="120" y="130" width="50" height="10" />
+                    <rect x="120" y="130" width="10" height="10" />
+                    <rect x="140" y="130" width="10" height="10" />
                   </g>
                 </svg>
                 <p className="text-center mt-2 font-medium">Room {roomId} Payment QR</p>
               </div>
+
               
               <div className="flex gap-4 w-full">
                 <Button 
