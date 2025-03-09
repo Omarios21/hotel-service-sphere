@@ -16,13 +16,14 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ onSignOut }) => {
   return (
     <header className="bg-white border-b border-border px-6 py-3">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">{t('admin.dashboard')}</h1>
-        
-        <div className="flex items-center space-x-4">
-          <CurrencySwitcher />
+        <div className="flex items-center space-x-3">
           <LanguageSwitcher />
-          
-          <Button variant="outline" size="sm" onClick={onSignOut}>
+          <h1 className="text-xl font-bold ml-3">{t('admin.dashboard')}</h1>
+        </div>
+        
+        <div className="flex items-center space-x-3">
+          <CurrencySwitcher />
+          <Button variant="outline" size="sm" onClick={onSignOut} className="ml-3">
             <LogOut className="h-4 w-4 mr-2" />
             {t('button.signOut')}
           </Button>
