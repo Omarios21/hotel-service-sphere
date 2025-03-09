@@ -1,9 +1,8 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Clock, MapPin, Wifi, Star, ChevronRight, Gem, UtensilsCrossed, Taxi } from 'lucide-react';
+import { Calendar, Clock, MapPin, Wifi, Star, ChevronRight, Gem, UtensilsCrossed, Car } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';

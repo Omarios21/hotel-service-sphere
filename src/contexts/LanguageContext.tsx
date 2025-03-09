@@ -196,7 +196,7 @@ export const translations: Translations = {
   'currency.USD': {
     en: 'US Dollar',
     es: 'Dólar estadounidense',
-    fr: 'Dollar américain'
+    fr: 'Dollar americano'
   },
   'currency.EUR': {
     en: 'Euro',
@@ -377,6 +377,26 @@ export const translations: Translations = {
     en: 'Your taxi has been scheduled successfully!',
     es: '¡Su taxi ha sido programado con éxito!',
     fr: 'Votre taxi a été programmé avec succès !'
+  },
+  'taxi.bookingTitle': {
+    en: 'Taxi Reservation',
+    es: 'Reserva de Taxi',
+    fr: 'Réservation de Taxi'
+  },
+  'taxi.to': {
+    en: 'To',
+    es: 'Hacia',
+    fr: 'Vers'
+  },
+  'taxi.from': {
+    en: 'From',
+    es: 'Desde',
+    fr: 'De'
+  },
+  'taxi.cancelSuccess': {
+    en: 'Taxi booking cancelled successfully',
+    es: 'Reserva de taxi cancelada con éxito',
+    fr: 'Réservation de taxi annulée avec succès'
   }
 };
 

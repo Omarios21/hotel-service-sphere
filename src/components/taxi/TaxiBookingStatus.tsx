@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Taxi, Clock, MapPin, X } from 'lucide-react';
+import { Car, Clock, MapPin, X } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface TaxiBookingDetails {
@@ -37,7 +37,7 @@ const TaxiBookingStatus: React.FC<TaxiBookingStatusProps> = ({
         <div className="p-5">
           <div className="flex items-start gap-4">
             <div className="flex-shrink-0 bg-amber-100 dark:bg-amber-900/30 p-3 rounded-full">
-              <Taxi className="h-6 w-6 text-amber-800 dark:text-amber-400" />
+              <Car className="h-6 w-6 text-amber-800 dark:text-amber-400" />
             </div>
             
             <div className="flex-1">
