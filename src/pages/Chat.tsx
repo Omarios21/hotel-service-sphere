@@ -113,8 +113,8 @@ const Chat: React.FC = () => {
           <div ref={messagesEndRef} />
         </div>
         
-        <div className="mt-auto sticky bottom-0 bg-background pb-2">
-          <form onSubmit={handleSendMessage} className="w-full">
+        <div className="fixed bottom-16 left-0 right-0 bg-background px-4 pb-2 pt-2 border-t border-border">
+          <form onSubmit={handleSendMessage} className="w-full max-w-screen-xl mx-auto">
             <div className="flex gap-2">
               <Input
                 value={newMessage}
