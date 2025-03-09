@@ -155,7 +155,6 @@ const WalletPage: React.FC = () => {
                     <rect x="110" y="120" width="10" height="10" />
                     <rect x="80" y="130" width="10" height="10" />
                     <rect x="100" y="130" width="10" height="10" />
-                    <rect x="120" y="130" width="10" height="10" />
                     <rect x="130" y="130" width="10" height="10" />
                   </g>
                 </svg>
