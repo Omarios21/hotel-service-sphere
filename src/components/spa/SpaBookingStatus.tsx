@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, Bath, Sparkles, Timer } from 'lucide-react';
+import { Calendar, Clock, Bath, Sparkles, Timer, Eye } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { SpaBooking } from '@/hooks/useSpaBookings';
@@ -64,15 +64,15 @@ const SpaBookingStatus: React.FC<SpaBookingStatusProps> = ({
       className="mb-6"
     >
       <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
-        <Bath className="h-5 w-5 text-primary" />
+        <Bath className="h-5 w-5 text-spa-DEFAULT" />
         {t('spa.appointment')}
       </h2>
       
-      <Card className="bg-gradient-to-r from-purple-50/50 to-blue-50/50 dark:from-purple-900/50 dark:to-blue-950/50 border shadow">
+      <Card className="spa-gradient border-spa-accent/20 shadow">
         <CardHeader className="pb-2">
           <div className="flex justify-between items-start">
             <div>
-              <h3 className="font-medium">{bookingDetails.serviceName}</h3>
+              <h3 className="font-medium text-spa-DEFAULT">{bookingDetails.serviceName}</h3>
               <p className="text-sm text-muted-foreground">
                 {new Date(bookingDetails.date).toLocaleDateString('en-US', {
                   weekday: 'long',
@@ -81,8 +81,9 @@ const SpaBookingStatus: React.FC<SpaBookingStatusProps> = ({
                 })} at {bookingDetails.time}
               </p>
             </div>
-            <Button variant="ghost" size="sm" className="h-8 px-2" onClick={showDetailsModal}>
-              {t('button.view')}
+            <Button variant="ghost" size="icon" className="text-spa-DEFAULT hover:text-spa-DEFAULT/80 hover:bg-spa-accent/10" onClick={showDetailsModal}>
+              <Eye className="h-5 w-5" />
+              <span className="sr-only">{t('button.view')}</span>
             </Button>
           </div>
         </CardHeader>
@@ -92,7 +93,7 @@ const SpaBookingStatus: React.FC<SpaBookingStatusProps> = ({
           <div className="relative mb-4 mt-2">
             <div className="overflow-hidden h-2 text-xs flex rounded bg-muted">
               <div 
-                className="bg-primary rounded transition-all duration-500 ease-out"
+                className="bg-spa-DEFAULT rounded transition-all duration-500 ease-out"
                 style={{ width: `${(currentStep / 3) * 100}%` }} 
               />
             </div>
@@ -101,7 +102,7 @@ const SpaBookingStatus: React.FC<SpaBookingStatusProps> = ({
               {steps.map((step) => (
                 <div key={step.id} className="flex flex-col items-center">
                   <div className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                    currentStep >= step.id ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                    currentStep >= step.id ? 'bg-spa-DEFAULT text-white' : 'bg-muted text-muted-foreground'
                   }`}>
                     {step.icon}
                   </div>
@@ -117,9 +118,9 @@ const SpaBookingStatus: React.FC<SpaBookingStatusProps> = ({
           
           {/* Time remaining */}
           {timeRemaining > 0 ? (
-            <div className="bg-muted/30 p-3 rounded-md text-sm">
+            <div className="bg-spa-light p-3 rounded-md text-sm">
               <div className="flex items-center gap-2">
-                <Timer className="h-4 w-4 text-primary" />
+                <Timer className="h-4 w-4 text-spa-DEFAULT" />
                 <p className="font-medium">{t('spa.timeUntil')}</p>
               </div>
               <p className="text-muted-foreground pl-6">
@@ -128,9 +129,9 @@ const SpaBookingStatus: React.FC<SpaBookingStatusProps> = ({
               </p>
             </div>
           ) : (
-            <div className="bg-primary/10 p-3 rounded-md text-sm">
+            <div className="bg-spa-accent/20 p-3 rounded-md text-sm">
               <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-primary" />
+                <Clock className="h-4 w-4 text-spa-DEFAULT" />
                 <p className="font-medium">{t('spa.appointmentNow')}</p>
               </div>
               <p className="text-muted-foreground pl-6">

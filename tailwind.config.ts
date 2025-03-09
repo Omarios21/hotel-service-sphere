@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -62,6 +61,30 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				hotel: {
+					DEFAULT: '#0A2342',
+					light: '#F6F1E9',
+					accent: '#D4AF37',
+					muted: '#7D6E83'
+				},
+				spa: {
+					DEFAULT: '#4A6670',
+					light: '#EDF6F9',
+					accent: '#98C1D9',
+					muted: '#293241'
+				},
+				dining: {
+					DEFAULT: '#5E3023',
+					light: '#FCF0DD',
+					accent: '#AA6F51',
+					muted: '#D9B68B'
+				},
+				activities: {
+					DEFAULT: '#2D4739',
+					light: '#DCE8D5',
+					accent: '#84A98C',
+					muted: '#52796F'
 				}
 			},
 			borderRadius: {
