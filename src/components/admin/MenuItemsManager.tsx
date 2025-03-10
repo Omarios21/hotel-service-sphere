@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -8,8 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2, Check, X, Image } from 'lucide-react';
+import { Plus, Edit, Trash2, Check, X, Image, Upload, Search } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useFileUpload } from '@/hooks/useFileUpload';
+import SearchBar from './SearchBar';
 
 interface MenuItem {
   id: string;
@@ -23,10 +25,12 @@ interface MenuItem {
 
 const MenuItemsManager: React.FC = () => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const { formatPrice } = useLanguage();
+  const { uploading, uploadImageToSupabase } = useFileUpload();
   
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -34,10 +38,35 @@ const MenuItemsManager: React.FC = () => {
   const [imageUrl, setImageUrl] = useState('');
   const [category, setCategory] = useState('main');
   const [available, setAvailable] = useState(true);
+  const [showImageDialog, setShowImageDialog] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   
   useEffect(() => {
     fetchMenuItems();
   }, []);
+  
+  useEffect(() => {
+    filterItems();
+  }, [searchTerm, categoryFilter, menuItems]);
+  
+  const filterItems = () => {
+    let filtered = [...menuItems];
+    
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter(item => 
+        item.name.toLowerCase().includes(search) || 
+        item.description.toLowerCase().includes(search)
+      );
+    }
+    
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter(item => item.category === categoryFilter);
+    }
+    
+    setFilteredItems(filtered);
+  };
   
   const fetchMenuItems = async () => {
     try {
@@ -50,6 +79,7 @@ const MenuItemsManager: React.FC = () => {
       if (error) throw error;
       
       setMenuItems(data || []);
+      setFilteredItems(data || []);
       
       if (data && data.length === 0) {
         await seedDefaultMenuItems();
@@ -201,6 +231,20 @@ const MenuItemsManager: React.FC = () => {
     }
   };
   
+  const handleUploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) {
+      return;
+    }
+    
+    const file = e.target.files[0];
+    const url = await uploadImageToSupabase(file);
+    
+    if (url) {
+      setImageUrl(url);
+      setShowImageDialog(false);
+    }
+  };
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -285,6 +329,31 @@ const MenuItemsManager: React.FC = () => {
         )}
       </div>
       
+      {!showForm && (
+        <div className="mb-6 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <SearchBar 
+              placeholder="Search items by name or description..."
+              value={searchTerm}
+              onChange={setSearchTerm}
+            />
+            
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="breakfast">Breakfast</SelectItem>
+                <SelectItem value="main">Main Courses</SelectItem>
+                <SelectItem value="desserts">Desserts</SelectItem>
+                <SelectItem value="drinks">Drinks</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      )}
+      
       {showForm && (
         <Card className="mb-8">
           <CardContent className="pt-6">
@@ -328,14 +397,29 @@ const MenuItemsManager: React.FC = () => {
                 </div>
                 
                 <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="image_url">Image URL</Label>
-                  <Input 
-                    id="image_url" 
-                    value={imageUrl} 
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    placeholder="https://example.com/image.jpg"
-                    required
-                  />
+                  <Label htmlFor="image_url">Image</Label>
+                  <div className="flex items-center gap-2">
+                    <Input 
+                      id="image_url" 
+                      value={imageUrl} 
+                      onChange={(e) => setImageUrl(e.target.value)}
+                      placeholder="https://example.com/image.jpg"
+                      required
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      onClick={() => setShowImageDialog(true)}
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload
+                    </Button>
+                  </div>
+                  {imageUrl && (
+                    <div className="mt-2 relative w-full max-w-[200px] aspect-video bg-muted rounded-md overflow-hidden">
+                      <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                    </div>
+                  )}
                 </div>
                 
                 <div className="space-y-2">
@@ -371,7 +455,7 @@ const MenuItemsManager: React.FC = () => {
                 <Button type="button" variant="outline" onClick={handleCancel}>
                   Cancel
                 </Button>
-                <Button type="submit">
+                <Button type="submit" disabled={uploading}>
                   {editingItem ? 'Update Item' : 'Add Item'}
                 </Button>
               </div>
@@ -380,17 +464,51 @@ const MenuItemsManager: React.FC = () => {
         </Card>
       )}
       
+      <Dialog open={showImageDialog} onOpenChange={setShowImageDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Upload Image</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <Label htmlFor="image-upload">Select Image</Label>
+            <Input
+              id="image-upload"
+              type="file"
+              accept="image/*"
+              onChange={handleUploadImage}
+              disabled={uploading}
+            />
+            <p className="text-sm text-muted-foreground">
+              Upload an image for the menu item. Recommended size: 500x300 pixels.
+            </p>
+            <div className="flex justify-end">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowImageDialog(false)}
+                disabled={uploading}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
       {loading ? (
         <div className="flex justify-center py-12">
           <div className="animate-spin-slow h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
         </div>
-      ) : menuItems.length === 0 ? (
+      ) : filteredItems.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">No menu items found.</p>
+          <p className="text-muted-foreground">
+            {menuItems.length === 0 
+              ? 'No menu items found.' 
+              : 'No items match your search criteria.'}
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {menuItems.map((item) => (
+          {filteredItems.map((item) => (
             <Card key={item.id} className={`overflow-hidden ${!item.available ? 'opacity-70' : ''}`}>
               <div className="aspect-video relative overflow-hidden bg-muted">
                 {item.image_url ? (

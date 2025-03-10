@@ -10,6 +10,8 @@ import { toast } from 'sonner';
 import { Plus, Edit, Trash2, Clock, Check, X, Image, Upload } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useFileUpload } from '@/hooks/useFileUpload';
+import SearchBar from './SearchBar';
 
 interface SpaService {
   id: string;
@@ -23,10 +25,12 @@ interface SpaService {
 
 const SpaServicesManager: React.FC = () => {
   const [spaServices, setSpaServices] = useState<SpaService[]>([]);
+  const [filteredServices, setFilteredServices] = useState<SpaService[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingService, setEditingService] = useState<SpaService | null>(null);
   const { formatPrice } = useLanguage();
+  const { uploading, uploadImageToSupabase } = useFileUpload();
   
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -34,12 +38,32 @@ const SpaServicesManager: React.FC = () => {
   const [duration, setDuration] = useState('60 minutes');
   const [imageUrl, setImageUrl] = useState('');
   const [available, setAvailable] = useState(true);
-  const [uploading, setUploading] = useState(false);
   const [showImageDialog, setShowImageDialog] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   
   useEffect(() => {
     fetchSpaServices();
   }, []);
+  
+  useEffect(() => {
+    filterServices();
+  }, [searchTerm, spaServices]);
+  
+  const filterServices = () => {
+    if (!searchTerm) {
+      setFilteredServices(spaServices);
+      return;
+    }
+    
+    const search = searchTerm.toLowerCase();
+    const filtered = spaServices.filter(service => 
+      service.name.toLowerCase().includes(search) || 
+      service.description.toLowerCase().includes(search) ||
+      service.duration.toLowerCase().includes(search)
+    );
+    
+    setFilteredServices(filtered);
+  };
   
   const fetchSpaServices = async () => {
     try {
@@ -52,6 +76,7 @@ const SpaServicesManager: React.FC = () => {
       if (error) throw error;
       
       setSpaServices(data || []);
+      setFilteredServices(data || []);
     } catch (error: any) {
       toast.error('Error loading spa services: ' + error.message, { duration: 2000 });
     } finally {
@@ -123,23 +148,10 @@ const SpaServicesManager: React.FC = () => {
     }
     
     const file = e.target.files[0];
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-    const filePath = `spa_services/${fileName}`;
+    const url = await uploadImageToSupabase(file);
     
-    setUploading(true);
-    
-    try {
-      // For this demo, we're just using a placeholder URL for the image
-      // In a real app, you would upload to Supabase Storage
-      const randomId = Math.floor(Math.random() * 1000);
-      const placeholderUrl = `https://picsum.photos/seed/${randomId}/500/300`;
-      setImageUrl(placeholderUrl);
-      toast.success('Image uploaded successfully', { duration: 2000 });
-    } catch (error: any) {
-      toast.error('Error uploading image: ' + error.message, { duration: 2000 });
-    } finally {
-      setUploading(false);
+    if (url) {
+      setImageUrl(url);
       setShowImageDialog(false);
     }
   };
@@ -220,6 +232,16 @@ const SpaServicesManager: React.FC = () => {
           </Button>
         )}
       </div>
+      
+      {!showForm && (
+        <div className="mb-6">
+          <SearchBar 
+            placeholder="Search services by name, description or duration..."
+            value={searchTerm}
+            onChange={setSearchTerm}
+          />
+        </div>
+      )}
       
       {showForm && (
         <Card className="mb-8">
@@ -306,6 +328,11 @@ const SpaServicesManager: React.FC = () => {
                       Upload
                     </Button>
                   </div>
+                  {imageUrl && (
+                    <div className="mt-2 relative w-full max-w-[200px] aspect-video bg-muted rounded-md overflow-hidden">
+                      <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                    </div>
+                  )}
                 </div>
               </div>
               
@@ -313,7 +340,7 @@ const SpaServicesManager: React.FC = () => {
                 <Button type="button" variant="outline" onClick={handleCancel}>
                   Cancel
                 </Button>
-                <Button type="submit">
+                <Button type="submit" disabled={uploading}>
                   {editingService ? 'Update Service' : 'Add Service'}
                 </Button>
               </div>
@@ -356,13 +383,17 @@ const SpaServicesManager: React.FC = () => {
         <div className="flex justify-center py-12">
           <div className="animate-spin-slow h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
         </div>
-      ) : spaServices.length === 0 ? (
+      ) : filteredServices.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">No spa services found. Add your first service to get started.</p>
+          <p className="text-muted-foreground">
+            {spaServices.length === 0 
+              ? 'No spa services found. Add your first service to get started.' 
+              : 'No services match your search criteria.'}
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {spaServices.map((service) => (
+          {filteredServices.map((service) => (
             <Card key={service.id} className={`overflow-hidden ${!service.available ? 'opacity-70' : ''}`}>
               <div className="aspect-video relative overflow-hidden bg-muted">
                 {service.image ? (
