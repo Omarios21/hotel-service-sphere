@@ -7,13 +7,13 @@ import { toast } from 'sonner';
 import MenuItemsManager from '@/components/admin/MenuItemsManager';
 import AdminHeader from '@/components/admin/AdminHeader';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import { Button } from '@/components/ui/button';
 import SpaServicesManager from '@/components/admin/SpaServicesManager';
 import ActivitiesManager from '@/components/admin/ActivitiesManager';
 import SpaCalendarManager from '@/components/admin/SpaCalendarManager';
 import NotificationsManager from '@/components/admin/NotificationsManager';
 import UserManager from '@/components/admin/UserManager';
 import TransactionManager from '@/components/admin/TransactionManager';
+import TransactionClearingManager from '@/components/admin/TransactionClearingManager';
 
 const Admin: React.FC = () => {
   const [loading, setLoading] = useState(false); // Set initial loading to false
@@ -41,6 +41,7 @@ const Admin: React.FC = () => {
             <Tabs defaultValue="transactions">
               <TabsList className="mb-6 flex flex-wrap">
                 <TabsTrigger value="transactions">Transactions</TabsTrigger>
+                <TabsTrigger value="clearing-history">Clearing History</TabsTrigger>
                 <TabsTrigger value="menu-items">Menu Items</TabsTrigger>
                 <TabsTrigger value="spa-services">Spa Services</TabsTrigger>
                 <TabsTrigger value="activities">Activities</TabsTrigger>
@@ -52,6 +53,10 @@ const Admin: React.FC = () => {
               
               <TabsContent value="transactions">
                 <TransactionManager />
+              </TabsContent>
+              
+              <TabsContent value="clearing-history">
+                <TransactionClearingManager />
               </TabsContent>
               
               <TabsContent value="menu-items">

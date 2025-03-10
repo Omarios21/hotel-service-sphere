@@ -97,6 +97,37 @@ export const useWalletTransactions = () => {
           type: 'payment',
           description: 'Purchase cancelled',
           roomId: roomId
+        },
+        // Add transactions for other rooms
+        {
+          id: 't8',
+          date: '2023-11-15T18:20:00',
+          amount: 55.25,
+          location: 'Hotel Restaurant',
+          status: 'completed',
+          type: 'payment',
+          description: 'Dinner at hotel restaurant',
+          roomId: '102'
+        },
+        {
+          id: 't9',
+          date: '2023-11-14T11:30:00',
+          amount: 22.50,
+          location: 'Pool Bar',
+          status: 'completed',
+          type: 'payment',
+          description: 'Drinks at pool bar',
+          roomId: '102'
+        },
+        {
+          id: 't10',
+          date: '2023-11-13T09:15:00',
+          amount: 150.00,
+          location: 'Spa',
+          status: 'completed',
+          type: 'payment',
+          description: 'Massage treatment',
+          roomId: '103'
         }
       ];
       
@@ -159,12 +190,28 @@ export const useWalletTransactions = () => {
     }
   };
 
+  const clearTransactionsForRoom = async (roomId: string, notes?: string) => {
+    try {
+      // In a real implementation, this would update Supabase
+      // For now, we'll just remove the transactions from local state
+      setTransactions(prev => prev.filter(tx => tx.roomId !== roomId));
+      
+      toast.success(`Transactions cleared for room ${roomId}`);
+      return true;
+    } catch (err) {
+      console.error('Error clearing transactions:', err);
+      toast.error('Failed to clear transactions');
+      throw err;
+    }
+  };
+
   return {
     transactions,
     loading,
     error,
     fetchTransactions,
     addTransaction,
-    cancelTransaction
+    cancelTransaction,
+    clearTransactionsForRoom
   };
 };

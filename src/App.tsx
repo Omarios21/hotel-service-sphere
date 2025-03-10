@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +14,8 @@ import Activities from "./pages/Activities";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
+import Receptionist from "./pages/Receptionist";
+import Waiter from "./pages/Waiter";
 import NotFound from "./pages/NotFound";
 import Chat from "./pages/Chat";
 import Wallet from "./pages/Wallet";
@@ -22,31 +23,35 @@ import TaxiBooking from "./pages/TaxiBooking";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AnimatePresence mode="wait">
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/room-service" element={<RoomService />} />
-            <Route path="/spa" element={<Spa />} />
-            <Route path="/activities" element={<Activities />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/chat" element={<Chat />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/wallet" element={<Wallet />} />
-            <Route path="/taxi" element={<TaxiBooking />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AnimatePresence>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AnimatePresence mode="wait">
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/receptionist" element={<Receptionist />} />
+              <Route path="/waiter" element={<Waiter />} />
+              <Route path="/home" element={<Home />} />
+              <Route path="/spa" element={<Spa />} />
+              <Route path="/activities" element={<Activities />} />
+              <Route path="/room-service" element={<RoomService />} />
+              <Route path="/chat" element={<Chat />} />
+              <Route path="/wallet" element={<Wallet />} />
+              <Route path="/taxi" element={<TaxiBooking />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AnimatePresence>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
