@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,7 +37,8 @@ const ActivitiesManager: React.FC = () => {
     stopCamera, 
     capturePhoto, 
     showCamera, 
-    setVideoRef 
+    videoRef,
+    cameraReady
   } = useFileUpload();
   
   const [name, setName] = useState('');
@@ -49,7 +50,6 @@ const ActivitiesManager: React.FC = () => {
   const [available, setAvailable] = useState(true);
   const [showImageDialog, setShowImageDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const videoRef = useRef<HTMLVideoElement>(null);
   
   useEffect(() => {
     fetchActivities();
@@ -175,9 +175,6 @@ const ActivitiesManager: React.FC = () => {
   
   const handleStartCamera = async () => {
     await startCamera();
-    if (videoRef.current) {
-      setVideoRef(videoRef.current);
-    }
   };
   
   const handleCapturePhoto = async () => {
@@ -414,7 +411,7 @@ const ActivitiesManager: React.FC = () => {
               <div className="space-y-4">
                 <div className="relative aspect-video bg-black rounded-md overflow-hidden">
                   <video 
-                    ref={videoRef} 
+                    ref={videoRef}
                     autoPlay 
                     playsInline 
                     className="w-full h-full object-cover"
@@ -431,7 +428,7 @@ const ActivitiesManager: React.FC = () => {
                   <Button 
                     type="button"
                     onClick={handleCapturePhoto}
-                    disabled={uploading}
+                    disabled={uploading || !cameraReady}
                   >
                     {uploading ? 'Processing...' : 'Take Photo'}
                   </Button>

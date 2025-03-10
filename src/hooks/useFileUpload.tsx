@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -7,14 +7,35 @@ export const useFileUpload = () => {
   const [uploading, setUploading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
-  const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [cameraReady, setCameraReady] = useState(false);
+
+  // Set video element when stream is available
+  useEffect(() => {
+    if (videoStream && videoRef.current) {
+      videoRef.current.srcObject = videoStream;
+      videoRef.current.onloadedmetadata = () => {
+        setCameraReady(true);
+      };
+    }
+    
+    return () => {
+      if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [videoStream]);
 
   const startCamera = async () => {
     try {
+      // Reset camera ready state
+      setCameraReady(false);
+      
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: 'environment' }, 
         audio: false 
       });
+      
       setVideoStream(stream);
       setShowCamera(true);
       return stream;
@@ -31,20 +52,25 @@ export const useFileUpload = () => {
       setVideoStream(null);
     }
     setShowCamera(false);
+    setCameraReady(false);
   };
 
   const capturePhoto = () => {
     return new Promise<File | null>((resolve) => {
-      if (!videoRef) {
-        toast.error('Camera not initialized');
+      if (!videoRef.current || !cameraReady) {
+        toast.error('Camera not initialized or not ready');
+        console.error('Video reference or camera not ready:', { 
+          videoRef: !!videoRef.current, 
+          cameraReady 
+        });
         resolve(null);
         return;
       }
 
       try {
         const canvas = document.createElement('canvas');
-        canvas.width = videoRef.videoWidth;
-        canvas.height = videoRef.videoHeight;
+        canvas.width = videoRef.current.videoWidth;
+        canvas.height = videoRef.current.videoHeight;
         
         const context = canvas.getContext('2d');
         if (!context) {
@@ -54,7 +80,7 @@ export const useFileUpload = () => {
         }
         
         // Draw the current video frame to the canvas
-        context.drawImage(videoRef, 0, 0, canvas.width, canvas.height);
+        context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
         
         // Convert canvas to blob
         canvas.toBlob((blob) => {
@@ -117,7 +143,8 @@ export const useFileUpload = () => {
     stopCamera,
     capturePhoto,
     showCamera,
-    setVideoRef,
-    videoStream
+    videoRef,
+    videoStream,
+    cameraReady
   };
 };

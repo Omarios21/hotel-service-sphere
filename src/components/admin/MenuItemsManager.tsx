@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,7 +36,16 @@ const MenuItemsManager: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const { formatPrice, availableLanguages } = useLanguage();
-  const { uploading, uploadImageToSupabase, startCamera, stopCamera, capturePhoto, showCamera, setVideoRef } = useFileUpload();
+  const { 
+    uploading, 
+    uploadImageToSupabase, 
+    startCamera, 
+    stopCamera, 
+    capturePhoto, 
+    showCamera, 
+    videoRef,
+    cameraReady 
+  } = useFileUpload();
   
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -48,8 +57,6 @@ const MenuItemsManager: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [translating, setTranslating] = useState(false);
-  
-  const videoRef = useRef<HTMLVideoElement>(null);
   
   useEffect(() => {
     fetchMenuItems();
@@ -266,9 +273,6 @@ const MenuItemsManager: React.FC = () => {
   
   const handleStartCamera = async () => {
     await startCamera();
-    if (videoRef.current) {
-      setVideoRef(videoRef.current);
-    }
   };
   
   const handleCapturePhoto = async () => {
@@ -601,7 +605,7 @@ const MenuItemsManager: React.FC = () => {
               <div className="space-y-4">
                 <div className="relative aspect-video bg-black rounded-md overflow-hidden">
                   <video 
-                    ref={videoRef} 
+                    ref={videoRef}
                     autoPlay 
                     playsInline 
                     className="w-full h-full object-cover"
@@ -618,7 +622,7 @@ const MenuItemsManager: React.FC = () => {
                   <Button 
                     type="button"
                     onClick={handleCapturePhoto}
-                    disabled={uploading}
+                    disabled={uploading || !cameraReady}
                   >
                     {uploading ? 'Processing...' : 'Take Photo'}
                   </Button>
