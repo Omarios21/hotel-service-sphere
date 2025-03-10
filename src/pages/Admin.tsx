@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +12,7 @@ import NotificationsManager from '@/components/admin/NotificationsManager';
 import UserManager from '@/components/admin/UserManager';
 import TransactionManager from '@/components/admin/TransactionManager';
 import LanguageManager from '@/components/admin/LanguageManager';
+import SettingsManager from '@/components/admin/SettingsManager';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -31,7 +31,6 @@ const Admin: React.FC = () => {
   };
   
   useEffect(() => {
-    // Set up real-time channels for all relevant tables
     const menuItemsChannel = supabase
       .channel('admin_menu_items_changes')
       .on('postgres_changes', 
@@ -103,12 +102,7 @@ const Admin: React.FC = () => {
       case 'languages':
         return <LanguageManager />;
       case 'settings':
-        return (
-          <div className="text-center p-12">
-            <h3 className="text-lg font-medium mb-2">Admin Settings</h3>
-            <p className="text-muted-foreground">Settings management functionality coming soon.</p>
-          </div>
-        );
+        return <SettingsManager />;
       default:
         return <TransactionManager />;
     }

@@ -485,6 +485,9 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     { code: 'fr', name: 'Français', enabled: true }
   ]);
   
+  // State for dynamic currency rates
+  const [dynamicRates, setDynamicRates] = useState<Record<Currency, number>>({...currencyRates});
+  
   // Custom translations loaded from database
   const [customTranslations, setCustomTranslations] = useState<Translations>({});
 
@@ -498,27 +501,63 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     localStorage.setItem('preferredCurrency', currency);
   }, [currency]);
   
-  // Load available languages from database
+  // Load available languages and currency rates from database
   const loadAvailableLanguages = async () => {
     try {
-      const { data, error } = await supabase
+      // Load languages
+      const { data: langData, error: langError } = await supabase
         .from('language_settings')
         .select('*');
       
-      if (error) {
-        console.error('Error loading language settings:', error);
+      if (langError) {
+        console.error('Error loading language settings:', langError);
         return;
       }
       
-      if (data && Array.isArray(data) && data.length > 0) {
-        setAvailableLanguages(data as LanguageSetting[]);
+      if (langData && Array.isArray(langData) && langData.length > 0) {
+        setAvailableLanguages(langData as LanguageSetting[]);
       }
-    } catch (error) {
-      console.error('Error loading language settings:', error);
+      
+      // Load currency rates
+      const { data: ratesData, error: ratesError } = await supabase
+        .from('currency_rates')
+        .select('*');
+      
+      if (ratesError) {
+        console.error('Error loading currency rates:', ratesError);
+        return;
+      }
+      
+      if (ratesData && Array.isArray(ratesData) && ratesData.length > 0) {
+        const newRates = {...currencyRates};
+        
+        ratesData.forEach((rate) => {
+          if (rate.currency in newRates) {
+            newRates[rate.currency as Currency] = rate.rate;
+          }
+        });
+        
+        setDynamicRates(newRates);
+      }
+    } catch (error: any) {
+      console.error('Error loading settings:', error);
     }
   };
   
-  // Load available languages on mount
+  // Listen for settings updates
+  useEffect(() => {
+    const handleSettingsUpdate = () => {
+      loadAvailableLanguages();
+    };
+    
+    window.addEventListener('settingsUpdated', handleSettingsUpdate);
+    
+    return () => {
+      window.removeEventListener('settingsUpdated', handleSettingsUpdate);
+    };
+  }, []);
+  
+  // Load available languages and rates on mount
   useEffect(() => {
     loadAvailableLanguages();
   }, []);
@@ -549,7 +588,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 
   // Price formatting function that considers the selected currency
   const formatPrice = (priceInUSD: number): string => {
-    const convertedPrice = priceInUSD * currencyRates[currency];
+    const convertedPrice = priceInUSD * dynamicRates[currency];
     
     // Round to nearest 0.25
     const roundedPrice = Math.ceil(convertedPrice * 4) / 4;
