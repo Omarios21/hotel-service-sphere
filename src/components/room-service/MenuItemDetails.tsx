@@ -72,7 +72,10 @@ const MenuItemDetails: React.FC<MenuItemDetailsProps> = ({
             </div>
           </div>
           
-          <p className="text-muted-foreground mb-6">{item.description}</p>
+          <div 
+            className="text-muted-foreground mb-6"
+            dangerouslySetInnerHTML={{ __html: item.description }}
+          />
           
           <div className="flex items-center justify-between">
             <div className="flex items-center border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">

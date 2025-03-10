@@ -71,7 +71,10 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, onAddToCart }) => {
       </div>
       <div className="p-5">
         <h3 className="font-medium text-lg mb-2">{item.name}</h3>
-        <p className="text-muted-foreground text-sm mb-5 line-clamp-2">{item.description}</p>
+        <div 
+          className="text-muted-foreground text-sm mb-5 line-clamp-2"
+          dangerouslySetInnerHTML={{ __html: item.description }}
+        />
         
         <div className="flex items-center justify-between" onClick={e => e.stopPropagation()}>
           <div className="flex items-center border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
