@@ -1,18 +1,18 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2, Camera, Check, X, Image, Upload } from 'lucide-react';
+import { Plus, Edit, Trash2, Check, X, Image, Upload, Search } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import SearchBar from './SearchBar';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import RichTextEditor from './RichTextEditor';
 
 interface MenuItem {
   id: string;
@@ -37,7 +37,7 @@ const MenuItemsManager: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const { formatPrice, availableLanguages } = useLanguage();
-  const { uploading, uploadImageToSupabase, handleTakePhoto } = useFileUpload();
+  const { uploading, uploadImageToSupabase } = useFileUpload();
   
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -87,6 +87,7 @@ const MenuItemsManager: React.FC = () => {
       if (error) throw error;
       
       if (data) {
+        // Convert Json to Record<string, any> for translations
         const parsedData = data.map(item => ({
           ...item,
           translations: item.translations ? 
@@ -263,15 +264,6 @@ const MenuItemsManager: React.FC = () => {
     }
   };
   
-  const handleTakePhotoClick = async () => {
-    const photoUrl = await handleTakePhoto();
-    
-    if (photoUrl) {
-      setImageUrl(photoUrl);
-      setShowImageDialog(false);
-    }
-  };
-  
   const translateItemContent = async (text: string, targetLangs: string[]): Promise<Record<string, any> | null> => {
     try {
       setTranslating(true);
@@ -304,42 +296,6 @@ const MenuItemsManager: React.FC = () => {
     } finally {
       setTranslating(false);
     }
-  };
-  
-  const formatText = (formatType: string) => {
-    const textarea = document.getElementById('description') as HTMLTextAreaElement;
-    if (!textarea) return;
-    
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = description.substring(start, end);
-    let formattedText = '';
-    
-    switch (formatType) {
-      case 'bold':
-        formattedText = `<strong>${selectedText}</strong>`;
-        break;
-      case 'italic':
-        formattedText = `<em>${selectedText}</em>`;
-        break;
-      case 'underline':
-        formattedText = `<u>${selectedText}</u>`;
-        break;
-      case 'list':
-        formattedText = `\n<ul>\n  <li>${selectedText}</li>\n</ul>`;
-        break;
-      default:
-        return;
-    }
-    
-    const newText = description.substring(0, start) + formattedText + description.substring(end);
-    setDescription(newText);
-    
-    setTimeout(() => {
-      textarea.focus();
-      const newPosition = start + formattedText.length;
-      textarea.setSelectionRange(newPosition, newPosition);
-    }, 0);
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -408,6 +364,7 @@ const MenuItemsManager: React.FC = () => {
         
         if (error) throw error;
         
+        // Convert Json to Record<string, any> for translations
         setMenuItems(menuItems.map(item => 
           item.id === editingItem.id ? {
             ...item,
@@ -426,6 +383,7 @@ const MenuItemsManager: React.FC = () => {
         if (error) throw error;
         
         if (data && data.length > 0) {
+          // Convert Json to Record<string, any> for translations
           const newItem = {
             ...data[0],
             translations: data[0].translations ? 
@@ -455,7 +413,7 @@ const MenuItemsManager: React.FC = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Room Service Items</h2>
+        <h2 className="text-2xl font-bold">Menu Items</h2>
         
         {!showForm && (
           <div className="space-x-2">
@@ -532,12 +490,15 @@ const MenuItemsManager: React.FC = () => {
                 
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="description">Description</Label>
-                  <RichTextEditor
-                    value={description}
-                    onChange={setDescription}
+                  <Textarea 
+                    id="description" 
+                    value={description} 
+                    onChange={(e) => setDescription(e.target.value)}
                     placeholder="Item description"
+                    required
+                    rows={3}
                   />
-                  <p className="text-xs text-muted-foreground mt-2">
+                  <p className="text-xs text-muted-foreground">
                     This will be automatically translated to all enabled languages.
                   </p>
                 </div>
@@ -559,15 +520,6 @@ const MenuItemsManager: React.FC = () => {
                     >
                       <Upload className="h-4 w-4 mr-2" />
                       Upload
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleTakePhotoClick}
-                      disabled={uploading}
-                    >
-                      <Camera className="h-4 w-4 mr-2" />
-                      Take Photo
                     </Button>
                   </div>
                   {imageUrl && (
@@ -599,7 +551,7 @@ const MenuItemsManager: React.FC = () => {
                       id="available"
                       checked={available}
                       onChange={(e) => setAvailable(e.target.checked)}
-                      className="h-4 w-4 rounded-sm border-gray-300"
+                      className="h-4 w-4 rounded border-gray-300"
                     />
                     <Label htmlFor="available">Available</Label>
                   </div>
@@ -622,38 +574,20 @@ const MenuItemsManager: React.FC = () => {
       <Dialog open={showImageDialog} onOpenChange={setShowImageDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Image</DialogTitle>
+            <DialogTitle>Upload Image</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <Label htmlFor="image-upload">Upload Image</Label>
-              <Input
-                id="image-upload"
-                type="file"
-                accept="image/*"
-                onChange={handleUploadImage}
-                disabled={uploading}
-              />
-              <p className="text-sm text-muted-foreground">
-                Upload an image for the menu item. Recommended size: 500x300 pixels.
-              </p>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Take Photo</Label>
-              <Button 
-                className="w-full"
-                onClick={handleTakePhotoClick}
-                disabled={uploading}
-              >
-                <Camera className="h-4 w-4 mr-2" />
-                Take Photo with Camera
-              </Button>
-              <p className="text-sm text-muted-foreground">
-                Take a photo using your device's camera.
-              </p>
-            </div>
-            
+            <Label htmlFor="image-upload">Select Image</Label>
+            <Input
+              id="image-upload"
+              type="file"
+              accept="image/*"
+              onChange={handleUploadImage}
+              disabled={uploading}
+            />
+            <p className="text-sm text-muted-foreground">
+              Upload an image for the menu item. Recommended size: 500x300 pixels.
+            </p>
             <div className="flex justify-end">
               <Button 
                 variant="outline" 
@@ -675,7 +609,7 @@ const MenuItemsManager: React.FC = () => {
         <div className="text-center py-12">
           <p className="text-muted-foreground">
             {menuItems.length === 0 
-              ? 'No room service items found.' 
+              ? 'No menu items found.' 
               : 'No items match your search criteria.'}
           </p>
         </div>
@@ -701,9 +635,9 @@ const MenuItemsManager: React.FC = () => {
                   <h3 className="font-medium">{item.name}</h3>
                   <span className="font-medium">{formatPrice(item.price)}</span>
                 </div>
-                <div className="text-sm text-muted-foreground mb-4 line-clamp-2" 
-                  dangerouslySetInnerHTML={{ __html: item.description }}>
-                </div>
+                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                  {item.description}
+                </p>
                 <div className="flex justify-between items-center">
                   <span className="text-xs px-2 py-1 rounded-full bg-muted">
                     {item.category}
@@ -743,4 +677,3 @@ const MenuItemsManager: React.FC = () => {
 };
 
 export default MenuItemsManager;
-
