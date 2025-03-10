@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -87,7 +86,6 @@ const MenuItemsManager: React.FC = () => {
       if (error) throw error;
       
       if (data) {
-        // Convert Json to Record<string, any> for translations
         const parsedData = data.map(item => ({
           ...item,
           translations: item.translations ? 
@@ -264,6 +262,15 @@ const MenuItemsManager: React.FC = () => {
     }
   };
   
+  const handleTakePhotoClick = async () => {
+    const photoUrl = await handleTakePhoto();
+    
+    if (photoUrl) {
+      setImageUrl(photoUrl);
+      setShowImageDialog(false);
+    }
+  };
+  
   const translateItemContent = async (text: string, targetLangs: string[]): Promise<Record<string, any> | null> => {
     try {
       setTranslating(true);
@@ -364,7 +371,6 @@ const MenuItemsManager: React.FC = () => {
         
         if (error) throw error;
         
-        // Convert Json to Record<string, any> for translations
         setMenuItems(menuItems.map(item => 
           item.id === editingItem.id ? {
             ...item,
@@ -383,7 +389,6 @@ const MenuItemsManager: React.FC = () => {
         if (error) throw error;
         
         if (data && data.length > 0) {
-          // Convert Json to Record<string, any> for translations
           const newItem = {
             ...data[0],
             translations: data[0].translations ? 
@@ -521,6 +526,15 @@ const MenuItemsManager: React.FC = () => {
                       <Upload className="h-4 w-4 mr-2" />
                       Upload
                     </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleTakePhotoClick}
+                      disabled={uploading}
+                    >
+                      <Camera className="h-4 w-4 mr-2" />
+                      Take Photo
+                    </Button>
                   </div>
                   {imageUrl && (
                     <div className="mt-2 relative w-full max-w-[200px] aspect-video bg-muted rounded-md overflow-hidden">
@@ -574,20 +588,38 @@ const MenuItemsManager: React.FC = () => {
       <Dialog open={showImageDialog} onOpenChange={setShowImageDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Upload Image</DialogTitle>
+            <DialogTitle>Add Image</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-4">
-            <Label htmlFor="image-upload">Select Image</Label>
-            <Input
-              id="image-upload"
-              type="file"
-              accept="image/*"
-              onChange={handleUploadImage}
-              disabled={uploading}
-            />
-            <p className="text-sm text-muted-foreground">
-              Upload an image for the menu item. Recommended size: 500x300 pixels.
-            </p>
+            <div className="space-y-2">
+              <Label htmlFor="image-upload">Upload Image</Label>
+              <Input
+                id="image-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleUploadImage}
+                disabled={uploading}
+              />
+              <p className="text-sm text-muted-foreground">
+                Upload an image for the menu item. Recommended size: 500x300 pixels.
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Take Photo</Label>
+              <Button 
+                className="w-full"
+                onClick={handleTakePhotoClick}
+                disabled={uploading}
+              >
+                <Camera className="h-4 w-4 mr-2" />
+                Take Photo with Camera
+              </Button>
+              <p className="text-sm text-muted-foreground">
+                Take a photo using your device's camera.
+              </p>
+            </div>
+            
             <div className="flex justify-end">
               <Button 
                 variant="outline" 
