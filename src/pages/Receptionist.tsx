@@ -36,7 +36,8 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
+  TableRow,
+  TableFooter
 } from '@/components/ui/table';
 import {
   Select,
@@ -151,6 +152,29 @@ const Receptionist: React.FC = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+  
+  // Dynamic search function that triggers on input change
+  const handleDynamicSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const searchValue = e.target.value;
+    setRoomSearchQuery(searchValue);
+    
+    if (searchValue.trim()) {
+      // Search for matching rooms, guests, and waiters
+      const searchResults = allTransactions.filter(tx => 
+        tx.roomId.toLowerCase().includes(searchValue.toLowerCase()) ||
+        (tx.guest_name && tx.guest_name.toLowerCase().includes(searchValue.toLowerCase())) ||
+        (tx.waiter_name && tx.waiter_name.toLowerCase().includes(searchValue.toLowerCase())) ||
+        (tx.description && tx.description.toLowerCase().includes(searchValue.toLowerCase())) ||
+        tx.location.toLowerCase().includes(searchValue.toLowerCase())
+      );
+      
+      setTransactions(searchResults);
+    } else {
+      // If search is cleared, reset to all transactions
+      setTransactions(allTransactions);
+      setRoomId('');
     }
   };
   
@@ -342,10 +366,10 @@ const Receptionist: React.FC = () => {
               <div className="flex gap-2">
                 <div className="flex-1">
                   <Input
-                    placeholder="Enter room number"
+                    placeholder="Search room, guest, waiter..."
                     value={roomSearchQuery}
-                    onChange={(e) => setRoomSearchQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSearchRoom()}
+                    onChange={handleDynamicSearch}
+                    className="min-w-[250px]"
                   />
                 </div>
                 <Button onClick={handleSearchRoom}>
@@ -435,6 +459,17 @@ const Receptionist: React.FC = () => {
                         </TableRow>
                       ))}
                     </TableBody>
+                    <TableFooter>
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-right font-medium">
+                          Total:
+                        </TableCell>
+                        <TableCell className="font-bold text-primary">
+                          {formatPrice(calculateTotalAmount())}
+                        </TableCell>
+                        <TableCell colSpan={2}></TableCell>
+                      </TableRow>
+                    </TableFooter>
                   </Table>
                 </div>
               </>
