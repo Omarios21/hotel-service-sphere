@@ -1,10 +1,10 @@
-
+<lov-code>
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CreditCard, Search, ArrowDownUp, Clock, CheckCircle2, XCircle, Check, Clipboard, Lock, Unlock } from 'lucide-react';
+import { CreditCard, Search, ArrowDownUp, Clock, CheckCircle2, XCircle, Check, Clipboard, Lock, Unlock, Calendar, DollarSign, User, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PieChart, Pie, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
@@ -21,6 +21,14 @@ import {
   DialogFooter,
   DialogDescription 
 } from '@/components/ui/dialog';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
 
 interface Transaction {
   id: string;
@@ -522,6 +530,31 @@ const TransactionManager: React.FC = () => {
                   </div>
                 </div>
                 
+                <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <Card className="bg-slate-50">
+                    <CardContent className="pt-6">
+                      <div className="text-2xl font-bold">{totalTransactions}</div>
+                      <p className="text-muted-foreground">Total Transactions</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-slate-50">
+                    <CardContent className="pt-6">
+                      <div className="text-2xl font-bold">{formatPrice(totalAmount)}</div>
+                      <p className="text-muted-foreground">Total Amount</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-slate-50">
+                    <CardContent className="pt-6">
+                      <div className="text-2xl font-bold">
+                        {new Set(filteredTransactions.map(item => item.room_id)).size}
+                      </div>
+                      <p className="text-muted-foreground">Unique Rooms</p>
+                    </CardContent>
+                  </Card>
+                </div>
+                
                 {loading ? (
                   <div className="flex justify-center py-8">
                     <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
@@ -533,131 +566,138 @@ const TransactionManager: React.FC = () => {
                         No transactions found matching your filters.
                       </div>
                     ) : (
-                      <div className="overflow-x-auto">
-                        <table className="w-full border-collapse">
-                          <thead>
-                            <tr className="border-b">
-                              <th className="text-left py-3 px-4 w-10">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-10">
+                              <Checkbox 
+                                checked={selectedTransactions.length === filteredTransactions.length && filteredTransactions.length > 0}
+                                onCheckedChange={handleSelectAll}
+                                className="rounded-sm data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                              />
+                            </TableHead>
+                            <TableHead>Date & Time</TableHead>
+                            <TableHead>Room</TableHead>
+                            <TableHead>Guest</TableHead>
+                            <TableHead>Description</TableHead>
+                            <TableHead>Location</TableHead>
+                            <TableHead>Waiter</TableHead>
+                            <TableHead>Amount</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Admin Status</TableHead>
+                            <TableHead>Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredTransactions.map(transaction => (
+                            <TableRow key={transaction.id}>
+                              <TableCell>
                                 <Checkbox 
-                                  checked={selectedTransactions.length === filteredTransactions.length && filteredTransactions.length > 0}
-                                  onCheckedChange={handleSelectAll}
+                                  checked={selectedTransactions.includes(transaction.id)}
+                                  onCheckedChange={(checked) => handleSelectTransaction(transaction.id, !!checked)}
                                   className="rounded-sm data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
                                 />
-                              </th>
-                              <th className="text-left py-3 px-4">Date & Time</th>
-                              <th className="text-left py-3 px-4">Room</th>
-                              <th className="text-left py-3 px-4">Guest</th>
-                              <th className="text-left py-3 px-4">Description</th>
-                              <th className="text-left py-3 px-4">Location</th>
-                              <th className="text-left py-3 px-4">Waiter</th>
-                              <th className="text-left py-3 px-4">Amount</th>
-                              <th className="text-left py-3 px-4">Status</th>
-                              <th className="text-left py-3 px-4">Admin Status</th>
-                              <th className="text-left py-3 px-4">Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {filteredTransactions.map(transaction => (
-                              <tr key={transaction.id} className="border-b hover:bg-slate-50">
-                                <td className="py-3 px-4">
-                                  <Checkbox 
-                                    checked={selectedTransactions.includes(transaction.id)}
-                                    onCheckedChange={(checked) => handleSelectTransaction(transaction.id, !!checked)}
-                                    className="rounded-sm data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-                                  />
-                                </td>
-                                <td className="py-3 px-4 text-sm">
-                                  {format(new Date(transaction.date), 'MMM d, yyyy h:mm a')}
-                                </td>
-                                <td className="py-3 px-4 font-medium">{transaction.room_id}</td>
-                                <td className="py-3 px-4">{transaction.guest_name || '-'}</td>
-                                <td className="py-3 px-4">{transaction.description || '-'}</td>
-                                <td className="py-3 px-4">{transaction.location}</td>
-                                <td className="py-3 px-4">{transaction.waiter_name || '-'}</td>
-                                <td className="py-3 px-4 font-medium">
-                                  {transaction.amount > 0 ? formatPrice(transaction.amount) : '-'}
-                                </td>
-                                <td className="py-3 px-4">
-                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
-                                    {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
-                                  </span>
-                                </td>
-                                <td className="py-3 px-4">
-                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getAdminStatusColor(transaction.admin_status)}`}>
-                                    {transaction.admin_status.charAt(0).toUpperCase() + transaction.admin_status.slice(1)}
-                                  </span>
-                                </td>
-                                <td className="py-3 px-4">
-                                  <div className="flex space-x-1">
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      className="h-8 px-2 text-slate-600 hover:text-slate-700 hover:bg-slate-50"
-                                      onClick={() => fetchTransactionLogs(transaction.id)}
-                                      title="View History"
-                                    >
-                                      <Clipboard className="h-4 w-4" />
-                                    </Button>
-                                    
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      className={`h-8 px-2 ${
-                                        transaction.admin_status === 'open' 
-                                          ? 'text-slate-600 hover:text-slate-700' 
-                                          : 'text-blue-600 hover:text-blue-700'
-                                      } hover:bg-slate-50`}
-                                      onClick={() => handleUpdateAdminStatus(
-                                        transaction.id, 
-                                        transaction.admin_status === 'open' ? 'closed' : 'open'
-                                      )}
-                                      title={transaction.admin_status === 'open' ? 'Close Transaction' : 'Open Transaction'}
-                                    >
-                                      {transaction.admin_status === 'open' 
-                                        ? <Lock className="h-4 w-4" /> 
-                                        : <Unlock className="h-4 w-4" />}
-                                    </Button>
-                                    
-                                    {transaction.status === 'pending' && (
-                                      <>
-                                        <Button 
-                                          variant="ghost" 
-                                          size="sm"
-                                          className="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
-                                          onClick={() => handleUpdateStatus(transaction.id, 'paid')}
-                                          title="Mark as Paid"
-                                        >
-                                          <CheckCircle2 className="h-4 w-4" />
-                                        </Button>
-                                        <Button 
-                                          variant="ghost" 
-                                          size="sm"
-                                          className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                          onClick={() => handleUpdateStatus(transaction.id, 'cancelled')}
-                                          title="Cancel Transaction"
-                                        >
-                                          <XCircle className="h-4 w-4" />
-                                        </Button>
-                                      </>
-                                    )}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center">
+                                  <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                                  {format(new Date(transaction.date), 'MMM d, yyyy HH:mm')}
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline">Room {transaction.room_id}</Badge>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center">
+                                  <User className="h-4 w-4 mr-2 text-muted-foreground" />
+                                  {transaction.guest_name || '-'}
+                                </div>
+                              </TableCell>
+                              <TableCell className="max-w-xs truncate">
+                                {transaction.description ? (
+                                  <div className="flex items-center">
+                                    <FileText className="h-4 w-4 mr-2 text-muted-foreground" />
+                                    {transaction.description}
                                   </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                          <tfoot className="border-t bg-muted/50">
-                            <tr>
-                              <td colSpan={7} className="py-3 px-4 text-right font-medium">
-                                Total:
-                              </td>
-                              <td className="py-3 px-4 font-bold text-primary">
-                                {formatPrice(totalAmount)}
-                              </td>
-                              <td colSpan={3}></td>
-                            </tr>
-                          </tfoot>
-                        </table>
-                      </div>
+                                ) : '-'}
+                              </TableCell>
+                              <TableCell>{transaction.location}</TableCell>
+                              <TableCell>{transaction.waiter_name || '-'}</TableCell>
+                              <TableCell>
+                                <div className="flex items-center font-medium">
+                                  <DollarSign className="h-4 w-4 mr-1 text-muted-foreground" />
+                                  {formatPrice(transaction.amount)}
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
+                                  {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
+                                </span>
+                              </TableCell>
+                              <TableCell>
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getAdminStatusColor(transaction.admin_status)}`}>
+                                  {transaction.admin_status.charAt(0).toUpperCase() + transaction.admin_status.slice(1)}
+                                </span>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex space-x-1">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    className="h-8 px-2 text-slate-600 hover:text-slate-700 hover:bg-slate-50"
+                                    onClick={() => fetchTransactionLogs(transaction.id)}
+                                    title="View History"
+                                  >
+                                    <Clipboard className="h-4 w-4" />
+                                  </Button>
+                                  
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    className={`h-8 px-2 ${
+                                      transaction.admin_status === 'open' 
+                                        ? 'text-slate-600 hover:text-slate-700' 
+                                        : 'text-blue-600 hover:text-blue-700'
+                                    } hover:bg-slate-50`}
+                                    onClick={() => handleUpdateAdminStatus(
+                                      transaction.id, 
+                                      transaction.admin_status === 'open' ? 'closed' : 'open'
+                                    )}
+                                    title={transaction.admin_status === 'open' ? 'Close Transaction' : 'Open Transaction'}
+                                  >
+                                    {transaction.admin_status === 'open' 
+                                      ? <Lock className="h-4 w-4" /> 
+                                      : <Unlock className="h-4 w-4" />}
+                                  </Button>
+                                  
+                                  {transaction.status === 'pending' && (
+                                    <>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm"
+                                        className="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                        onClick={() => handleUpdateStatus(transaction.id, 'paid')}
+                                        title="Mark as Paid"
+                                      >
+                                        <CheckCircle2 className="h-4 w-4" />
+                                      </Button>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm"
+                                        className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                        onClick={() => handleUpdateStatus(transaction.id, 'cancelled')}
+                                        title="Cancel Transaction"
+                                      >
+                                        <XCircle className="h-4 w-4" />
+                                      </Button>
+                                    </>
+                                  )}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
                     )}
                   </>
                 )}
@@ -824,105 +864,4 @@ const TransactionManager: React.FC = () => {
             </Select>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleBulkStatusUpdate} disabled={!bulkAction || loading}>
-              {loading ? 'Processing...' : 'Update Status'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Bulk Admin Status Update Dialog */}
-      <Dialog open={isAdminStatusDialogOpen} onOpenChange={setIsAdminStatusDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Update Admin Status</DialogTitle>
-            <DialogDescription>
-              Change the admin status for {selectedTransactions.length} selected transactions.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <Select value={bulkAdminStatus} onValueChange={(value: any) => setBulkAdminStatus(value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select new admin status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="open">Open</SelectItem>
-                <SelectItem value="closed">Closed</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAdminStatusDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleBulkAdminStatusUpdate} disabled={!bulkAdminStatus || loading}>
-              {loading ? 'Processing...' : 'Update Admin Status'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Transaction Logs Dialog */}
-      <Dialog open={showTransactionLogs} onOpenChange={setShowTransactionLogs}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Transaction History</DialogTitle>
-            <DialogDescription>
-              View the status change history for this transaction.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            {transactionLogs.length > 0 ? (
-              <div className="overflow-y-auto max-h-96">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-2 px-4">Date & Time</th>
-                      <th className="text-left py-2 px-4">Changed By</th>
-                      <th className="text-left py-2 px-4">From Status</th>
-                      <th className="text-left py-2 px-4">To Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {transactionLogs.map(log => (
-                      <tr key={log.id} className="border-b hover:bg-slate-50">
-                        <td className="py-2 px-4 text-sm">
-                          {format(new Date(log.changed_at), 'MMM d, yyyy h:mm a')}
-                        </td>
-                        <td className="py-2 px-4">{log.changed_by_name}</td>
-                        <td className="py-2 px-4">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(log.previous_status)}`}>
-                            {log.previous_status === 'created' 
-                              ? 'Created' 
-                              : log.previous_status.charAt(0).toUpperCase() + log.previous_status.slice(1)}
-                          </span>
-                        </td>
-                        <td className="py-2 px-4">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(log.new_status)}`}>
-                            {log.new_status.charAt(0).toUpperCase() + log.new_status.slice(1)}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="text-center py-4 text-muted-foreground">
-                No transaction history found.
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button onClick={() => setShowTransactionLogs(false)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-};
-
-export default TransactionManager;
+            <Button variant="outline" onClick={() => setIsDialogOpen(false

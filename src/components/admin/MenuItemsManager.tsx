@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -85,8 +86,19 @@ const MenuItemsManager: React.FC = () => {
       
       if (error) throw error;
       
-      setMenuItems(data || []);
-      setFilteredItems(data || []);
+      if (data) {
+        // Convert Json to Record<string, any> for translations
+        const parsedData = data.map(item => ({
+          ...item,
+          translations: item.translations ? 
+            (typeof item.translations === 'string' ? 
+              JSON.parse(item.translations) : item.translations) : 
+            undefined
+        }));
+        
+        setMenuItems(parsedData as MenuItem[]);
+        setFilteredItems(parsedData as MenuItem[]);
+      }
       
       if (data && data.length === 0) {
         await seedDefaultMenuItems();
@@ -352,8 +364,13 @@ const MenuItemsManager: React.FC = () => {
         
         if (error) throw error;
         
+        // Convert Json to Record<string, any> for translations
         setMenuItems(menuItems.map(item => 
-          item.id === editingItem.id ? { ...item, ...menuItemData } : item
+          item.id === editingItem.id ? {
+            ...item,
+            ...menuItemData,
+            translations: menuItemData.translations
+          } : item
         ));
         
         toast.success(`${name} updated successfully`, { duration: 2000 });
@@ -366,7 +383,16 @@ const MenuItemsManager: React.FC = () => {
         if (error) throw error;
         
         if (data && data.length > 0) {
-          setMenuItems([...menuItems, data[0]]);
+          // Convert Json to Record<string, any> for translations
+          const newItem = {
+            ...data[0],
+            translations: data[0].translations ? 
+              (typeof data[0].translations === 'string' ? 
+                JSON.parse(data[0].translations) : data[0].translations) : 
+              undefined
+          };
+          
+          setMenuItems([...menuItems, newItem as MenuItem]);
         }
         
         toast.success(`${name} added successfully`, { duration: 2000 });
