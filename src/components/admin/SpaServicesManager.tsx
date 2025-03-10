@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2, Clock, Check, X, Image, Upload } from 'lucide-react';
+import { Plus, Edit, Trash2, Clock, Check, X, Image, Upload, Camera } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFileUpload } from '@/hooks/useFileUpload';
@@ -30,7 +29,7 @@ const SpaServicesManager: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingService, setEditingService] = useState<SpaService | null>(null);
   const { formatPrice } = useLanguage();
-  const { uploading, uploadImageToSupabase } = useFileUpload();
+  const { uploading, uploadImageToSupabase, startCamera, stopCamera, capturePhoto, showCamera, setVideoRef } = useFileUpload();
   
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -40,6 +39,8 @@ const SpaServicesManager: React.FC = () => {
   const [available, setAvailable] = useState(true);
   const [showImageDialog, setShowImageDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  const videoRef = useRef<HTMLVideoElement>(null);
   
   useEffect(() => {
     fetchSpaServices();
@@ -153,6 +154,25 @@ const SpaServicesManager: React.FC = () => {
     if (url) {
       setImageUrl(url);
       setShowImageDialog(false);
+    }
+  };
+  
+  const handleStartCamera = async () => {
+    await startCamera();
+    if (videoRef.current) {
+      setVideoRef(videoRef.current);
+    }
+  };
+  
+  const handleCapturePhoto = async () => {
+    const file = await capturePhoto();
+    if (file) {
+      const url = await uploadImageToSupabase(file);
+      if (url) {
+        setImageUrl(url);
+        stopCamera();
+        setShowImageDialog(false);
+      }
     }
   };
   
@@ -349,32 +369,91 @@ const SpaServicesManager: React.FC = () => {
         </Card>
       )}
       
-      <Dialog open={showImageDialog} onOpenChange={setShowImageDialog}>
-        <DialogContent>
+      <Dialog open={showImageDialog} onOpenChange={(open) => {
+        setShowImageDialog(open);
+        if (!open) stopCamera();
+      }}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Upload Image</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-4">
-            <Label htmlFor="image-upload">Select Image</Label>
-            <Input
-              id="image-upload"
-              type="file"
-              accept="image/*"
-              onChange={handleUploadImage}
-              disabled={uploading}
-            />
-            <p className="text-sm text-muted-foreground">
-              Upload an image for the service. Recommended size: 500x300 pixels.
-            </p>
-            <div className="flex justify-end">
-              <Button 
-                variant="outline" 
-                onClick={() => setShowImageDialog(false)}
-                disabled={uploading}
-              >
-                Cancel
-              </Button>
-            </div>
+            {showCamera ? (
+              <div className="space-y-4">
+                <div className="relative aspect-video bg-black rounded-md overflow-hidden">
+                  <video 
+                    ref={videoRef} 
+                    autoPlay 
+                    playsInline 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex justify-between">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => stopCamera()}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="button"
+                    onClick={handleCapturePhoto}
+                    disabled={uploading}
+                  >
+                    {uploading ? 'Processing...' : 'Take Photo'}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="image-upload">Upload from device</Label>
+                  <Input
+                    id="image-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleUploadImage}
+                    disabled={uploading}
+                  />
+                </div>
+                
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      Or
+                    </span>
+                  </div>
+                </div>
+                
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={handleStartCamera}
+                  disabled={uploading}
+                >
+                  <Camera className="h-4 w-4 mr-2" />
+                  Take a Photo
+                </Button>
+                
+                <p className="text-sm text-muted-foreground">
+                  Upload an image for the service. Recommended size: 500x300 pixels.
+                </p>
+                <div className="flex justify-end">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowImageDialog(false)}
+                    disabled={uploading}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>

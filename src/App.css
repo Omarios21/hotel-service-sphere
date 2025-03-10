@@ -62,3 +62,27 @@ body {
   position: relative;
   -webkit-overflow-scrolling: touch;
 }
+
+/* Media capture related styles */
+video {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  background-color: #000;
+}
+
+.camera-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.375rem;
+}
+
+.camera-controls {
+  position: absolute;
+  bottom: 1rem;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
