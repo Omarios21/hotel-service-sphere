@@ -1,4 +1,4 @@
-<lov-code>
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -864,4 +864,99 @@ const TransactionManager: React.FC = () => {
             </Select>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleBulkStatusUpdate}>Update</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Bulk Admin Status Update Dialog */}
+      <Dialog open={isAdminStatusDialogOpen} onOpenChange={setIsAdminStatusDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Admin Status</DialogTitle>
+            <DialogDescription>
+              Change the admin status for {selectedTransactions.length} selected transactions.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Select value={bulkAdminStatus} onValueChange={(value: any) => setBulkAdminStatus(value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select new admin status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="open">Open</SelectItem>
+                <SelectItem value="closed">Closed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAdminStatusDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleBulkAdminStatusUpdate}>Update</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Transaction Logs Dialog */}
+      {showTransactionLogs && (
+        <Dialog open={showTransactionLogs} onOpenChange={setShowTransactionLogs}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>Transaction History</DialogTitle>
+              <DialogDescription>
+                Status change history for transaction ID: {currentTransactionId}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              {transactionLogs.length === 0 ? (
+                <div className="text-center py-4 text-muted-foreground">
+                  No history found for this transaction.
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date & Time</TableHead>
+                      <TableHead>Changed By</TableHead>
+                      <TableHead>Previous Status</TableHead>
+                      <TableHead>New Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {transactionLogs.map(log => (
+                      <TableRow key={log.id}>
+                        <TableCell>
+                          {format(new Date(log.changed_at), 'MMM d, yyyy HH:mm')}
+                        </TableCell>
+                        <TableCell>{log.changed_by_name}</TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(log.previous_status)}`}>
+                            {log.previous_status.charAt(0).toUpperCase() + log.previous_status.slice(1)}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(log.new_status)}`}>
+                            {log.new_status.charAt(0).toUpperCase() + log.new_status.slice(1)}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+            <DialogFooter>
+              <Button onClick={() => setShowTransactionLogs(false)}>Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
+};
+
+export default TransactionManager;
