@@ -14,26 +14,28 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ onSignOut }) => {
   const { t } = useLanguage();
   
   return (
-    <header className="bg-white border-b border-border px-6 py-3">
+    <header className="bg-white border-b border-border px-4 py-3">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="p-0"
-            aria-label="Admin profile"
-          >
-            <User className="h-5 w-5" />
-          </Button>
-          <LanguageSwitcher />
-          <h1 className="text-xl font-bold ml-2">{t('admin.dashboard')}</h1>
+        <div className="flex items-center space-x-2 md:space-x-3">
+          <div className="hidden md:flex items-center space-x-3">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="p-0"
+              aria-label="Admin profile"
+            >
+              <User className="h-5 w-5" />
+            </Button>
+            <LanguageSwitcher />
+          </div>
+          <h1 className="text-lg md:text-xl font-bold">{t('admin.dashboard')}</h1>
         </div>
         
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2 md:space-x-3">
           <CurrencySwitcher />
-          <Button variant="outline" size="sm" onClick={onSignOut} className="ml-3">
+          <Button variant="outline" size="sm" onClick={onSignOut} className="ml-2">
             <LogOut className="h-4 w-4 mr-2" />
-            {t('button.signOut')}
+            <span className="hidden md:inline">{t('button.signOut')}</span>
           </Button>
         </div>
       </div>
