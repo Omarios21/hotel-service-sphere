@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -29,6 +29,32 @@ const Admin: React.FC = () => {
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
+  
+  useEffect(() => {
+    // Dispatch events when admin makes changes to notify the frontend
+    const handleMenuItemsUpdated = () => {
+      window.dispatchEvent(new Event('menuItemsUpdated'));
+    };
+    
+    const handleSpaServicesUpdated = () => {
+      window.dispatchEvent(new Event('spaServicesUpdated'));
+    };
+    
+    const handleActivitiesUpdated = () => {
+      window.dispatchEvent(new Event('activitiesUpdated'));
+    };
+    
+    // We'll use these events in the admin components
+    window.addEventListener('adminMenuItemsChanged', handleMenuItemsUpdated);
+    window.addEventListener('adminSpaServicesChanged', handleSpaServicesUpdated);
+    window.addEventListener('adminActivitiesChanged', handleActivitiesUpdated);
+    
+    return () => {
+      window.removeEventListener('adminMenuItemsChanged', handleMenuItemsUpdated);
+      window.removeEventListener('adminSpaServicesChanged', handleSpaServicesUpdated);
+      window.removeEventListener('adminActivitiesChanged', handleActivitiesUpdated);
+    };
+  }, []);
   
   const renderActiveSection = () => {
     switch (activeSection) {

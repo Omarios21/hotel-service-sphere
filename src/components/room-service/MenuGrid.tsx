@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import MenuItem, { MenuItemType } from '../MenuItem';
 import MenuItemDetails from './MenuItemDetails';
@@ -13,6 +13,21 @@ interface MenuGridProps {
 const MenuGrid: React.FC<MenuGridProps> = ({ items, isLoading, onAddToCart }) => {
   const [selectedItem, setSelectedItem] = useState<MenuItemType | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [animateItems, setAnimateItems] = useState(false);
+  
+  // When items change, trigger animation
+  useEffect(() => {
+    if (!isLoading && items.length > 0) {
+      setAnimateItems(true);
+      
+      // Reset animation state after a short delay
+      const timer = setTimeout(() => {
+        setAnimateItems(false);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [items, isLoading]);
   
   const handleItemClick = (item: MenuItemType) => {
     setSelectedItem(item);
@@ -48,7 +63,14 @@ const MenuGrid: React.FC<MenuGridProps> = ({ items, isLoading, onAddToCart }) =>
           <motion.div
             key={item.id}
             initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
+            animate={{ 
+              opacity: 1, 
+              scale: 1,
+              // Add a pulse animation when items update
+              ...(animateItems ? { 
+                boxShadow: ['0px 0px 0px rgba(59, 130, 246, 0)', '0px 0px 8px rgba(59, 130, 246, 0.5)', '0px 0px 0px rgba(59, 130, 246, 0)']
+              } : {})
+            }}
             transition={{ duration: 0.4, delay: index * 0.05 }}
             onClick={() => handleItemClick(item)}
             className="cursor-pointer"

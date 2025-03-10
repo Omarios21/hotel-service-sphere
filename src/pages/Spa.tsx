@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useCallback } from 'react';
 import Layout from '../components/Layout';
 import { motion } from 'framer-motion';
 import { Calendar, Clock, Check, X } from 'lucide-react';
@@ -42,38 +43,54 @@ const Spa: React.FC = () => {
   const [isBooking, setIsBooking] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("services");
   
-  const { data: spaServices = [], isLoading: isLoadingServices } = useQuery({
+  const fetchSpaServices = useCallback(async () => {
+    console.log('Fetching spa services...');
+    const { data, error } = await supabase
+      .from('spa_services')
+      .select('*')
+      .eq('available', true);
+    
+    if (error) {
+      console.error('Error fetching spa services:', error);
+      toast.error('Failed to load spa services');
+      return getFallbackSpaServices();
+    }
+    
+    console.log('Spa services fetched:', data);
+    if (!data || data.length === 0) {
+      console.log('No spa services found, using fallback data');
+      return getFallbackSpaServices();
+    }
+    
+    return data.map(service => ({
+      id: service.id,
+      name: service.name,
+      description: service.description,
+      duration: service.duration,
+      price: service.price,
+      image: service.image
+    }));
+  }, []);
+  
+  const { data: spaServices = [], isLoading: isLoadingServices, refetch: refetchSpaServices } = useQuery({
     queryKey: ['spaServices'],
-    queryFn: async () => {
-      console.log('Fetching spa services...');
-      const { data, error } = await supabase
-        .from('spa_services')
-        .select('*')
-        .eq('available', true);
-      
-      if (error) {
-        console.error('Error fetching spa services:', error);
-        toast.error('Failed to load spa services');
-        return getFallbackSpaServices();
-      }
-      
-      console.log('Spa services fetched:', data);
-      if (!data || data.length === 0) {
-        console.log('No spa services found, using fallback data');
-        return getFallbackSpaServices();
-      }
-      
-      return data.map(service => ({
-        id: service.id,
-        name: service.name,
-        description: service.description,
-        duration: service.duration,
-        price: service.price,
-        image: service.image
-      }));
-    },
+    queryFn: fetchSpaServices,
     refetchOnWindowFocus: false
   });
+  
+  // Listen for real-time updates to refresh data
+  useEffect(() => {
+    const handleSpaServicesUpdate = () => {
+      console.log('Received spa services update event');
+      refetchSpaServices();
+    };
+    
+    window.addEventListener('spaServicesUpdated', handleSpaServicesUpdate);
+    
+    return () => {
+      window.removeEventListener('spaServicesUpdated', handleSpaServicesUpdate);
+    };
+  }, [refetchSpaServices]);
   
   const getFallbackSpaServices = (): SpaService[] => {
     return [

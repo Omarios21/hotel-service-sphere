@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface SpaBooking {
   bookingId: string;
@@ -24,6 +25,25 @@ export const useSpaBookings = () => {
         console.error('Error parsing saved spa booking', e);
       }
     }
+
+    // Set up real-time listener for spa_services table
+    const channel = supabase
+      .channel('spa_services_changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'spa_services' 
+        }, 
+        () => {
+          // Emit an event that the Spa page can listen to for refreshing data
+          window.dispatchEvent(new Event('spaServicesUpdated'));
+      })
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const createBooking = (serviceDetails: {
