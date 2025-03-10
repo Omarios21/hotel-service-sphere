@@ -15,68 +15,19 @@ import NotificationsManager from '@/components/admin/NotificationsManager';
 import UserManager from '@/components/admin/UserManager';
 
 const Admin: React.FC = () => {
-  const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(false); // Set initial loading to false
+  const [isAdmin, setIsAdmin] = useState(true); // Set initial admin status to true
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const checkAdmin = async () => {
-      try {
-        setLoading(true);
-        console.log('Checking admin status...');
-        
-        // Check if user is logged in
-        const { data: session } = await supabase.auth.getSession();
-        if (!session.session) {
-          console.log('No session found, redirecting to auth');
-          toast.error('You must be logged in to access the admin area', { duration: 2000 });
-          navigate('/auth');
-          return;
-        }
-        
-        console.log('User is logged in, bypassing admin check');
-        
-        // BYPASS: Set all authenticated users as admin automatically
-        setIsAdmin(true);
-        console.log('Admin access bypassed - all users granted access');
-
-      } catch (error) {
-        console.error('Error in admin check:', error);
-        // Even on error, grant admin access (bypass)
-        setIsAdmin(true);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    checkAdmin();
-  }, [navigate]);
-
+  // Remove authentication check completely
+  
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate('/auth');
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin-slow h-10 w-10 border-4 border-primary border-t-transparent rounded-full"></div>
-      </div>
-    );
-  }
-
-  // The following check is kept for code structure but will always pass
-  // since isAdmin is forced to true above
-  if (!isAdmin) {
-    return (
-      <div className="flex items-center justify-center h-screen flex-col">
-        <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-        <p className="mb-4">You don't have permission to access the admin area.</p>
-        <Button onClick={() => navigate('/')}>Go Home</Button>
-      </div>
-    );
-  }
-
+  // Remove loading check since we're not loading anything
+  
   return (
     <div className="flex h-screen overflow-hidden">
       <AdminSidebar />
