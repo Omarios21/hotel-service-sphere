@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { 
-  CreditCard, ShoppingCart, Bath, CalendarRange, BellRing, 
+  CreditCard, ShoppingCart, Spa, CalendarRange, BellRing, 
   Users, Settings, Menu, X, History, Activity, 
   ChevronRight
 } from 'lucide-react';
@@ -26,7 +26,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   // Group sections by access level
   const publicSections = [
     { id: 'menu-items', name: t('admin.sections.menuItems'), icon: ShoppingCart, color: 'bg-orange-100 text-orange-700' },
-    { id: 'spa-services', name: t('admin.sections.spaServices'), icon: Bath, color: 'bg-purple-100 text-purple-700' },
+    { id: 'spa-services', name: t('admin.sections.spaServices'), icon: Spa, color: 'bg-purple-100 text-purple-700' },
     { id: 'activities', name: t('admin.sections.activities'), icon: Activity, color: 'bg-blue-100 text-blue-700' },
   ];
   
