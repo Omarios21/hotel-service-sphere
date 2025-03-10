@@ -40,8 +40,43 @@ export const useFileUpload = () => {
     }
   };
 
+  const takePhoto = async (): Promise<File | null> => {
+    return new Promise((resolve) => {
+      // Create input element
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.capture = 'environment'; // Use the camera
+      
+      input.onchange = (e: Event) => {
+        const files = (e.target as HTMLInputElement).files;
+        if (files && files.length > 0) {
+          resolve(files[0]);
+        } else {
+          resolve(null);
+        }
+      };
+      
+      // Trigger the file input click
+      input.click();
+    });
+  };
+
+  const handleTakePhoto = async (): Promise<string | null> => {
+    try {
+      const file = await takePhoto();
+      if (!file) return null;
+      
+      return await uploadImageToSupabase(file);
+    } catch (error: any) {
+      toast.error('Error capturing image: ' + error.message);
+      return null;
+    }
+  };
+
   return {
     uploading,
-    uploadImageToSupabase
+    uploadImageToSupabase,
+    handleTakePhoto
   };
 };

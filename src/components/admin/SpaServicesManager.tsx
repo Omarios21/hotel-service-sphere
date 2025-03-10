@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2, Clock, Check, X, Image, Upload } from 'lucide-react';
+import { Plus, Edit, Trash2, Clock, Check, X, Image, Upload, Camera } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFileUpload } from '@/hooks/useFileUpload';
