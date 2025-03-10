@@ -2,13 +2,17 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import Layout from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import MenuItemsManager from '@/components/admin/MenuItemsManager';
 import AdminHeader from '@/components/admin/AdminHeader';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { Button } from '@/components/ui/button';
+import SpaServicesManager from '@/components/admin/SpaServicesManager';
+import ActivitiesManager from '@/components/admin/ActivitiesManager';
+import SpaCalendarManager from '@/components/admin/SpaCalendarManager';
+import NotificationsManager from '@/components/admin/NotificationsManager';
+import UserManager from '@/components/admin/UserManager';
 
 const Admin: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -83,9 +87,13 @@ const Admin: React.FC = () => {
         <main className="flex-1 overflow-y-auto p-6">
           <div className="max-w-7xl mx-auto">
             <Tabs defaultValue="menu-items">
-              <TabsList className="mb-6">
+              <TabsList className="mb-6 flex flex-wrap">
                 <TabsTrigger value="menu-items">Menu Items</TabsTrigger>
-                <TabsTrigger value="orders">Orders</TabsTrigger>
+                <TabsTrigger value="spa-services">Spa Services</TabsTrigger>
+                <TabsTrigger value="activities">Activities</TabsTrigger>
+                <TabsTrigger value="spa-calendar">Spa Calendar</TabsTrigger>
+                <TabsTrigger value="notifications">Notifications</TabsTrigger>
+                <TabsTrigger value="users">User Management</TabsTrigger>
                 <TabsTrigger value="settings">Settings</TabsTrigger>
               </TabsList>
               
@@ -93,11 +101,24 @@ const Admin: React.FC = () => {
                 <MenuItemsManager />
               </TabsContent>
               
-              <TabsContent value="orders">
-                <div className="text-center p-12">
-                  <h3 className="text-lg font-medium mb-2">Orders Management</h3>
-                  <p className="text-muted-foreground">Orders management functionality coming soon.</p>
-                </div>
+              <TabsContent value="spa-services">
+                <SpaServicesManager />
+              </TabsContent>
+              
+              <TabsContent value="activities">
+                <ActivitiesManager />
+              </TabsContent>
+              
+              <TabsContent value="spa-calendar">
+                <SpaCalendarManager />
+              </TabsContent>
+              
+              <TabsContent value="notifications">
+                <NotificationsManager />
+              </TabsContent>
+              
+              <TabsContent value="users">
+                <UserManager />
               </TabsContent>
               
               <TabsContent value="settings">

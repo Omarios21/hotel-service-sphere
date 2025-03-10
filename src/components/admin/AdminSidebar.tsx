@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, ShoppingBag, Settings, Users } from 'lucide-react';
+import { Home, ShoppingBag, Settings, Users, Calendar, Bell, Briefcase, Spa } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const AdminSidebar: React.FC = () => {
@@ -20,6 +20,46 @@ const AdminSidebar: React.FC = () => {
           >
             <ShoppingBag className="h-5 w-5 mr-3" />
             Menu Items
+          </button>
+          
+          <button
+            className="flex items-center w-full px-3 py-2 text-left rounded-md hover:bg-slate-100 text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => navigate('/admin')}
+          >
+            <Spa className="h-5 w-5 mr-3" />
+            Spa Services
+          </button>
+          
+          <button
+            className="flex items-center w-full px-3 py-2 text-left rounded-md hover:bg-slate-100 text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => navigate('/admin')}
+          >
+            <Briefcase className="h-5 w-5 mr-3" />
+            Activities
+          </button>
+          
+          <button
+            className="flex items-center w-full px-3 py-2 text-left rounded-md hover:bg-slate-100 text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => navigate('/admin')}
+          >
+            <Calendar className="h-5 w-5 mr-3" />
+            Spa Calendar
+          </button>
+          
+          <button
+            className="flex items-center w-full px-3 py-2 text-left rounded-md hover:bg-slate-100 text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => navigate('/admin')}
+          >
+            <Bell className="h-5 w-5 mr-3" />
+            Notifications
+          </button>
+          
+          <button
+            className="flex items-center w-full px-3 py-2 text-left rounded-md hover:bg-slate-100 text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => navigate('/admin')}
+          >
+            <Users className="h-5 w-5 mr-3" />
+            User Management
           </button>
           
           <button
