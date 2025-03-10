@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, ShoppingBag, Settings, Users, Calendar, Bell, Briefcase, Spa } from 'lucide-react';
+import { Home, ShoppingBag, Settings, Users, Calendar, Bell, Briefcase, Leaf } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const AdminSidebar: React.FC = () => {
@@ -26,7 +26,7 @@ const AdminSidebar: React.FC = () => {
             className="flex items-center w-full px-3 py-2 text-left rounded-md hover:bg-slate-100 text-muted-foreground hover:text-foreground transition-colors"
             onClick={() => navigate('/admin')}
           >
-            <Spa className="h-5 w-5 mr-3" />
+            <Leaf className="h-5 w-5 mr-3" />
             Spa Services
           </button>
           

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
@@ -61,12 +60,25 @@ const SpaCalendarManager: React.FC = () => {
       
       if (error) throw error;
       
-      setBookings(data || []);
+      const typedBookings: SpaBooking[] = (data || []).map(booking => ({
+        ...booking,
+        status: validateBookingStatus(booking.status)
+      }));
+      
+      setBookings(typedBookings);
     } catch (error: any) {
       toast.error('Error loading bookings: ' + error.message, { duration: 2000 });
     } finally {
       setLoading(false);
     }
+  };
+  
+  const validateBookingStatus = (status: string): 'confirmed' | 'completed' | 'cancelled' => {
+    if (status === 'confirmed' || status === 'completed' || status === 'cancelled') {
+      return status;
+    }
+    console.warn(`Invalid booking status: ${status}, defaulting to 'confirmed'`);
+    return 'confirmed';
   };
   
   const handleStatusChange = async (booking: SpaBooking, newStatus: 'confirmed' | 'completed' | 'cancelled') => {
