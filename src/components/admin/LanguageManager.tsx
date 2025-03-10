@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { Check, X, Plus } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import SearchBar from './SearchBar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface LanguageSetting {
   code: string;
@@ -31,9 +34,12 @@ const defaultLanguages: LanguageSetting[] = [
 const LanguageManager: React.FC = () => {
   const [languages, setLanguages] = useState<LanguageSetting[]>(defaultLanguages);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [newLangCode, setNewLangCode] = useState('');
   const [newLangName, setNewLangName] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('all');
 
   useEffect(() => {
     fetchLanguageSettings();
@@ -67,23 +73,22 @@ const LanguageManager: React.FC = () => {
 
   const saveLanguageSettings = async (langSettings: LanguageSetting[]) => {
     try {
-      for (const lang of langSettings) {
-        const { error } = await supabase
-          .from('language_settings')
-          .upsert({ 
-            code: lang.code, 
-            name: lang.name, 
-            enabled: lang.enabled 
-          });
-        
-        if (error) throw error;
-      }
+      setSaving(true);
+      
+      // Batch the upsert operation
+      const { error } = await supabase
+        .from('language_settings')
+        .upsert(langSettings);
+      
+      if (error) throw error;
       
       setLanguages(langSettings);
       toast.success('Language settings saved', { duration: 2000 });
     } catch (error: any) {
       console.error('Error saving language settings:', error);
       toast.error('Error saving language settings', { duration: 2000 });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -122,6 +127,37 @@ const LanguageManager: React.FC = () => {
     saveLanguageSettings(updatedLanguages);
   };
 
+  const filteredLanguages = useMemo(() => {
+    return languages.filter(lang => {
+      const matchesSearch = lang.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            lang.code.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      if (activeTab === 'all') return matchesSearch;
+      if (activeTab === 'enabled') return matchesSearch && lang.enabled;
+      if (activeTab === 'disabled') return matchesSearch && !lang.enabled;
+      
+      return matchesSearch;
+    });
+  }, [languages, searchQuery, activeTab]);
+
+  const renderSkeletons = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {Array(6).fill(0).map((_, index) => (
+        <Card key={`skeleton-${index}`}>
+          <CardContent className="p-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <Skeleton className="h-5 w-24 mb-2" />
+                <Skeleton className="h-4 w-12" />
+              </div>
+              <Skeleton className="h-6 w-20" />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -134,8 +170,11 @@ const LanguageManager: React.FC = () => {
               Add Language
             </Button>
           )}
-          <Button onClick={handleSaveChanges}>
-            Save Changes
+          <Button 
+            onClick={handleSaveChanges} 
+            disabled={saving}
+          >
+            {saving ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
       </div>
@@ -177,13 +216,27 @@ const LanguageManager: React.FC = () => {
         </Card>
       )}
       
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <SearchBar 
+          placeholder="Search languages..." 
+          value={searchQuery} 
+          onChange={setSearchQuery} 
+        />
+        
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
+          <TabsList>
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="enabled">Enabled</TabsTrigger>
+            <TabsTrigger value="disabled">Disabled</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+      
       {loading ? (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin-slow h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-        </div>
+        renderSkeletons()
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {languages.map((lang) => (
+          {filteredLanguages.map((lang) => (
             <Card key={lang.code} className="overflow-hidden">
               <CardContent className="p-4">
                 <div className="flex justify-between items-center">
