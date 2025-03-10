@@ -2,17 +2,34 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useWalletTransactions, WalletTransaction } from '@/hooks/useWalletTransactions';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CreditCard, Search, ArrowDownUp, Clock } from 'lucide-react';
+import { CreditCard, Search, ArrowDownUp, Clock, CheckCircle2, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PieChart, Pie, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+
+interface Transaction {
+  id: string;
+  room_id: string;
+  guest_name: string | null;
+  amount: number;
+  description: string | null;
+  location: string;
+  date: string;
+  status: 'pending' | 'paid' | 'cancelled';
+  waiter_name: string | null;
+  type: string;
+}
 
 const TransactionManager: React.FC = () => {
-  const { transactions, loading, fetchTransactions } = useWalletTransactions();
-  const [filteredTransactions, setFilteredTransactions] = useState<WalletTransaction[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -23,6 +40,27 @@ const TransactionManager: React.FC = () => {
     fetchTransactions();
   }, []);
   
+  const fetchTransactions = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .order('date', { ascending: false });
+      
+      if (error) throw error;
+      
+      if (data) {
+        setTransactions(data as Transaction[]);
+      }
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+      toast.error('Failed to load transactions');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   useEffect(() => {
     let filtered = [...transactions];
     
@@ -30,8 +68,10 @@ const TransactionManager: React.FC = () => {
     if (searchTerm) {
       filtered = filtered.filter(tx => 
         tx.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        tx.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        tx.roomId.toLowerCase().includes(searchTerm.toLowerCase())
+        (tx.description && tx.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        tx.room_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (tx.waiter_name && tx.waiter_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (tx.guest_name && tx.guest_name.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
     
@@ -57,10 +97,11 @@ const TransactionManager: React.FC = () => {
   
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
+      case 'completed':
+      case 'paid': return 'bg-green-100 text-green-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'failed': return 'bg-red-100 text-red-800';
-      case 'cancelled': return 'bg-slate-100 text-slate-800';
+      case 'failed': 
+      case 'cancelled': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -73,17 +114,38 @@ const TransactionManager: React.FC = () => {
       default: return <CreditCard className="h-4 w-4" />;
     }
   };
+
+  const handleUpdateStatus = async (id: string, newStatus: 'paid' | 'cancelled') => {
+    try {
+      const { error } = await supabase
+        .from('transactions')
+        .update({ status: newStatus })
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      setTransactions(prev => 
+        prev.map(tx => tx.id === id ? { ...tx, status: newStatus } : tx)
+      );
+      
+      toast.success(`Transaction status updated to ${newStatus}`);
+    } catch (error) {
+      console.error('Error updating transaction status:', error);
+      toast.error('Failed to update transaction status');
+    }
+  };
   
   // Calculate summary statistics
   const totalTransactions = filteredTransactions.length;
   const totalAmount = filteredTransactions.reduce((sum, tx) => sum + tx.amount, 0);
+  const pendingTransactions = filteredTransactions.filter(tx => tx.status === 'pending').length;
   const cancelledTransactions = filteredTransactions.filter(tx => tx.status === 'cancelled').length;
   
   // Prepare data for charts
-  const typeData = [
-    { name: 'Payments', value: filteredTransactions.filter(tx => tx.type === 'payment').length },
-    { name: 'Top-ups', value: filteredTransactions.filter(tx => tx.type === 'topup').length },
-    { name: 'Access', value: filteredTransactions.filter(tx => tx.type === 'access').length },
+  const statusData = [
+    { name: 'Pending', value: filteredTransactions.filter(tx => tx.status === 'pending').length },
+    { name: 'Paid', value: filteredTransactions.filter(tx => tx.status === 'paid').length },
+    { name: 'Cancelled', value: filteredTransactions.filter(tx => tx.status === 'cancelled').length },
   ];
   
   const locationData = filteredTransactions.reduce((acc, tx) => {
@@ -131,9 +193,8 @@ const TransactionManager: React.FC = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
                         <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="failed">Failed</SelectItem>
+                        <SelectItem value="paid">Paid</SelectItem>
                         <SelectItem value="cancelled">Cancelled</SelectItem>
                       </SelectContent>
                     </Select>
@@ -177,11 +238,13 @@ const TransactionManager: React.FC = () => {
                             <tr className="border-b">
                               <th className="text-left py-3 px-4">Date & Time</th>
                               <th className="text-left py-3 px-4">Room</th>
+                              <th className="text-left py-3 px-4">Guest</th>
                               <th className="text-left py-3 px-4">Description</th>
                               <th className="text-left py-3 px-4">Location</th>
-                              <th className="text-left py-3 px-4">Type</th>
+                              <th className="text-left py-3 px-4">Waiter</th>
                               <th className="text-left py-3 px-4">Amount</th>
                               <th className="text-left py-3 px-4">Status</th>
+                              <th className="text-left py-3 px-4">Actions</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -190,15 +253,11 @@ const TransactionManager: React.FC = () => {
                                 <td className="py-3 px-4 text-sm">
                                   {format(new Date(transaction.date), 'MMM d, yyyy h:mm a')}
                                 </td>
-                                <td className="py-3 px-4 font-medium">{transaction.roomId}</td>
-                                <td className="py-3 px-4">{transaction.description}</td>
+                                <td className="py-3 px-4 font-medium">{transaction.room_id}</td>
+                                <td className="py-3 px-4">{transaction.guest_name || '-'}</td>
+                                <td className="py-3 px-4">{transaction.description || '-'}</td>
                                 <td className="py-3 px-4">{transaction.location}</td>
-                                <td className="py-3 px-4">
-                                  <div className="flex items-center gap-1">
-                                    {getTypeIcon(transaction.type)}
-                                    <span className="capitalize">{transaction.type}</span>
-                                  </div>
-                                </td>
+                                <td className="py-3 px-4">{transaction.waiter_name || '-'}</td>
                                 <td className="py-3 px-4 font-medium">
                                   {transaction.amount > 0 ? formatPrice(transaction.amount) : '-'}
                                 </td>
@@ -206,6 +265,30 @@ const TransactionManager: React.FC = () => {
                                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
                                     {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
                                   </span>
+                                </td>
+                                <td className="py-3 px-4">
+                                  {transaction.status === 'pending' && (
+                                    <div className="flex space-x-1">
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm"
+                                        className="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                        onClick={() => handleUpdateStatus(transaction.id, 'paid')}
+                                        title="Mark as Paid"
+                                      >
+                                        <CheckCircle2 className="h-4 w-4" />
+                                      </Button>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm"
+                                        className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                        onClick={() => handleUpdateStatus(transaction.id, 'cancelled')}
+                                        title="Cancel Transaction"
+                                      >
+                                        <XCircle className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  )}
                                 </td>
                               </tr>
                             ))}
@@ -236,8 +319,8 @@ const TransactionManager: React.FC = () => {
                 
                 <Card className="bg-slate-50">
                   <CardContent className="pt-6">
-                    <div className="text-2xl font-bold">{cancelledTransactions}</div>
-                    <p className="text-muted-foreground">Cancelled Transactions</p>
+                    <div className="text-2xl font-bold">{pendingTransactions}</div>
+                    <p className="text-muted-foreground">Pending Transactions</p>
                   </CardContent>
                 </Card>
               </div>
@@ -245,14 +328,14 @@ const TransactionManager: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Transaction Types</CardTitle>
+                    <CardTitle>Transaction Status</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
-                            data={typeData}
+                            data={statusData}
                             cx="50%"
                             cy="50%"
                             outerRadius={80}
@@ -260,7 +343,7 @@ const TransactionManager: React.FC = () => {
                             dataKey="value"
                             label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                           >
-                            {typeData.map((entry, index) => (
+                            {statusData.map((entry, index) => (
                               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}
                           </Pie>

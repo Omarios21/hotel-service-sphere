@@ -184,6 +184,36 @@ export type Database = {
         }
         Relationships: []
       }
+      room_accounts: {
+        Row: {
+          check_in_date: string
+          check_out_date: string | null
+          created_at: string
+          guest_name: string
+          id: string
+          is_active: boolean | null
+          room_id: string
+        }
+        Insert: {
+          check_in_date?: string
+          check_out_date?: string | null
+          created_at?: string
+          guest_name: string
+          id?: string
+          is_active?: boolean | null
+          room_id: string
+        }
+        Update: {
+          check_in_date?: string
+          check_out_date?: string | null
+          created_at?: string
+          guest_name?: string
+          id?: string
+          is_active?: boolean | null
+          room_id?: string
+        }
+        Relationships: []
+      }
       spa_bookings: {
         Row: {
           booking_id: string
@@ -270,6 +300,27 @@ export type Database = {
         }
         Relationships: []
       }
+      transaction_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       transaction_clearing: {
         Row: {
           cleared_amount: number
@@ -296,6 +347,65 @@ export type Database = {
           room_id?: string
         }
         Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          category_id: string | null
+          created_at: string
+          date: string
+          description: string | null
+          guest_name: string | null
+          id: string
+          location: string
+          room_id: string
+          status: string
+          type: string
+          updated_at: string
+          waiter_id: string | null
+          waiter_name: string | null
+        }
+        Insert: {
+          amount: number
+          category_id?: string | null
+          created_at?: string
+          date?: string
+          description?: string | null
+          guest_name?: string | null
+          id?: string
+          location: string
+          room_id: string
+          status?: string
+          type: string
+          updated_at?: string
+          waiter_id?: string | null
+          waiter_name?: string | null
+        }
+        Update: {
+          amount?: number
+          category_id?: string | null
+          created_at?: string
+          date?: string
+          description?: string | null
+          guest_name?: string | null
+          id?: string
+          location?: string
+          room_id?: string
+          status?: string
+          type?: string
+          updated_at?: string
+          waiter_id?: string | null
+          waiter_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "transaction_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
