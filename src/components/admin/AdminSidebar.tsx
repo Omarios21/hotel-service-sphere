@@ -1,170 +1,129 @@
 
 import React, { useState } from 'react';
 import { 
-  Home, 
-  ShoppingBag, 
-  Users, 
-  Calendar, 
-  Bell, 
-  Briefcase, 
-  Leaf, 
-  CreditCard, 
-  History,
-  Settings,
-  Menu,
-  X
+  CreditCard, ShoppingCart, Spa, CalendarRange, BellRing, 
+  Users, Settings, Menu, X, History, Activity, 
+  ChevronRight
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface AdminSidebarProps {
   onNavigate: (section: string) => void;
   activeSection: string;
+  authenticated: boolean;
 }
 
-interface SidebarItem {
-  id: string;
-  label: string;
-  icon: React.ElementType;
-  color: string;
-}
-
-const AdminSidebar: React.FC<AdminSidebarProps> = ({ onNavigate, activeSection }) => {
-  const navigate = useNavigate();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+const AdminSidebar: React.FC<AdminSidebarProps> = ({ 
+  onNavigate, 
+  activeSection,
+  authenticated
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const { t } = useLanguage();
   
-  const sidebarItems: SidebarItem[] = [
-    { 
-      id: 'transactions', 
-      label: 'Transactions', 
-      icon: CreditCard, 
-      color: 'bg-blue-500'
-    },
-    { 
-      id: 'clearing-history', 
-      label: 'Clearing History', 
-      icon: History, 
-      color: 'bg-purple-500'
-    },
-    { 
-      id: 'menu-items', 
-      label: 'Menu Items', 
-      icon: ShoppingBag, 
-      color: 'bg-orange-500'
-    },
-    { 
-      id: 'spa-services', 
-      label: 'Spa Services', 
-      icon: Leaf, 
-      color: 'bg-green-500'
-    },
-    { 
-      id: 'activities', 
-      label: 'Activities', 
-      icon: Briefcase, 
-      color: 'bg-amber-500'
-    },
-    { 
-      id: 'spa-calendar', 
-      label: 'Spa Calendar', 
-      icon: Calendar, 
-      color: 'bg-indigo-500'
-    },
-    { 
-      id: 'notifications', 
-      label: 'Notifications', 
-      icon: Bell, 
-      color: 'bg-red-500'
-    },
-    { 
-      id: 'users', 
-      label: 'User Management', 
-      icon: Users, 
-      color: 'bg-teal-500'
-    },
+  // Group sections by access level
+  const publicSections = [
+    { id: 'menu-items', name: t('admin.sections.menuItems'), icon: ShoppingCart, color: 'bg-orange-100 text-orange-700' },
+    { id: 'spa-services', name: t('admin.sections.spaServices'), icon: Spa, color: 'bg-purple-100 text-purple-700' },
+    { id: 'activities', name: t('admin.sections.activities'), icon: Activity, color: 'bg-blue-100 text-blue-700' },
   ];
   
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
+  const privateSections = [
+    { id: 'transactions', name: t('admin.sections.transactions'), icon: CreditCard, color: 'bg-green-100 text-green-700' },
+    { id: 'clearing-history', name: t('admin.sections.clearingHistory'), icon: History, color: 'bg-yellow-100 text-yellow-700' },
+    { id: 'spa-calendar', name: t('admin.sections.spaCalendar'), icon: CalendarRange, color: 'bg-indigo-100 text-indigo-700' },
+    { id: 'notifications', name: t('admin.sections.notifications'), icon: BellRing, color: 'bg-red-100 text-red-700' },
+    { id: 'users', name: t('admin.sections.users'), icon: Users, color: 'bg-teal-100 text-teal-700' },
+    { id: 'settings', name: t('admin.sections.settings'), icon: Settings, color: 'bg-slate-100 text-slate-700' },
+  ];
   
-  const handleNavigate = (sectionId: string) => {
+  const handleNavigation = (sectionId: string) => {
     onNavigate(sectionId);
-    if (isMobileMenuOpen) {
-      setIsMobileMenuOpen(false);
-    }
+    setIsOpen(false);
   };
   
-  const renderSidebarContent = () => (
-    <>
-      <div className="px-6 py-6 border-b border-border">
-        <h2 className="text-lg font-bold">Hotel Admin</h2>
-      </div>
-      
-      <nav className="flex-1 px-4 py-6 space-y-1">
-        {sidebarItems.map((item) => (
-          <button
-            key={item.id}
-            className={cn(
-              "flex items-center w-full px-3 py-3 text-left rounded-md transition-colors group",
-              activeSection === item.id 
-                ? "bg-slate-100 text-foreground" 
-                : "text-muted-foreground hover:bg-slate-100 hover:text-foreground"
-            )}
-            onClick={() => handleNavigate(item.id)}
-          >
-            <div className={cn("mr-3 p-1.5 rounded-md text-white", item.color)}>
-              <item.icon className="h-5 w-5" />
-            </div>
-            <span className="font-medium">{item.label}</span>
-            {activeSection === item.id && (
-              <div className={cn("w-1.5 h-8 rounded-full ml-auto", item.color)} />
-            )}
-          </button>
-        ))}
-        
-        <button
-          className="flex items-center w-full px-3 py-3 mt-6 text-left rounded-md hover:bg-slate-100 text-muted-foreground hover:text-foreground transition-colors"
-          onClick={() => navigate('/home')}
-        >
-          <div className="mr-3 p-1.5 rounded-md text-white bg-slate-500">
-            <Home className="h-5 w-5" />
-          </div>
-          <span className="font-medium">Back to App</span>
-        </button>
-      </nav>
-    </>
+  const renderSectionButton = (section: any) => (
+    <button
+      key={section.id}
+      onClick={() => handleNavigation(section.id)}
+      className={cn(
+        "flex items-center w-full px-3 py-2 mb-1 rounded-lg transition-colors text-left",
+        activeSection === section.id 
+          ? `${section.color} font-medium` 
+          : "hover:bg-muted"
+      )}
+    >
+      <section.icon className="h-5 w-5 mr-3" />
+      <span>{section.name}</span>
+      {activeSection === section.id && (
+        <ChevronRight className="h-4 w-4 ml-auto" />
+      )}
+    </button>
   );
   
   return (
     <>
-      {/* Desktop Sidebar */}
-      <aside className="w-64 hidden lg:block bg-slate-50 border-r border-border h-full">
-        <div className="flex flex-col h-full">
-          {renderSidebarContent()}
-        </div>
-      </aside>
-      
-      {/* Mobile Menu Button */}
-      <button 
-        className="fixed bottom-6 right-6 z-50 lg:hidden bg-primary text-white p-3 rounded-full shadow-lg"
-        onClick={toggleMobileMenu}
-        aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+      {/* Mobile sidebar toggle */}
+      <button
+        onClick={() => setIsOpen(true)}
+        className="md:hidden fixed bottom-4 right-4 z-30 p-2 rounded-full bg-primary text-white shadow-lg"
       >
-        {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        <Menu className="h-6 w-6" />
       </button>
       
-      {/* Mobile Sidebar */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          <div className="fixed inset-0 bg-black/50" onClick={toggleMobileMenu}></div>
-          <aside className="fixed right-0 top-0 h-full w-3/4 max-w-xs bg-slate-50 shadow-xl overflow-y-auto">
-            <div className="flex flex-col h-full">
-              {renderSidebarContent()}
-            </div>
-          </aside>
-        </div>
+      {/* Mobile sidebar overlay */}
+      {isOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={() => setIsOpen(false)}
+        />
       )}
+      
+      {/* Sidebar */}
+      <div 
+        className={cn(
+          "fixed md:relative inset-y-0 left-0 z-50 w-64 bg-background border-r border-border transform transition-transform duration-200 ease-in-out",
+          isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        )}
+      >
+        <div className="flex flex-col h-full p-4">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold">Admin Panel</h2>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="md:hidden"
+              onClick={() => setIsOpen(false)}
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+          
+          {/* Public Sections */}
+          <div className="mb-6">
+            <h3 className="mb-2 text-sm font-medium text-muted-foreground px-3">
+              {t('admin.general')}
+            </h3>
+            <div className="space-y-1">
+              {publicSections.map(renderSectionButton)}
+            </div>
+          </div>
+          
+          {/* Private Sections (Only show if authenticated) */}
+          {authenticated && (
+            <div>
+              <h3 className="mb-2 text-sm font-medium text-muted-foreground px-3">
+                {t('admin.management')}
+              </h3>
+              <div className="space-y-1">
+                {privateSections.map(renderSectionButton)}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </>
   );
 };

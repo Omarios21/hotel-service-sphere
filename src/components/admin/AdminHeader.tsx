@@ -1,17 +1,20 @@
 
 import React from 'react';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useNavigate } from 'react-router-dom';
 import LanguageSwitcher from '../LanguageSwitcher';
 import CurrencySwitcher from '../CurrencySwitcher';
 
 interface AdminHeaderProps {
   onSignOut: () => void;
+  authenticated: boolean;
 }
 
-const AdminHeader: React.FC<AdminHeaderProps> = ({ onSignOut }) => {
+const AdminHeader: React.FC<AdminHeaderProps> = ({ onSignOut, authenticated }) => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   
   return (
     <header className="bg-white border-b border-border px-4 py-3">
@@ -33,10 +36,17 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ onSignOut }) => {
         
         <div className="flex items-center space-x-2 md:space-x-3">
           <CurrencySwitcher />
-          <Button variant="outline" size="sm" onClick={onSignOut} className="ml-2">
-            <LogOut className="h-4 w-4 mr-2" />
-            <span className="hidden md:inline">{t('button.signOut')}</span>
-          </Button>
+          {authenticated ? (
+            <Button variant="outline" size="sm" onClick={onSignOut} className="ml-2">
+              <LogOut className="h-4 w-4 mr-2" />
+              <span className="hidden md:inline">{t('button.signOut')}</span>
+            </Button>
+          ) : (
+            <Button variant="outline" size="sm" onClick={() => navigate('/auth')} className="ml-2">
+              <LogIn className="h-4 w-4 mr-2" />
+              <span className="hidden md:inline">{t('button.signIn')}</span>
+            </Button>
+          )}
         </div>
       </div>
     </header>
