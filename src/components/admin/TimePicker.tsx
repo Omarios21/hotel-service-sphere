@@ -35,6 +35,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
       value={timeValue}
       onChange={handleTimeChange}
       disabled={disabled}
+      className={disabled ? "bg-muted cursor-not-allowed" : ""}
     />
   );
 };

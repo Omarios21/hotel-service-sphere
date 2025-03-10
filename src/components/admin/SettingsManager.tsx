@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { 
   Table, 
   TableBody, 
-  TableCaption, 
   TableCell, 
   TableHead, 
   TableHeader, 
@@ -27,6 +26,9 @@ const SettingsManager = () => {
   // Currency rates
   const [rates, setRates] = useState<Record<Currency, number>>({...currencyRates});
   const { loadAvailableLanguages } = useLanguage();
+  
+  // Display values for the UI (MAD per 1 unit of foreign currency)
+  const [displayRates, setDisplayRates] = useState<Record<Currency, string>>({} as Record<Currency, string>);
   
   // Service availability times
   const [serviceHours, setServiceHours] = useState({
@@ -57,14 +59,19 @@ const SettingsManager = () => {
         
         if (ratesData && ratesData.length > 0) {
           const ratesObj: Record<Currency, number> = {...currencyRates};
+          const displayObj: Record<Currency, string> = {} as Record<Currency, string>;
           
           ratesData.forEach((rate) => {
             if (rate.currency in ratesObj) {
               ratesObj[rate.currency as Currency] = rate.rate;
+              // Calculate display value (MAD per 1 unit of foreign currency)
+              displayObj[rate.currency as Currency] = rate.rate === 0 ? 
+                '' : (1 / rate.rate).toFixed(4);
             }
           });
           
           setRates(ratesObj);
+          setDisplayRates(displayObj);
         }
         
         // Load service hours
@@ -101,13 +108,22 @@ const SettingsManager = () => {
     loadSettings();
   }, []);
   
-  // Handle currency rate change
+  // Handle currency rate change (from MAD per 1 unit display value to storage rate)
   const handleRateChange = (currency: Currency, value: string) => {
     const numValue = parseFloat(value);
+    
+    // Update display value
+    setDisplayRates(prev => ({
+      ...prev,
+      [currency]: value
+    }));
+    
+    // Only update actual rate if value is valid
     if (!isNaN(numValue) && numValue > 0) {
+      // Convert to storage format (1/value)
       setRates(prev => ({
         ...prev,
-        [currency]: 1 / numValue // Store as 1/value since we're inverting the display
+        [currency]: 1 / numValue
       }));
     }
   };
@@ -157,6 +173,8 @@ const SettingsManager = () => {
   // Save all settings
   const handleSaveSettings = async () => {
     try {
+      console.log('Saving rates:', rates);
+      
       // Save currency rates
       for (const currency in rates) {
         const { error } = await supabase
@@ -170,7 +188,10 @@ const SettingsManager = () => {
             { onConflict: 'currency' }
           );
           
-        if (error) throw error;
+        if (error) {
+          console.error('Error saving currency rate:', error);
+          throw error;
+        }
       }
       
       // Save service hours
@@ -189,7 +210,10 @@ const SettingsManager = () => {
             { onConflict: 'service_type' }
           );
           
-        if (error) throw error;
+        if (error) {
+          console.error('Error saving service hours:', error);
+          throw error;
+        }
       }
       
       toast.success('Settings saved successfully');
@@ -200,7 +224,7 @@ const SettingsManager = () => {
       // Dispatch event to notify other components
       window.dispatchEvent(new Event('settingsUpdated'));
     } catch (error: any) {
-      console.error('Error saving settings:', error.message);
+      console.error('Error saving settings:', error);
       toast.error('Failed to save settings');
     }
   };
@@ -239,7 +263,7 @@ const SettingsManager = () => {
                         type="number"
                         min="0.001"
                         step="0.001"
-                        value={rates[currency as Currency] === 0 ? '' : (1 / rates[currency as Currency]).toFixed(4)}
+                        value={displayRates[currency] || ''}
                         onChange={(e) => handleRateChange(currency, e.target.value)}
                       />
                       <span className="ml-2">MAD</span>
