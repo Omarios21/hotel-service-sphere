@@ -385,6 +385,7 @@ export type Database = {
       }
       transactions: {
         Row: {
+          admin_status: string
           amount: number
           category_id: string | null
           created_at: string
@@ -401,6 +402,7 @@ export type Database = {
           waiter_name: string | null
         }
         Insert: {
+          admin_status?: string
           amount: number
           category_id?: string | null
           created_at?: string
@@ -417,6 +419,7 @@ export type Database = {
           waiter_name?: string | null
         }
         Update: {
+          admin_status?: string
           amount?: number
           category_id?: string | null
           created_at?: string

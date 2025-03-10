@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CreditCard, Search, ArrowDownUp, Clock, CheckCircle2, XCircle, Check, Clipboard } from 'lucide-react';
+import { CreditCard, Search, ArrowDownUp, Clock, CheckCircle2, XCircle, Check, Clipboard, Lock, Unlock } from 'lucide-react';
 import { format } from 'date-fns';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PieChart, Pie, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
@@ -30,7 +30,8 @@ interface Transaction {
   description: string | null;
   location: string;
   date: string;
-  status: 'pending' | 'paid' | 'cancelled' | 'approved';
+  status: 'pending' | 'paid' | 'cancelled';
+  admin_status: 'open' | 'closed';
   waiter_name: string | null;
   type: string;
 }
@@ -50,6 +51,7 @@ const TransactionManager: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [adminStatusFilter, setAdminStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const { formatPrice } = useLanguage();
@@ -57,7 +59,9 @@ const TransactionManager: React.FC = () => {
   const [adminName, setAdminName] = useState<string>(localStorage.getItem('adminName') || 'Admin');
   const [showNamePrompt, setShowNamePrompt] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [bulkAction, setBulkAction] = useState<'paid' | 'cancelled' | 'approved' | ''>('');
+  const [bulkAction, setBulkAction] = useState<'paid' | 'cancelled' | ''>('');
+  const [isAdminStatusDialogOpen, setIsAdminStatusDialogOpen] = useState(false);
+  const [bulkAdminStatus, setBulkAdminStatus] = useState<'open' | 'closed'>('open');
   const [showTransactionLogs, setShowTransactionLogs] = useState(false);
   const [currentTransactionId, setCurrentTransactionId] = useState<string>('');
   const [transactionLogs, setTransactionLogs] = useState<TransactionLog[]>([]);
@@ -135,6 +139,11 @@ const TransactionManager: React.FC = () => {
       filtered = filtered.filter(tx => tx.status === statusFilter);
     }
     
+    // Apply admin status filter
+    if (adminStatusFilter !== 'all') {
+      filtered = filtered.filter(tx => tx.admin_status === adminStatusFilter);
+    }
+    
     // Apply type filter
     if (typeFilter !== 'all') {
       filtered = filtered.filter(tx => tx.type === typeFilter);
@@ -148,7 +157,7 @@ const TransactionManager: React.FC = () => {
     });
     
     setFilteredTransactions(filtered);
-  }, [transactions, searchTerm, statusFilter, typeFilter, sortOrder]);
+  }, [transactions, searchTerm, statusFilter, adminStatusFilter, typeFilter, sortOrder]);
   
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -157,7 +166,14 @@ const TransactionManager: React.FC = () => {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'failed': 
       case 'cancelled': return 'bg-red-100 text-red-800';
-      case 'approved': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+  
+  const getAdminStatusColor = (status: string) => {
+    switch (status) {
+      case 'open': return 'bg-blue-100 text-blue-800';
+      case 'closed': return 'bg-slate-100 text-slate-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -171,7 +187,7 @@ const TransactionManager: React.FC = () => {
     }
   };
 
-  const handleUpdateStatus = async (id: string, newStatus: 'paid' | 'cancelled' | 'approved') => {
+  const handleUpdateStatus = async (id: string, newStatus: 'paid' | 'cancelled') => {
     try {
       // If admin name is not set, prompt for it
       if (!adminName) {
@@ -217,6 +233,34 @@ const TransactionManager: React.FC = () => {
     } catch (error) {
       console.error('Error updating transaction status:', error);
       toast.error('Failed to update transaction status');
+    }
+  };
+
+  const handleUpdateAdminStatus = async (id: string, newAdminStatus: 'open' | 'closed') => {
+    try {
+      // If admin name is not set, prompt for it
+      if (!adminName) {
+        setShowNamePrompt(true);
+        return;
+      }
+      
+      // Update transaction admin status
+      const { error: updateError } = await supabase
+        .from('transactions')
+        .update({ admin_status: newAdminStatus })
+        .eq('id', id);
+      
+      if (updateError) throw updateError;
+      
+      // Update local state
+      setTransactions(prev => 
+        prev.map(tx => tx.id === id ? { ...tx, admin_status: newAdminStatus } : tx)
+      );
+      
+      toast.success(`Transaction admin status updated to ${newAdminStatus}`);
+    } catch (error) {
+      console.error('Error updating transaction admin status:', error);
+      toast.error('Failed to update transaction admin status');
     }
   };
   
@@ -282,6 +326,51 @@ const TransactionManager: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const handleBulkAdminStatusUpdate = async () => {
+    if (!bulkAdminStatus || selectedTransactions.length === 0) {
+      toast.error('Please select transactions and an action to perform');
+      return;
+    }
+    
+    // If admin name is not set, prompt for it
+    if (!adminName) {
+      setShowNamePrompt(true);
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      // For each selected transaction
+      for (const txId of selectedTransactions) {
+        // Update transaction admin status
+        const { error: updateError } = await supabase
+          .from('transactions')
+          .update({ admin_status: bulkAdminStatus })
+          .eq('id', txId);
+        
+        if (updateError) throw updateError;
+      }
+      
+      // Update local state
+      setTransactions(prev => 
+        prev.map(tx => selectedTransactions.includes(tx.id) ? { ...tx, admin_status: bulkAdminStatus } : tx)
+      );
+      
+      // Reset selections
+      setSelectedTransactions([]);
+      setBulkAdminStatus('open');
+      setIsAdminStatusDialogOpen(false);
+      
+      toast.success(`Updated admin status to ${bulkAdminStatus} for ${selectedTransactions.length} transactions`);
+    } catch (error) {
+      console.error('Error updating transaction admin status:', error);
+      toast.error('Failed to update transaction admin status');
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -319,7 +408,11 @@ const TransactionManager: React.FC = () => {
     { name: 'Pending', value: filteredTransactions.filter(tx => tx.status === 'pending').length },
     { name: 'Paid', value: filteredTransactions.filter(tx => tx.status === 'paid').length },
     { name: 'Cancelled', value: filteredTransactions.filter(tx => tx.status === 'cancelled').length },
-    { name: 'Approved', value: filteredTransactions.filter(tx => tx.status === 'approved').length },
+  ];
+
+  const adminStatusData = [
+    { name: 'Open', value: filteredTransactions.filter(tx => tx.admin_status === 'open').length },
+    { name: 'Closed', value: filteredTransactions.filter(tx => tx.admin_status === 'closed').length },
   ];
   
   const locationData = filteredTransactions.reduce((acc, tx) => {
@@ -351,6 +444,15 @@ const TransactionManager: React.FC = () => {
               >
                 Update Status
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setIsAdminStatusDialogOpen(true);
+                }}
+              >
+                Update Admin Status
+              </Button>
             </div>
           )}
         </CardHeader>
@@ -374,7 +476,7 @@ const TransactionManager: React.FC = () => {
                     />
                   </div>
                   
-                  <div className="flex gap-2 w-full md:w-auto">
+                  <div className="flex gap-2 w-full md:w-auto flex-wrap">
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
                       <SelectTrigger className="w-[110px]">
                         <SelectValue placeholder="Status" />
@@ -384,7 +486,17 @@ const TransactionManager: React.FC = () => {
                         <SelectItem value="pending">Pending</SelectItem>
                         <SelectItem value="paid">Paid</SelectItem>
                         <SelectItem value="cancelled">Cancelled</SelectItem>
-                        <SelectItem value="approved">Approved</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <Select value={adminStatusFilter} onValueChange={setAdminStatusFilter}>
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue placeholder="Admin Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Admin Status</SelectItem>
+                        <SelectItem value="open">Open</SelectItem>
+                        <SelectItem value="closed">Closed</SelectItem>
                       </SelectContent>
                     </Select>
                     
@@ -429,6 +541,7 @@ const TransactionManager: React.FC = () => {
                                 <Checkbox 
                                   checked={selectedTransactions.length === filteredTransactions.length && filteredTransactions.length > 0}
                                   onCheckedChange={handleSelectAll}
+                                  className="rounded-sm data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
                                 />
                               </th>
                               <th className="text-left py-3 px-4">Date & Time</th>
@@ -439,6 +552,7 @@ const TransactionManager: React.FC = () => {
                               <th className="text-left py-3 px-4">Waiter</th>
                               <th className="text-left py-3 px-4">Amount</th>
                               <th className="text-left py-3 px-4">Status</th>
+                              <th className="text-left py-3 px-4">Admin Status</th>
                               <th className="text-left py-3 px-4">Actions</th>
                             </tr>
                           </thead>
@@ -449,6 +563,7 @@ const TransactionManager: React.FC = () => {
                                   <Checkbox 
                                     checked={selectedTransactions.includes(transaction.id)}
                                     onCheckedChange={(checked) => handleSelectTransaction(transaction.id, !!checked)}
+                                    className="rounded-sm data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
                                   />
                                 </td>
                                 <td className="py-3 px-4 text-sm">
@@ -468,6 +583,11 @@ const TransactionManager: React.FC = () => {
                                   </span>
                                 </td>
                                 <td className="py-3 px-4">
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getAdminStatusColor(transaction.admin_status)}`}>
+                                    {transaction.admin_status.charAt(0).toUpperCase() + transaction.admin_status.slice(1)}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-4">
                                   <div className="flex space-x-1">
                                     <Button 
                                       variant="ghost" 
@@ -477,6 +597,25 @@ const TransactionManager: React.FC = () => {
                                       title="View History"
                                     >
                                       <Clipboard className="h-4 w-4" />
+                                    </Button>
+                                    
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      className={`h-8 px-2 ${
+                                        transaction.admin_status === 'open' 
+                                          ? 'text-slate-600 hover:text-slate-700' 
+                                          : 'text-blue-600 hover:text-blue-700'
+                                      } hover:bg-slate-50`}
+                                      onClick={() => handleUpdateAdminStatus(
+                                        transaction.id, 
+                                        transaction.admin_status === 'open' ? 'closed' : 'open'
+                                      )}
+                                      title={transaction.admin_status === 'open' ? 'Close Transaction' : 'Open Transaction'}
+                                    >
+                                      {transaction.admin_status === 'open' 
+                                        ? <Lock className="h-4 w-4" /> 
+                                        : <Unlock className="h-4 w-4" />}
                                     </Button>
                                     
                                     {transaction.status === 'pending' && (
@@ -489,15 +628,6 @@ const TransactionManager: React.FC = () => {
                                           title="Mark as Paid"
                                         >
                                           <CheckCircle2 className="h-4 w-4" />
-                                        </Button>
-                                        <Button 
-                                          variant="ghost" 
-                                          size="sm"
-                                          className="h-8 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                          onClick={() => handleUpdateStatus(transaction.id, 'approved')}
-                                          title="Approve Transaction"
-                                        >
-                                          <Check className="h-4 w-4" />
                                         </Button>
                                         <Button 
                                           variant="ghost" 
@@ -523,7 +653,7 @@ const TransactionManager: React.FC = () => {
                               <td className="py-3 px-4 font-bold text-primary">
                                 {formatPrice(totalAmount)}
                               </td>
-                              <td colSpan={2}></td>
+                              <td colSpan={3}></td>
                             </tr>
                           </tfoot>
                         </table>
@@ -535,7 +665,7 @@ const TransactionManager: React.FC = () => {
             </TabsContent>
             
             <TabsContent value="analytics">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                 <Card className="bg-slate-50">
                   <CardContent className="pt-6">
                     <div className="text-2xl font-bold">{totalTransactions}</div>
@@ -556,9 +686,16 @@ const TransactionManager: React.FC = () => {
                     <p className="text-muted-foreground">Pending Transactions</p>
                   </CardContent>
                 </Card>
+
+                <Card className="bg-slate-50">
+                  <CardContent className="pt-6">
+                    <div className="text-2xl font-bold">{filteredTransactions.filter(tx => tx.admin_status === 'closed').length}</div>
+                    <p className="text-muted-foreground">Closed Transactions</p>
+                  </CardContent>
+                </Card>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <Card>
                   <CardHeader>
                     <CardTitle>Transaction Status</CardTitle>
@@ -590,26 +727,55 @@ const TransactionManager: React.FC = () => {
                 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Revenue by Location</CardTitle>
+                    <CardTitle>Admin Status</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={locationData}>
-                          <XAxis dataKey="name" />
-                          <YAxis />
-                          <Tooltip formatter={(value) => [formatPrice(value as number), 'Amount']} />
-                          <Bar dataKey="value" fill="#4f46e5">
-                            {locationData.map((entry, index) => (
+                        <PieChart>
+                          <Pie
+                            data={adminStatusData}
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="value"
+                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          >
+                            {adminStatusData.map((entry, index) => (
                               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}
-                          </Bar>
-                        </BarChart>
+                          </Pie>
+                          <Tooltip formatter={(value) => [`${value} transactions`, 'Count']} />
+                          <Legend />
+                        </PieChart>
                       </ResponsiveContainer>
                     </div>
                   </CardContent>
                 </Card>
               </div>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Revenue by Location</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={locationData}>
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip formatter={(value) => [formatPrice(value as number), 'Amount']} />
+                        <Bar dataKey="value" fill="#4f46e5">
+                          {locationData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </CardContent>
@@ -653,7 +819,6 @@ const TransactionManager: React.FC = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="paid">Paid</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
               </SelectContent>
             </Select>
@@ -664,6 +829,37 @@ const TransactionManager: React.FC = () => {
             </Button>
             <Button onClick={handleBulkStatusUpdate} disabled={!bulkAction || loading}>
               {loading ? 'Processing...' : 'Update Status'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Admin Status Update Dialog */}
+      <Dialog open={isAdminStatusDialogOpen} onOpenChange={setIsAdminStatusDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Admin Status</DialogTitle>
+            <DialogDescription>
+              Change the admin status for {selectedTransactions.length} selected transactions.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Select value={bulkAdminStatus} onValueChange={(value: any) => setBulkAdminStatus(value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select new admin status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="open">Open</SelectItem>
+                <SelectItem value="closed">Closed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAdminStatusDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleBulkAdminStatusUpdate} disabled={!bulkAdminStatus || loading}>
+              {loading ? 'Processing...' : 'Update Admin Status'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -20,7 +20,8 @@ import {
   CheckCircle2,
   XCircle,
   Clipboard,
-  Check
+  Check,
+  AlertTriangle
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -61,6 +62,7 @@ interface Transaction {
   type: string;
   location: string;
   status: string;
+  admin_status: 'open' | 'closed';
   waiter_name: string;
 }
 
@@ -86,6 +88,7 @@ const Receptionist: React.FC = () => {
   const [clearingNotes, setClearingNotes] = useState('');
   const [showFilterDialog, setShowFilterDialog] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterAdminStatus, setFilterAdminStatus] = useState<string>('all');
   const [filterWaiter, setFilterWaiter] = useState<string>('all');
   const [filterRoom, setFilterRoom] = useState<string>('all');
   const [filterGuest, setFilterGuest] = useState('');
@@ -178,6 +181,7 @@ const Receptionist: React.FC = () => {
           type: tx.type,
           location: tx.location,
           status: tx.status,
+          admin_status: tx.admin_status,
           waiter_name: tx.waiter_name || ''
         }));
         
@@ -300,6 +304,27 @@ const Receptionist: React.FC = () => {
   };
   
   const handleUpdateStatus = async (transactionId: string, newStatus: 'paid' | 'cancelled') => {
+    // Get the transaction
+    const transaction = allTransactions.find(tx => tx.id === transactionId);
+    if (!transaction) {
+      toast({
+        title: 'Error',
+        description: 'Transaction not found',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    // Check if transaction is not closed
+    if (transaction.admin_status === 'closed') {
+      toast({
+        title: 'Action Denied',
+        description: 'Cannot update closed transactions',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     if (!receptionistName) {
       setShowNamePrompt(true);
       return;
@@ -308,17 +333,6 @@ const Receptionist: React.FC = () => {
     setLoading(true);
     
     try {
-      // Get the current status for logging
-      const transaction = allTransactions.find(tx => tx.id === transactionId);
-      if (!transaction) {
-        toast({
-          title: 'Error',
-          description: 'Transaction not found',
-          variant: 'destructive',
-        });
-        return;
-      }
-      
       const previousStatus = transaction.status;
       
       // Update transaction status
@@ -385,10 +399,19 @@ const Receptionist: React.FC = () => {
     
     try {
       // For each selected transaction
+      let updatedCount = 0;
+      let skippedCount = 0;
+      
       for (const txId of selectedTransactions) {
-        // Get the current status for logging
+        // Get the current transaction
         const transaction = allTransactions.find(tx => tx.id === txId);
         if (!transaction) continue;
+        
+        // Skip closed transactions
+        if (transaction.admin_status === 'closed') {
+          skippedCount++;
+          continue;
+        }
         
         const previousStatus = transaction.status;
         
@@ -411,15 +434,27 @@ const Receptionist: React.FC = () => {
           });
         
         if (logError) throw logError;
+        
+        updatedCount++;
       }
       
       // Update local state
       setAllTransactions(prev => 
-        prev.map(tx => selectedTransactions.includes(tx.id) ? { ...tx, status: bulkAction } : tx)
+        prev.map(tx => {
+          if (selectedTransactions.includes(tx.id) && tx.admin_status === 'open') {
+            return { ...tx, status: bulkAction };
+          }
+          return tx;
+        })
       );
       
       setTransactions(prev => 
-        prev.map(tx => selectedTransactions.includes(tx.id) ? { ...tx, status: bulkAction } : tx)
+        prev.map(tx => {
+          if (selectedTransactions.includes(tx.id) && tx.admin_status === 'open') {
+            return { ...tx, status: bulkAction };
+          }
+          return tx;
+        })
       );
       
       // Reset selections
@@ -427,10 +462,17 @@ const Receptionist: React.FC = () => {
       setBulkAction(undefined);
       setIsBulkActionDialogOpen(false);
       
-      toast({
-        title: 'Status Updated',
-        description: `Updated ${selectedTransactions.length} transactions to ${bulkAction}`,
-      });
+      if (skippedCount > 0) {
+        toast({
+          title: 'Partial Update',
+          description: `Updated ${updatedCount} transactions. Skipped ${skippedCount} closed transactions.`,
+        });
+      } else {
+        toast({
+          title: 'Status Updated',
+          description: `Updated ${updatedCount} transactions to ${bulkAction}`,
+        });
+      }
     } catch (error) {
       console.error('Error updating transaction status:', error);
       toast({
@@ -481,6 +523,11 @@ const Receptionist: React.FC = () => {
       filtered = filtered.filter(tx => tx.status === filterStatus);
     }
     
+    // Apply admin status filter
+    if (filterAdminStatus !== 'all') {
+      filtered = filtered.filter(tx => tx.admin_status === filterAdminStatus);
+    }
+    
     // Apply waiter filter
     if (filterWaiter !== 'all') {
       filtered = filtered.filter(tx => tx.waiter_name === filterWaiter);
@@ -516,6 +563,7 @@ const Receptionist: React.FC = () => {
   
   const resetFilters = () => {
     setFilterStatus('all');
+    setFilterAdminStatus('all');
     setFilterWaiter('all');
     setFilterRoom('all');
     setFilterGuest('');
@@ -530,7 +578,14 @@ const Receptionist: React.FC = () => {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'paid': return 'bg-green-100 text-green-800';
       case 'cancelled': return 'bg-red-100 text-red-800';
-      case 'approved': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getAdminStatusBadgeClass = (status: string) => {
+    switch (status) {
+      case 'open': return 'bg-blue-100 text-blue-800';
+      case 'closed': return 'bg-slate-100 text-slate-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -611,6 +666,7 @@ const Receptionist: React.FC = () => {
                           <Checkbox
                             checked={selectedTransactions.length === transactions.length && transactions.length > 0}
                             onCheckedChange={handleSelectAll}
+                            className="rounded-sm data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
                           />
                         </TableHead>
                         <TableHead>Date & Time</TableHead>
@@ -621,6 +677,7 @@ const Receptionist: React.FC = () => {
                         <TableHead>Waiter</TableHead>
                         <TableHead>Amount</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Admin Status</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -631,6 +688,7 @@ const Receptionist: React.FC = () => {
                             <Checkbox
                               checked={selectedTransactions.includes(transaction.id)}
                               onCheckedChange={(checked) => handleSelectTransaction(transaction.id, !!checked)}
+                              className="rounded-sm data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
                             />
                           </TableCell>
                           <TableCell className="text-sm">
@@ -650,6 +708,11 @@ const Receptionist: React.FC = () => {
                             </span>
                           </TableCell>
                           <TableCell>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getAdminStatusBadgeClass(transaction.admin_status)}`}>
+                              {transaction.admin_status.charAt(0).toUpperCase() + transaction.admin_status.slice(1)}
+                            </span>
+                          </TableCell>
+                          <TableCell>
                             <div className="flex space-x-1">
                               <Button 
                                 variant="ghost" 
@@ -663,24 +726,38 @@ const Receptionist: React.FC = () => {
                               
                               {transaction.status === 'pending' && (
                                 <>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    className="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
-                                    onClick={() => handleUpdateStatus(transaction.id, 'paid')}
-                                    title="Mark as Paid"
-                                  >
-                                    <CheckCircle2 className="h-4 w-4" />
-                                  </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                    onClick={() => handleUpdateStatus(transaction.id, 'cancelled')}
-                                    title="Cancel Transaction"
-                                  >
-                                    <XCircle className="h-4 w-4" />
-                                  </Button>
+                                  {transaction.admin_status === 'closed' ? (
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      className="h-8 px-2 text-slate-400 cursor-not-allowed"
+                                      title="Transaction is closed"
+                                      disabled
+                                    >
+                                      <AlertTriangle className="h-4 w-4" />
+                                    </Button>
+                                  ) : (
+                                    <>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm"
+                                        className="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                        onClick={() => handleUpdateStatus(transaction.id, 'paid')}
+                                        title="Mark as Paid"
+                                      >
+                                        <CheckCircle2 className="h-4 w-4" />
+                                      </Button>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm"
+                                        className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                        onClick={() => handleUpdateStatus(transaction.id, 'cancelled')}
+                                        title="Cancel Transaction"
+                                      >
+                                        <XCircle className="h-4 w-4" />
+                                      </Button>
+                                    </>
+                                  )}
                                 </>
                               )}
                             </div>
@@ -696,7 +773,7 @@ const Receptionist: React.FC = () => {
                         <TableCell className="font-bold text-primary">
                           {formatPrice(calculateTotalAmount())}
                         </TableCell>
-                        <TableCell colSpan={2}></TableCell>
+                        <TableCell colSpan={3}></TableCell>
                       </TableRow>
                     </TableFooter>
                   </Table>
@@ -769,7 +846,20 @@ const Receptionist: React.FC = () => {
                   <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="paid">Paid</SelectItem>
                   <SelectItem value="cancelled">Cancelled</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="adminStatus">Admin Status</Label>
+              <Select value={filterAdminStatus} onValueChange={setFilterAdminStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select admin status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Admin Statuses</SelectItem>
+                  <SelectItem value="open">Open</SelectItem>
+                  <SelectItem value="closed">Closed</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -833,6 +923,10 @@ const Receptionist: React.FC = () => {
             <DialogTitle>Update Transaction Status</DialogTitle>
             <DialogDescription>
               Change the status for {selectedTransactions.length} selected transactions.
+              <p className="mt-2 text-yellow-600">
+                <AlertTriangle className="h-4 w-4 inline-block mr-1" />
+                Note: Closed transactions will be skipped
+              </p>
             </DialogDescription>
           </DialogHeader>
           

@@ -8,7 +8,8 @@ export interface WalletTransaction {
   date: string;
   amount: number;
   location: string;
-  status: 'completed' | 'pending' | 'failed' | 'cancelled';
+  status: 'completed' | 'pending' | 'failed' | 'cancelled' | 'paid';
+  admin_status: 'open' | 'closed';
   type: 'payment' | 'topup' | 'access';
   description: string;
   roomId: string;
@@ -34,6 +35,7 @@ export const useWalletTransactions = () => {
           amount: 45.50,
           location: 'Hotel Restaurant',
           status: 'completed',
+          admin_status: 'open',
           type: 'payment',
           description: 'Dinner at hotel restaurant',
           roomId: roomId
@@ -44,6 +46,7 @@ export const useWalletTransactions = () => {
           amount: 12.00,
           location: 'Pool Bar',
           status: 'completed',
+          admin_status: 'open',
           type: 'payment',
           description: 'Drinks at pool bar',
           roomId: roomId
@@ -54,6 +57,7 @@ export const useWalletTransactions = () => {
           amount: 35.00,
           location: 'Spa',
           status: 'completed',
+          admin_status: 'open',
           type: 'access',
           description: 'Spa access fee',
           roomId: roomId
@@ -64,6 +68,7 @@ export const useWalletTransactions = () => {
           amount: 28.75,
           location: 'Hotel Bar',
           status: 'completed',
+          admin_status: 'open',
           type: 'payment',
           description: 'Evening drinks',
           roomId: roomId
@@ -74,6 +79,7 @@ export const useWalletTransactions = () => {
           amount: 0,
           location: 'Breakfast Hall',
           status: 'completed',
+          admin_status: 'open',
           type: 'access',
           description: 'Breakfast access',
           roomId: roomId
@@ -84,6 +90,7 @@ export const useWalletTransactions = () => {
           amount: 100.00,
           location: 'Reception',
           status: 'completed',
+          admin_status: 'open',
           type: 'topup',
           description: 'Wallet top-up',
           roomId: roomId
@@ -94,6 +101,7 @@ export const useWalletTransactions = () => {
           amount: 15.25,
           location: 'Gift Shop',
           status: 'cancelled',
+          admin_status: 'open',
           type: 'payment',
           description: 'Purchase cancelled',
           roomId: roomId
@@ -105,6 +113,7 @@ export const useWalletTransactions = () => {
           amount: 55.25,
           location: 'Hotel Restaurant',
           status: 'completed',
+          admin_status: 'open',
           type: 'payment',
           description: 'Dinner at hotel restaurant',
           roomId: '102'
@@ -115,6 +124,7 @@ export const useWalletTransactions = () => {
           amount: 22.50,
           location: 'Pool Bar',
           status: 'completed',
+          admin_status: 'open',
           type: 'payment',
           description: 'Drinks at pool bar',
           roomId: '102'
@@ -125,6 +135,7 @@ export const useWalletTransactions = () => {
           amount: 150.00,
           location: 'Spa',
           status: 'completed',
+          admin_status: 'closed',
           type: 'payment',
           description: 'Massage treatment',
           roomId: '103'
@@ -141,13 +152,14 @@ export const useWalletTransactions = () => {
     }
   };
 
-  const addTransaction = async (transaction: Omit<WalletTransaction, 'id' | 'date'>) => {
+  const addTransaction = async (transaction: Omit<WalletTransaction, 'id' | 'date' | 'admin_status'>) => {
     try {
       // Generate a random ID and current date
       const newTransaction: WalletTransaction = {
         ...transaction,
         id: `t${Math.floor(Math.random() * 10000)}`,
         date: new Date().toISOString(),
+        admin_status: 'open',
       };
       
       // In a real implementation, this would save to Supabase
@@ -205,6 +217,46 @@ export const useWalletTransactions = () => {
     }
   };
 
+  const updateAdminStatus = async (transactionId: string, adminStatus: 'open' | 'closed') => {
+    try {
+      // In a real implementation, this would update Supabase
+      // For now, we'll just update the local state
+      setTransactions(prev => 
+        prev.map(tx => 
+          tx.id === transactionId 
+            ? { ...tx, admin_status: adminStatus } 
+            : tx
+        )
+      );
+      
+      toast.success(`Admin status updated to ${adminStatus}`);
+    } catch (err) {
+      console.error('Error updating admin status:', err);
+      toast.error('Failed to update admin status');
+      throw err;
+    }
+  };
+
+  const bulkUpdateAdminStatus = async (transactionIds: string[], adminStatus: 'open' | 'closed') => {
+    try {
+      // In a real implementation, this would update Supabase
+      // For now, we'll just update the local state
+      setTransactions(prev => 
+        prev.map(tx => 
+          transactionIds.includes(tx.id) 
+            ? { ...tx, admin_status: adminStatus } 
+            : tx
+        )
+      );
+      
+      toast.success(`Admin status updated to ${adminStatus} for ${transactionIds.length} transactions`);
+    } catch (err) {
+      console.error('Error updating admin status:', err);
+      toast.error('Failed to update admin status');
+      throw err;
+    }
+  };
+
   return {
     transactions,
     loading,
@@ -212,6 +264,8 @@ export const useWalletTransactions = () => {
     fetchTransactions,
     addTransaction,
     cancelTransaction,
-    clearTransactionsForRoom
+    clearTransactionsForRoom,
+    updateAdminStatus,
+    bulkUpdateAdminStatus
   };
 };
