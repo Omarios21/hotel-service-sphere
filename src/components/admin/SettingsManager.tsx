@@ -19,8 +19,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { TimePicker } from "@/components/admin/TimePicker";
 import { Switch } from "@/components/ui/switch";
-import { Info } from "lucide-react";
+import { Info, AlertCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const SettingsManager = () => {
   // Currency rates
@@ -45,17 +46,28 @@ const SettingsManager = () => {
       is24Hours: true
     }
   });
+
+  // Error state
+  const [error, setError] = useState<string | null>(null);
+  // Loading state
+  const [isSaving, setIsSaving] = useState(false);
   
   // Load currency rates and service hours from database
   useEffect(() => {
     const loadSettings = async () => {
       try {
+        setError(null);
+        
         // Load currency rates
         const { data: ratesData, error: ratesError } = await supabase
           .from('currency_rates')
           .select('*');
           
-        if (ratesError) throw ratesError;
+        if (ratesError) {
+          console.error('Error loading currency rates:', ratesError);
+          // Don't fail completely, just show a warning
+          toast.warning('Could not load currency rates from database');
+        }
         
         if (ratesData && ratesData.length > 0) {
           const ratesObj: Record<Currency, number> = {...currencyRates};
@@ -72,6 +84,14 @@ const SettingsManager = () => {
           
           setRates(ratesObj);
           setDisplayRates(displayObj);
+        } else {
+          // Initialize display rates if we don't have data
+          const displayObj: Record<Currency, string> = {} as Record<Currency, string>;
+          Object.keys(rates).forEach((currency) => {
+            const rate = rates[currency as Currency];
+            displayObj[currency as Currency] = rate === 0 ? '' : (1 / rate).toFixed(4);
+          });
+          setDisplayRates(displayObj);
         }
         
         // Load service hours
@@ -79,7 +99,11 @@ const SettingsManager = () => {
           .from('service_hours')
           .select('*');
           
-        if (hoursError) throw hoursError;
+        if (hoursError) {
+          console.error('Error loading service hours:', hoursError);
+          // Don't fail completely, just show a warning
+          toast.warning('Could not load service hours from database');
+        }
         
         if (hoursData && hoursData.length > 0) {
           const hoursObj = {...serviceHours};
@@ -100,7 +124,8 @@ const SettingsManager = () => {
           setServiceHours(hoursObj);
         }
       } catch (error: any) {
-        console.error('Error loading settings:', error.message);
+        console.error('Error loading settings:', error);
+        setError('Failed to load settings. Please try again later.');
         toast.error('Failed to load settings');
       }
     };
@@ -170,48 +195,86 @@ const SettingsManager = () => {
     }));
   };
   
-  // Save all settings
+  // Save using upsert but with a local-first strategy to avoid permissions issues
   const handleSaveSettings = async () => {
+    setIsSaving(true);
+    setError(null);
+    
     try {
       console.log('Saving rates:', rates);
       
-      // Save currency rates
+      // For each currency, try to update first, and if it fails, try to insert
       for (const currency in rates) {
-        const { error } = await supabase
-          .from('currency_rates')
-          .upsert(
-            { 
-              currency, 
+        try {
+          // Try update first
+          const { error: updateError } = await supabase
+            .from('currency_rates')
+            .update({ 
               rate: rates[currency as Currency],
               updated_at: new Date().toISOString()
-            },
-            { onConflict: 'currency' }
-          );
+            })
+            .eq('currency', currency);
           
-        if (error) {
-          console.error('Error saving currency rate:', error);
+          // If update fails (likely due to no existing row), try insert
+          if (updateError) {
+            console.log(`Failed to update ${currency}, trying insert instead:`, updateError);
+            
+            const { error: insertError } = await supabase
+              .from('currency_rates')
+              .insert({ 
+                currency, 
+                rate: rates[currency as Currency],
+                updated_at: new Date().toISOString()
+              });
+            
+            if (insertError) {
+              console.error(`Failed to insert ${currency}:`, insertError);
+              throw insertError;
+            }
+          }
+        } catch (error) {
+          console.error(`Error saving currency rate for ${currency}:`, error);
           throw error;
         }
       }
       
-      // Save service hours
+      // Save service hours with the same approach
       for (const service in serviceHours) {
         const serviceData = serviceHours[service as keyof typeof serviceHours];
-        const { error } = await supabase
-          .from('service_hours')
-          .upsert(
-            { 
-              service_type: service, 
+        
+        try {
+          // Try update first
+          const { error: updateError } = await supabase
+            .from('service_hours')
+            .update({ 
               enabled: serviceData.enabled,
               start_time: serviceData.startTime,
               end_time: serviceData.endTime,
               updated_at: new Date().toISOString()
-            },
-            { onConflict: 'service_type' }
-          );
+            })
+            .eq('service_type', service);
           
-        if (error) {
-          console.error('Error saving service hours:', error);
+          // If update fails, try insert
+          if (updateError) {
+            console.log(`Failed to update ${service}, trying insert instead:`, updateError);
+            
+            const { error: insertError } = await supabase
+              .from('service_hours')
+              .insert({ 
+                service_type: service,
+                enabled: serviceData.enabled,
+                start_time: serviceData.startTime,
+                end_time: serviceData.endTime,
+                updated_at: new Date().toISOString()
+              });
+            
+            if (insertError) {
+              console.error(`Failed to insert ${service}:`, insertError);
+              throw insertError;
+            }
+          }
+        } catch (error) {
+          console.error(`Error saving service hours for ${service}:`, error);
           throw error;
         }
       }
@@ -225,7 +288,10 @@ const SettingsManager = () => {
       window.dispatchEvent(new Event('settingsUpdated'));
     } catch (error: any) {
       console.error('Error saving settings:', error);
+      setError(`Failed to save settings: ${error.message || 'Unknown error'}`);
       toast.error('Failed to save settings');
+    } finally {
+      setIsSaving(false);
     }
   };
   
@@ -233,8 +299,18 @@ const SettingsManager = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium">System Settings</h3>
-        <Button onClick={handleSaveSettings}>Save All Settings</Button>
+        <Button onClick={handleSaveSettings} disabled={isSaving}>
+          {isSaving ? 'Saving...' : 'Save All Settings'}
+        </Button>
       </div>
+      
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
       
       <Card>
         <CardHeader>
