@@ -48,6 +48,11 @@ const Auth: React.FC = () => {
     setPassword('password123');
   };
 
+  const fillOmarCredentials = () => {
+    setEmail('omar@gmail.com');
+    setPassword('azerty');
+  };
+
   const createAdminUser = async (userId: string) => {
     try {
       // Check if admin record already exists
@@ -184,13 +189,22 @@ const Auth: React.FC = () => {
               </Button>
               
               <div className="flex justify-between items-center pt-2">
-                <button
-                  type="button"
-                  onClick={fillDemoCredentials}
-                  className="text-xs text-gray-500 hover:underline"
-                >
-                  Demo Credentials
-                </button>
+                <div className="flex space-x-2">
+                  <button
+                    type="button"
+                    onClick={fillDemoCredentials}
+                    className="text-xs text-gray-500 hover:underline"
+                  >
+                    Demo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={fillOmarCredentials}
+                    className="text-xs text-gray-500 hover:underline"
+                  >
+                    Omar
+                  </button>
+                </div>
                 
                 <button
                   type="button"
