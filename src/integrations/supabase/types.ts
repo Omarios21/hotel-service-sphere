@@ -91,15 +91,7 @@ export type Database = {
           total_price?: number
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "activity_bookings_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "activities"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       activity_dates: {
         Row: {
@@ -120,15 +112,7 @@ export type Database = {
           date?: string
           id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "activity_dates_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "activities"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       admins: {
         Row: {
@@ -254,15 +238,7 @@ export type Database = {
           time?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "spa_bookings_service_id_fkey"
-            columns: ["service_id"]
-            isOneToOne: false
-            referencedRelation: "spa_services"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       spa_services: {
         Row: {
