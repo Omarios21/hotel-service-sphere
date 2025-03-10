@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -108,7 +107,6 @@ const Receptionist: React.FC = () => {
     navigate('/auth');
   };
   
-  // Check if receptionist name is set
   useEffect(() => {
     if (!localStorage.getItem('receptionistName')) {
       setShowNamePrompt(true);
@@ -126,7 +124,6 @@ const Receptionist: React.FC = () => {
     }
     
     setRoomId(roomSearchQuery);
-    // Filter existing transactions for this room
     const roomTransactions = allTransactions.filter(tx => tx.roomId === roomSearchQuery);
     setTransactions(roomTransactions);
   };
@@ -181,20 +178,18 @@ const Receptionist: React.FC = () => {
           type: tx.type,
           location: tx.location,
           status: tx.status,
-          admin_status: tx.admin_status,
+          admin_status: tx.admin_status as 'open' | 'closed',
           waiter_name: tx.waiter_name || ''
         }));
         
         setAllTransactions(formattedTransactions);
         
-        // Extract unique waiters and rooms for filtering
         const waiters = [...new Set(formattedTransactions.map(tx => tx.waiter_name).filter(Boolean))];
         const rooms = [...new Set(formattedTransactions.map(tx => tx.roomId))];
         
         setUniqueWaiters(waiters);
         setUniqueRooms(rooms);
         
-        // If a room is already selected, filter for that room
         if (roomId) {
           const roomTransactions = formattedTransactions.filter(tx => tx.roomId === roomId);
           setTransactions(roomTransactions);
@@ -214,13 +209,11 @@ const Receptionist: React.FC = () => {
     }
   };
   
-  // Dynamic search function that triggers on input change
   const handleDynamicSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const searchValue = e.target.value;
     setRoomSearchQuery(searchValue);
     
     if (searchValue.trim()) {
-      // Search for matching rooms, guests, and waiters
       const searchResults = allTransactions.filter(tx => 
         tx.roomId.toLowerCase().includes(searchValue.toLowerCase()) ||
         (tx.guest_name && tx.guest_name.toLowerCase().includes(searchValue.toLowerCase())) ||
@@ -231,7 +224,6 @@ const Receptionist: React.FC = () => {
       
       setTransactions(searchResults);
     } else {
-      // If search is cleared, reset to all transactions
       setTransactions(allTransactions);
       setRoomId('');
     }
@@ -240,10 +232,8 @@ const Receptionist: React.FC = () => {
   useEffect(() => {
     fetchAllTransactions();
     
-    // Set up a polling interval to refresh data every 30 seconds
     const interval = setInterval(fetchAllTransactions, 30000);
     
-    // Clean up the interval on component unmount
     return () => clearInterval(interval);
   }, [roomId]);
   
@@ -257,10 +247,6 @@ const Receptionist: React.FC = () => {
     try {
       const totalAmount = calculateTotalAmount();
       
-      // In a real implementation, this would call Supabase to record the clearing
-      // and update the transaction statuses
-      
-      // Mock user ID for the receptionist
       const receptionistUserId = '00000000-0000-0000-0000-000000000000';
       
       const clearingRecord = {
@@ -272,7 +258,6 @@ const Receptionist: React.FC = () => {
         notes: clearingNotes || 'Balance cleared at checkout'
       };
       
-      // For demo purposes, just log the clearing record
       console.log('Balance cleared:', clearingRecord);
       
       toast({
@@ -280,7 +265,6 @@ const Receptionist: React.FC = () => {
         description: `Successfully cleared ${formatPrice(totalAmount)} for Room ${roomId}`,
       });
       
-      // Reset the state
       setTransactions([]);
       setRoomId('');
       setRoomSearchQuery('');
@@ -304,7 +288,6 @@ const Receptionist: React.FC = () => {
   };
   
   const handleUpdateStatus = async (transactionId: string, newStatus: 'paid' | 'cancelled') => {
-    // Get the transaction
     const transaction = allTransactions.find(tx => tx.id === transactionId);
     if (!transaction) {
       toast({
@@ -315,7 +298,6 @@ const Receptionist: React.FC = () => {
       return;
     }
     
-    // Check if transaction is not closed
     if (transaction.admin_status === 'closed') {
       toast({
         title: 'Action Denied',
@@ -335,7 +317,6 @@ const Receptionist: React.FC = () => {
     try {
       const previousStatus = transaction.status;
       
-      // Update transaction status
       const { error: updateError } = await supabase
         .from('transactions')
         .update({ status: newStatus })
@@ -343,7 +324,6 @@ const Receptionist: React.FC = () => {
       
       if (updateError) throw updateError;
       
-      // Log the status change
       const { error: logError } = await supabase
         .from('transaction_logs')
         .insert({
@@ -355,7 +335,6 @@ const Receptionist: React.FC = () => {
       
       if (logError) throw logError;
       
-      // Update the local state
       setAllTransactions(prev => 
         prev.map(tx => tx.id === transactionId ? { ...tx, status: newStatus } : tx)
       );
@@ -398,16 +377,13 @@ const Receptionist: React.FC = () => {
     setLoading(true);
     
     try {
-      // For each selected transaction
       let updatedCount = 0;
       let skippedCount = 0;
       
       for (const txId of selectedTransactions) {
-        // Get the current transaction
         const transaction = allTransactions.find(tx => tx.id === txId);
         if (!transaction) continue;
         
-        // Skip closed transactions
         if (transaction.admin_status === 'closed') {
           skippedCount++;
           continue;
@@ -415,7 +391,6 @@ const Receptionist: React.FC = () => {
         
         const previousStatus = transaction.status;
         
-        // Update transaction status
         const { error: updateError } = await supabase
           .from('transactions')
           .update({ status: bulkAction })
@@ -423,7 +398,6 @@ const Receptionist: React.FC = () => {
         
         if (updateError) throw updateError;
         
-        // Log the status change
         const { error: logError } = await supabase
           .from('transaction_logs')
           .insert({
@@ -438,7 +412,6 @@ const Receptionist: React.FC = () => {
         updatedCount++;
       }
       
-      // Update local state
       setAllTransactions(prev => 
         prev.map(tx => {
           if (selectedTransactions.includes(tx.id) && tx.admin_status === 'open') {
@@ -457,7 +430,6 @@ const Receptionist: React.FC = () => {
         })
       );
       
-      // Reset selections
       setSelectedTransactions([]);
       setBulkAction(undefined);
       setIsBulkActionDialogOpen(false);
@@ -514,46 +486,37 @@ const Receptionist: React.FC = () => {
     }
   };
   
-  // Apply filters to all transactions
   const applyFilters = () => {
     let filtered = [...allTransactions];
     
-    // Apply status filter
     if (filterStatus !== 'all') {
       filtered = filtered.filter(tx => tx.status === filterStatus);
     }
     
-    // Apply admin status filter
     if (filterAdminStatus !== 'all') {
       filtered = filtered.filter(tx => tx.admin_status === filterAdminStatus);
     }
     
-    // Apply waiter filter
     if (filterWaiter !== 'all') {
       filtered = filtered.filter(tx => tx.waiter_name === filterWaiter);
     }
     
-    // Apply room filter
     if (filterRoom !== 'all') {
       filtered = filtered.filter(tx => tx.roomId === filterRoom);
     }
     
-    // Apply guest name filter
     if (filterGuest.trim()) {
       filtered = filtered.filter(tx => 
         tx.guest_name.toLowerCase().includes(filterGuest.toLowerCase())
       );
     }
     
-    // Update transactions with filtered results
     setTransactions(filtered);
     
-    // If it's a room filter, also update the roomId state
     if (filterRoom !== 'all') {
       setRoomId(filterRoom);
       setRoomSearchQuery(filterRoom);
     } else if (roomId) {
-      // If clearing the room filter but there was a room set
       setRoomId('');
       setRoomSearchQuery('');
     }
@@ -794,7 +757,6 @@ const Receptionist: React.FC = () => {
         </Card>
       </main>
       
-      {/* Clear Balance Dialog */}
       <Dialog open={showClearDialog} onOpenChange={setShowClearDialog}>
         <DialogContent>
           <DialogHeader>
@@ -827,7 +789,6 @@ const Receptionist: React.FC = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Filters Dialog */}
       <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
         <DialogContent>
           <DialogHeader>
@@ -916,7 +877,6 @@ const Receptionist: React.FC = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Bulk Action Dialog */}
       <Dialog open={isBulkActionDialogOpen} onOpenChange={setIsBulkActionDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -953,7 +913,6 @@ const Receptionist: React.FC = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Receptionist Name Dialog */}
       <Dialog open={showNamePrompt} onOpenChange={setShowNamePrompt}>
         <DialogContent>
           <DialogHeader>
@@ -977,7 +936,6 @@ const Receptionist: React.FC = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Transaction Logs Dialog */}
       <Dialog open={showTransactionLogs} onOpenChange={setShowTransactionLogs}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
