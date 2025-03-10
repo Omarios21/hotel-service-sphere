@@ -31,28 +31,56 @@ const Admin: React.FC = () => {
   };
   
   useEffect(() => {
-    // Dispatch events when admin makes changes to notify the frontend
-    const handleMenuItemsUpdated = () => {
-      window.dispatchEvent(new Event('menuItemsUpdated'));
-    };
-    
-    const handleSpaServicesUpdated = () => {
-      window.dispatchEvent(new Event('spaServicesUpdated'));
-    };
-    
-    const handleActivitiesUpdated = () => {
-      window.dispatchEvent(new Event('activitiesUpdated'));
-    };
-    
-    // We'll use these events in the admin components
-    window.addEventListener('adminMenuItemsChanged', handleMenuItemsUpdated);
-    window.addEventListener('adminSpaServicesChanged', handleSpaServicesUpdated);
-    window.addEventListener('adminActivitiesChanged', handleActivitiesUpdated);
+    // Set up real-time channels for all relevant tables
+    const menuItemsChannel = supabase
+      .channel('admin_menu_items_changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'menu_items' 
+        }, 
+        () => {
+          console.log('Menu items updated in admin');
+          window.dispatchEvent(new Event('menuItemsUpdated'));
+          window.dispatchEvent(new Event('adminMenuItemsChanged'));
+      })
+      .subscribe();
+      
+    const spaServicesChannel = supabase
+      .channel('admin_spa_services_changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'spa_services' 
+        }, 
+        () => {
+          console.log('Spa services updated in admin');
+          window.dispatchEvent(new Event('spaServicesUpdated'));
+          window.dispatchEvent(new Event('adminSpaServicesChanged'));
+      })
+      .subscribe();
+      
+    const activitiesChannel = supabase
+      .channel('admin_activities_changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'activities' 
+        }, 
+        () => {
+          console.log('Activities updated in admin');
+          window.dispatchEvent(new Event('activitiesUpdated'));
+          window.dispatchEvent(new Event('adminActivitiesChanged'));
+      })
+      .subscribe();
     
     return () => {
-      window.removeEventListener('adminMenuItemsChanged', handleMenuItemsUpdated);
-      window.removeEventListener('adminSpaServicesChanged', handleSpaServicesUpdated);
-      window.removeEventListener('adminActivitiesChanged', handleActivitiesUpdated);
+      supabase.removeChannel(menuItemsChannel);
+      supabase.removeChannel(spaServicesChannel);
+      supabase.removeChannel(activitiesChannel);
     };
   }, []);
   

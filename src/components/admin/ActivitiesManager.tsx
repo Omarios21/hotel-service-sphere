@@ -98,6 +98,9 @@ const ActivitiesManager: React.FC = () => {
       ));
       
       toast.success(`${activity.name} is now ${!activity.available ? 'available' : 'unavailable'}`, { duration: 2000 });
+      
+      // Dispatch event to notify other components
+      window.dispatchEvent(new Event('activitiesUpdated'));
     } catch (error: any) {
       toast.error('Error updating activity: ' + error.message, { duration: 2000 });
     }
@@ -116,6 +119,9 @@ const ActivitiesManager: React.FC = () => {
       
       setActivities(activities.filter(a => a.id !== activity.id));
       toast.success(`${activity.name} deleted successfully`, { duration: 2000 });
+      
+      // Dispatch event to notify other components
+      window.dispatchEvent(new Event('activitiesUpdated'));
     } catch (error: any) {
       toast.error('Error deleting activity: ' + error.message, { duration: 2000 });
     }
@@ -186,6 +192,9 @@ const ActivitiesManager: React.FC = () => {
         ));
         
         toast.success(`${name} updated successfully`, { duration: 2000 });
+        
+        // Dispatch event to notify other components
+        window.dispatchEvent(new Event('activitiesUpdated'));
       } else {
         const { data, error } = await supabase
           .from('activities')
@@ -199,6 +208,9 @@ const ActivitiesManager: React.FC = () => {
         }
         
         toast.success(`${name} added successfully`, { duration: 2000 });
+        
+        // Dispatch event to notify other components
+        window.dispatchEvent(new Event('activitiesUpdated'));
       }
       
       resetForm();

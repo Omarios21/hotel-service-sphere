@@ -26,7 +26,7 @@ export const useSpaBookings = () => {
       }
     }
 
-    // Set up real-time listener for spa_services table
+    // Set up real-time listener for spa_services table with all events
     const channel = supabase
       .channel('spa_services_changes')
       .on('postgres_changes', 
@@ -35,7 +35,8 @@ export const useSpaBookings = () => {
           schema: 'public', 
           table: 'spa_services' 
         }, 
-        () => {
+        (payload) => {
+          console.log('Spa service changed:', payload);
           // Emit an event that the Spa page can listen to for refreshing data
           window.dispatchEvent(new Event('spaServicesUpdated'));
       })
