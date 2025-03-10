@@ -1,19 +1,18 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2, Camera, Check, X, Image, Upload, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List } from 'lucide-react';
+import { Plus, Edit, Trash2, Camera, Check, X, Image, Upload } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import SearchBar from './SearchBar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import RichTextEditor from './RichTextEditor';
 
 interface MenuItem {
   id: string;
@@ -42,7 +41,6 @@ const MenuItemsManager: React.FC = () => {
   
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [previewDescription, setPreviewDescription] = useState('');
   const [price, setPrice] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [category, setCategory] = useState('main');
@@ -61,7 +59,6 @@ const MenuItemsManager: React.FC = () => {
   }, [searchTerm, categoryFilter, menuItems]);
   
   useEffect(() => {
-    // Update preview whenever description changes
     setPreviewDescription(description);
   }, [description]);
   
@@ -201,7 +198,6 @@ const MenuItemsManager: React.FC = () => {
   const resetForm = () => {
     setName('');
     setDescription('');
-    setPreviewDescription('');
     setPrice('');
     setImageUrl('');
     setCategory('main');
@@ -213,7 +209,6 @@ const MenuItemsManager: React.FC = () => {
     setEditingItem(item);
     setName(item.name);
     setDescription(item.description);
-    setPreviewDescription(item.description);
     setPrice(item.price.toString());
     setImageUrl(item.image_url);
     setCategory(item.category);
@@ -540,95 +535,14 @@ const MenuItemsManager: React.FC = () => {
                 </div>
                 
                 <div className="space-y-2 md:col-span-2">
-                  <div className="flex justify-between items-center">
-                    <Label htmlFor="description">Description</Label>
-                  </div>
-                  
-                  <div className="flex items-center gap-1 mb-2 p-1 border rounded-md bg-muted/20">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            type="button" 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-8 px-2" 
-                            onClick={() => formatText('bold')}
-                          >
-                            <Bold className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Bold</TooltipContent>
-                      </Tooltip>
-                      
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            type="button" 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-8 px-2" 
-                            onClick={() => formatText('italic')}
-                          >
-                            <Italic className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Italic</TooltipContent>
-                      </Tooltip>
-                      
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            type="button" 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-8 px-2" 
-                            onClick={() => formatText('underline')}
-                          >
-                            <Underline className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Underline</TooltipContent>
-                      </Tooltip>
-                      
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            type="button" 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-8 px-2" 
-                            onClick={() => formatText('list')}
-                          >
-                            <List className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>List</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                  
-                  <Textarea 
-                    id="description" 
-                    value={description} 
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Item description (HTML formatting supported)"
-                    required
-                    rows={4}
-                    className="font-mono"
+                  <Label htmlFor="description">Description</Label>
+                  <RichTextEditor
+                    value={description}
+                    onChange={setDescription}
+                    placeholder="Item description"
                   />
-                  
-                  <div className="mt-2 border p-3 rounded-md">
-                    <Label className="block mb-2 text-sm">Preview:</Label>
-                    <div 
-                      className="prose prose-sm max-w-none min-h-[100px] p-2 bg-white rounded border"
-                      dangerouslySetInnerHTML={{ __html: previewDescription }}
-                    >
-                    </div>
-                  </div>
-                  
                   <p className="text-xs text-muted-foreground mt-2">
-                    This will be automatically translated to all enabled languages. HTML formatting is supported for rich text.
+                    This will be automatically translated to all enabled languages.
                   </p>
                 </div>
                 
