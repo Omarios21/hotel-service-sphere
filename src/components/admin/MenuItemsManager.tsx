@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2, Camera, Clock, Check, X, Image, Upload } from 'lucide-react';
+import { Plus, Edit, Trash2, Camera, Clock, Check, X, Image, Upload, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useFileUpload } from '@/hooks/useFileUpload';
@@ -48,6 +48,7 @@ const MenuItemsManager: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [translating, setTranslating] = useState(false);
+  const [isFormatting, setIsFormatting] = useState(false);
   
   useEffect(() => {
     fetchMenuItems();
@@ -305,6 +306,42 @@ const MenuItemsManager: React.FC = () => {
     }
   };
   
+  const formatText = (formatType: string) => {
+    const textarea = document.getElementById('description') as HTMLTextAreaElement;
+    if (!textarea) return;
+    
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = description.substring(start, end);
+    let formattedText = '';
+    
+    switch (formatType) {
+      case 'bold':
+        formattedText = `<strong>${selectedText}</strong>`;
+        break;
+      case 'italic':
+        formattedText = `<em>${selectedText}</em>`;
+        break;
+      case 'underline':
+        formattedText = `<u>${selectedText}</u>`;
+        break;
+      case 'list':
+        formattedText = `\n<ul>\n  <li>${selectedText}</li>\n</ul>`;
+        break;
+      default:
+        return;
+    }
+    
+    const newText = description.substring(0, start) + formattedText + description.substring(end);
+    setDescription(newText);
+    
+    setTimeout(() => {
+      textarea.focus();
+      const newPosition = start + formattedText.length;
+      textarea.setSelectionRange(newPosition, newPosition);
+    }, 0);
+  };
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -418,7 +455,7 @@ const MenuItemsManager: React.FC = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Menu Items</h2>
+        <h2 className="text-2xl font-bold">Room Service Items</h2>
         
         {!showForm && (
           <div className="space-x-2">
@@ -494,17 +531,69 @@ const MenuItemsManager: React.FC = () => {
                 </div>
                 
                 <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="description">Description</Label>
+                  <div className="flex justify-between items-center">
+                    <Label htmlFor="description">Description</Label>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setIsFormatting(!isFormatting)}
+                    >
+                      {isFormatting ? 'Hide Formatting' : 'Show Formatting'}
+                    </Button>
+                  </div>
+                  
+                  {isFormatting && (
+                    <div className="flex items-center gap-1 mb-2 p-1 border rounded-md bg-muted/20">
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 px-2" 
+                        onClick={() => formatText('bold')}
+                      >
+                        <Bold className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 px-2" 
+                        onClick={() => formatText('italic')}
+                      >
+                        <Italic className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 px-2" 
+                        onClick={() => formatText('underline')}
+                      >
+                        <Underline className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 px-2" 
+                        onClick={() => formatText('list')}
+                      >
+                        <List className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                  
                   <Textarea 
                     id="description" 
                     value={description} 
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Item description"
+                    placeholder="Item description (HTML formatting supported)"
                     required
-                    rows={3}
+                    rows={4}
                   />
                   <p className="text-xs text-muted-foreground">
-                    This will be automatically translated to all enabled languages.
+                    This will be automatically translated to all enabled languages. HTML formatting is supported for rich text.
                   </p>
                 </div>
                 
@@ -565,7 +654,7 @@ const MenuItemsManager: React.FC = () => {
                       id="available"
                       checked={available}
                       onChange={(e) => setAvailable(e.target.checked)}
-                      className="h-4 w-4 rounded border-gray-300"
+                      className="h-4 w-4 rounded-sm border-gray-300"
                     />
                     <Label htmlFor="available">Available</Label>
                   </div>
@@ -641,7 +730,7 @@ const MenuItemsManager: React.FC = () => {
         <div className="text-center py-12">
           <p className="text-muted-foreground">
             {menuItems.length === 0 
-              ? 'No menu items found.' 
+              ? 'No room service items found.' 
               : 'No items match your search criteria.'}
           </p>
         </div>
@@ -667,9 +756,9 @@ const MenuItemsManager: React.FC = () => {
                   <h3 className="font-medium">{item.name}</h3>
                   <span className="font-medium">{formatPrice(item.price)}</span>
                 </div>
-                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                  {item.description}
-                </p>
+                <div className="text-sm text-muted-foreground mb-4 line-clamp-2" 
+                  dangerouslySetInnerHTML={{ __html: item.description }}>
+                </div>
                 <div className="flex justify-between items-center">
                   <span className="text-xs px-2 py-1 rounded-full bg-muted">
                     {item.category}
