@@ -58,10 +58,6 @@ const MenuItemsManager: React.FC = () => {
     filterItems();
   }, [searchTerm, categoryFilter, menuItems]);
   
-  useEffect(() => {
-    setPreviewDescription(description);
-  }, [description]);
-  
   const filterItems = () => {
     let filtered = [...menuItems];
     
@@ -747,3 +743,4 @@ const MenuItemsManager: React.FC = () => {
 };
 
 export default MenuItemsManager;
+

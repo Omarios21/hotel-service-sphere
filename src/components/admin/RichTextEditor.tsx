@@ -119,7 +119,9 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
         placeholder={placeholder}
         className="quill-editor"
       />
-      <style jsx global>{`
+      {/* Fix the style tag by removing jsx and global attributes */}
+      <style>
+        {`
         .quill-editor .ql-toolbar {
           display: none;
         }
@@ -131,7 +133,8 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
           min-height: 150px;
           font-family: inherit;
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };
