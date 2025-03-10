@@ -1,5 +1,5 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { Bold, Italic, Underline, List, AlignLeft, AlignCenter, AlignRight, Link, Image } from 'lucide-react';
@@ -33,7 +33,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
     if (!quillRef.current) return;
     
     const quill = quillRef.current.getEditor();
-    const range = quill.getSelection(true);
+    const range = quill.getSelection();
     
     if (range) {
       // If text is selected, prompt for the URL
@@ -44,6 +44,9 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
       } else {
         quill.format('link', false);
       }
+    } else {
+      // If no text is selected, alert the user
+      alert('Please select text first');
     }
   };
 
@@ -51,7 +54,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
     if (!quillRef.current) return;
     
     const quill = quillRef.current.getEditor();
-    const range = quill.getSelection(true);
+    const range = quill.getSelection();
     
     if (range) {
       const url = prompt('Enter image URL:', 'https://');
@@ -59,11 +62,15 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
       if (url) {
         quill.insertEmbed(range.index, 'image', url);
       }
+    } else {
+      // If no position is selected, alert the user
+      alert('Please place cursor in the editor first');
     }
   };
 
+  // Configure the toolbar and formats
   const modules = {
-    toolbar: false // Disable default toolbar
+    toolbar: false // Disable default toolbar since we're using our custom one
   };
 
   const formats = [
@@ -73,11 +80,17 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
 
   return (
     <div className="rich-text-editor border rounded-md">
-      <div className="flex items-center gap-1 p-1 border-b bg-muted/20">
+      <div className="flex flex-wrap items-center gap-1 p-1 border-b bg-muted/20">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button type="button" variant="ghost" size="sm" className="h-8 px-2 quill-button" onClick={() => handleFormat('bold')}>
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 px-2 quill-button" 
+                onClick={() => handleFormat('bold')}
+              >
                 <Bold className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -86,7 +99,13 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
           
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button type="button" variant="ghost" size="sm" className="h-8 px-2 quill-button" onClick={() => handleFormat('italic')}>
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 px-2 quill-button" 
+                onClick={() => handleFormat('italic')}
+              >
                 <Italic className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -95,7 +114,13 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
           
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button type="button" variant="ghost" size="sm" className="h-8 px-2 quill-button" onClick={() => handleFormat('underline')}>
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 px-2 quill-button" 
+                onClick={() => handleFormat('underline')}
+              >
                 <Underline className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -104,7 +129,13 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
           
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button type="button" variant="ghost" size="sm" className="h-8 px-2 quill-button" onClick={() => handleFormat('list', 'bullet')}>
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 px-2 quill-button" 
+                onClick={() => handleFormat('list', 'bullet')}
+              >
                 <List className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -113,7 +144,13 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button type="button" variant="ghost" size="sm" className="h-8 px-2 quill-button" onClick={() => handleFormat('align', 'left')}>
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 px-2 quill-button" 
+                onClick={() => handleFormat('align', 'left')}
+              >
                 <AlignLeft className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -122,7 +159,13 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button type="button" variant="ghost" size="sm" className="h-8 px-2 quill-button" onClick={() => handleFormat('align', 'center')}>
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 px-2 quill-button" 
+                onClick={() => handleFormat('align', 'center')}
+              >
                 <AlignCenter className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -131,7 +174,13 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button type="button" variant="ghost" size="sm" className="h-8 px-2 quill-button" onClick={() => handleFormat('align', 'right')}>
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 px-2 quill-button" 
+                onClick={() => handleFormat('align', 'right')}
+              >
                 <AlignRight className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -140,7 +189,13 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button type="button" variant="ghost" size="sm" className="h-8 px-2 quill-button" onClick={handleLink}>
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 px-2 quill-button" 
+                onClick={handleLink}
+              >
                 <Link className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -149,7 +204,13 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button type="button" variant="ghost" size="sm" className="h-8 px-2 quill-button" onClick={handleImage}>
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 px-2 quill-button" 
+                onClick={handleImage}
+              >
                 <Image className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -179,6 +240,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
         .quill-editor .ql-editor {
           min-height: 150px;
           font-family: inherit;
+          padding: 12px;
         }
         `}
       </style>
