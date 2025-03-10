@@ -1,10 +1,9 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CreditCard, Search, ArrowDownUp, Clock, CheckCircle2, XCircle, Check, Clipboard, Lock, Unlock, Calendar, DollarSign, User, FileText } from 'lucide-react';
+import { CreditCard, Search, ArrowDownUp, Clock, CheckCircle2, XCircle, Calendar, User, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PieChart, Pie, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
@@ -624,8 +623,7 @@ const TransactionManager: React.FC = () => {
                               <TableCell>{transaction.location}</TableCell>
                               <TableCell>{transaction.waiter_name || '-'}</TableCell>
                               <TableCell>
-                                <div className="flex items-center font-medium">
-                                  <DollarSign className="h-4 w-4 mr-1 text-muted-foreground" />
+                                <div className="font-medium">
                                   {formatPrice(transaction.amount)}
                                 </div>
                               </TableCell>
@@ -960,3 +958,4 @@ const TransactionManager: React.FC = () => {
 };
 
 export default TransactionManager;
+
