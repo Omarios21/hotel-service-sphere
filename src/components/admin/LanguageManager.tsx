@@ -42,35 +42,36 @@ const LanguageManager: React.FC = () => {
   const fetchLanguageSettings = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .rpc('get_language_settings')
-        .select('*');
+      
+      // Utiliser une requête SQL directe via la fonction rpc pour contourner les problèmes de typage
+      const { data, error } = await supabase.rpc('fetch_language_settings');
       
       if (error) {
         console.error('Error fetching languages:', error);
-        // Fallback to direct query if RPC fails (workaround for type issues)
-        const { data: directData, error: directError } = await supabase
-          .from('language_settings')
-          .select('*')
-          .order('name');
         
-        if (directError) throw directError;
+        // Tentative alternative avec une requête HTTP directe
+        const result = await supabase.from('language_settings').select('*');
         
-        if (directData && directData.length > 0) {
-          setLanguages(directData as LanguageSetting[]);
+        if (result.error) {
+          console.error('Alternative query failed:', result.error);
+          // Si tout échoue, utilisez les langues par défaut
+          setLanguages(defaultLanguages);
+        } else if (result.data && result.data.length > 0) {
+          setLanguages(result.data as LanguageSetting[]);
         } else {
-          // If no settings exist, initialize with defaults
+          // S'il n'y a pas de données, initialisez avec les valeurs par défaut
           await saveLanguageSettings(defaultLanguages);
         }
-      } else if (data && data.length > 0) {
+      } else if (data && Array.isArray(data) && data.length > 0) {
         setLanguages(data as LanguageSetting[]);
       } else {
-        // If no settings exist, initialize with defaults
+        // Si aucun paramètre n'existe, initialisez avec les valeurs par défaut
         await saveLanguageSettings(defaultLanguages);
       }
     } catch (error: any) {
       console.error('Error loading language settings:', error);
       toast.error('Error loading language settings', { duration: 2000 });
+      setLanguages(defaultLanguages);
     } finally {
       setLoading(false);
     }
@@ -79,13 +80,12 @@ const LanguageManager: React.FC = () => {
   const saveLanguageSettings = async (langSettings: LanguageSetting[]) => {
     try {
       for (const lang of langSettings) {
-        const { error } = await supabase
-          .from('language_settings')
-          .upsert({ 
-            code: lang.code, 
-            name: lang.name, 
-            enabled: lang.enabled 
-          });
+        // Utilisation de l'API HTTP directe pour contourner les problèmes de typage
+        const { error } = await supabase.from('language_settings').upsert({ 
+          code: lang.code, 
+          name: lang.name, 
+          enabled: lang.enabled 
+        });
         
         if (error) throw error;
       }

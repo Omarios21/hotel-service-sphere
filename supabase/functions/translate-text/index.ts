@@ -1,27 +1,38 @@
 
-// Follow this setup guide to integrate the Deno language server with your editor:
-// https://deno.land/manual/getting_started/setup_your_environment
-// This enables autocomplete, go to definition, etc.
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1'
+import { corsHeaders } from '../_shared/cors.ts'
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { corsHeaders } from "../_shared/cors.ts"
-
-const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY') || '';
+// Setup OpenAI configuration
+const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY') || ''
 
 interface RequestBody {
   text: string;
-  sourceLanguage?: string;
-  targetLanguages: string[];
+  sourceLang?: string;
+  targetLangs: string[];
 }
 
-serve(async (req) => {
-  // Handle CORS preflight request
+interface TranslationResponse {
+  translations: Record<string, string>;
+  detectedLanguage?: string;
+}
+
+Deno.serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    // Check that request is a POST
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') || '',
+      Deno.env.get('SUPABASE_ANON_KEY') || '',
+      {
+        global: { headers: { Authorization: req.headers.get('Authorization')! } },
+        auth: { persistSession: false },
+      }
+    )
+
+    // Verify request method
     if (req.method !== 'POST') {
       return new Response(JSON.stringify({ error: 'Method not allowed' }), {
         status: 405,
@@ -29,163 +40,179 @@ serve(async (req) => {
       })
     }
 
-    // Get the request body
-    const body: RequestBody = await req.json();
-    const { text, sourceLanguage, targetLanguages } = body;
+    // Parse request body
+    const requestData: RequestBody = await req.json()
+    const { text, sourceLang, targetLangs } = requestData
 
-    if (!text) {
-      return new Response(JSON.stringify({ error: 'Text is required' }), {
+    if (!text || !targetLangs || targetLangs.length === 0) {
+      return new Response(JSON.stringify({ error: 'Missing required parameters' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    if (!targetLanguages || !Array.isArray(targetLanguages) || targetLanguages.length === 0) {
-      return new Response(JSON.stringify({ error: 'At least one target language is required' }), {
+    // Get available languages
+    const { data: langSettings, error: langError } = await supabase
+      .from('language_settings')
+      .select('*')
+      .eq('enabled', true)
+
+    if (langError) {
+      console.error('Error fetching language settings:', langError)
+      return new Response(JSON.stringify({ error: 'Error fetching language settings' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Filter requested target languages to only use enabled ones
+    const enabledCodes = langSettings?.map(lang => lang.code) || []
+    const validTargetLangs = targetLangs.filter(code => enabledCodes.includes(code))
+
+    if (validTargetLangs.length === 0) {
+      return new Response(JSON.stringify({ error: 'No valid target languages provided' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
+
+    // Use a lightweight model for translations
+    const model = "gpt-3.5-turbo"
 
     // Detect language if not provided
-    let detectedLanguage = sourceLanguage;
+    let detectedLanguage = sourceLang
     if (!detectedLanguage) {
-      const detectionResult = await detectLanguage(text);
-      detectedLanguage = detectionResult;
+      const detectResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: [
+            {
+              role: "system",
+              content: "You are a language detection tool. Respond only with the ISO language code of the text. For example: 'en', 'fr', 'es', etc."
+            },
+            {
+              role: "user",
+              content: `Detect the language of this text: "${text}"`
+            }
+          ],
+          temperature: 0.1,
+        })
+      })
+
+      if (!detectResponse.ok) {
+        const errorData = await detectResponse.json()
+        console.error('OpenAI detection API error:', errorData)
+        return new Response(JSON.stringify({ error: 'Language detection failed' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+
+      const detectData = await detectResponse.json()
+      detectedLanguage = detectData.choices[0].message.content.trim().toLowerCase()
+      
+      // Remove quotes if present
+      if (detectedLanguage.startsWith('"') && detectedLanguage.endsWith('"')) {
+        detectedLanguage = detectedLanguage.slice(1, -1)
+      }
+      
+      console.log(`Detected language: ${detectedLanguage}`)
     }
 
-    // Translate text to all target languages
-    const translations: { [key: string]: string } = {};
+    // Skip translation if target language is the same as source
+    const translationsNeeded = validTargetLangs.filter(lang => lang !== detectedLanguage)
     
-    // Always include the original text in the source language
+    // Initialize translations object with original text for the source language
+    const translations: Record<string, string> = {}
     if (detectedLanguage) {
-      translations[detectedLanguage] = text;
+      translations[detectedLanguage] = text
     }
 
-    // Only translate to languages that are different from the source
-    const languagesToTranslate = targetLanguages.filter(lang => lang !== detectedLanguage);
+    // If there are languages to translate to
+    if (translationsNeeded.length > 0) {
+      const translationPrompt = `Translate the following text from ${detectedLanguage} to these languages: ${translationsNeeded.join(', ')}. 
+      Format: Provide only a JSON object with language codes as keys and translations as values.
+      Text to translate: "${text}"`
 
-    // Translate to all target languages in parallel
-    if (languagesToTranslate.length > 0) {
-      const translationPromises = languagesToTranslate.map(targetLang => 
-        translateText(text, targetLang, detectedLanguage)
-      );
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: [
+            {
+              role: "system",
+              content: "You are a translation tool. Respond ONLY with a valid JSON object containing the translations, nothing else."
+            },
+            {
+              role: "user",
+              content: translationPrompt
+            }
+          ],
+          temperature: 0.1,
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error('OpenAI API error:', errorData)
+        return new Response(JSON.stringify({ error: 'Translation failed' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+
+      const data = await response.json()
+      const translationResponse = data.choices[0].message.content
       
-      const translationResults = await Promise.all(translationPromises);
-      
-      // Add results to translations object
-      languagesToTranslate.forEach((lang, index) => {
-        translations[lang] = translationResults[index];
-      });
+      try {
+        // Extract JSON if it's wrapped in code blocks
+        let jsonStr = translationResponse
+        if (jsonStr.includes('```json')) {
+          jsonStr = jsonStr.split('```json')[1].split('```')[0].trim()
+        } else if (jsonStr.includes('```')) {
+          jsonStr = jsonStr.split('```')[1].split('```')[0].trim()
+        }
+        
+        const translationResult = JSON.parse(jsonStr)
+        
+        // Merge results
+        Object.assign(translations, translationResult)
+      } catch (error) {
+        console.error('Error parsing translation response:', error, translationResponse)
+        return new Response(JSON.stringify({ 
+          error: 'Error parsing translation response',
+          raw: translationResponse
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
     }
 
-    return new Response(JSON.stringify({ 
+    // Return the translations
+    const result: TranslationResponse = {
       translations,
-      detected_language: detectedLanguage
-    }), {
+      detectedLanguage
+    }
+
+    return new Response(JSON.stringify(result), {
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
   } catch (error) {
-    console.error('Translation error:', error.message)
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('Unexpected error:', error)
+    return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
   }
 })
-
-async function detectLanguage(text: string): Promise<string> {
-  if (!OPENAI_API_KEY) {
-    throw new Error('OPENAI_API_KEY environment variable is not set');
-  }
-
-  try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a language detection tool. Respond with a two-letter language code only (ISO 639-1), like "en", "fr", "es", etc.'
-          },
-          {
-            role: 'user',
-            content: `Detect the language of this text (respond with ISO 639-1 code only, no other words): "${text}"`
-          }
-        ],
-        temperature: 0.1,
-        max_tokens: 10
-      })
-    });
-
-    const data = await response.json();
-    
-    if (!response.ok) {
-      console.error('OpenAI API error:', data);
-      throw new Error(`OpenAI API error: ${data.error?.message || 'Unknown error'}`);
-    }
-
-    const langCode = data.choices[0]?.message?.content.trim().toLowerCase();
-    
-    // Validate that it's a 2-letter language code
-    if (langCode && /^[a-z]{2}$/.test(langCode)) {
-      return langCode;
-    } else {
-      console.error('Invalid language code detected:', langCode);
-      return 'en'; // Default to English if detection fails
-    }
-  } catch (error) {
-    console.error('Language detection error:', error);
-    return 'en'; // Default to English if detection fails
-  }
-}
-
-async function translateText(text: string, targetLang: string, sourceLang?: string): Promise<string> {
-  if (!OPENAI_API_KEY) {
-    throw new Error('OPENAI_API_KEY environment variable is not set');
-  }
-
-  try {
-    const sourceInfo = sourceLang ? `from ${sourceLang}` : '';
-    
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          {
-            role: 'system',
-            content: `You are a professional translator. Translate the text ${sourceInfo} to ${targetLang}. Only respond with the translation, no explanations.`
-          },
-          {
-            role: 'user',
-            content: text
-          }
-        ],
-        temperature: 0.3,
-        max_tokens: 1000
-      })
-    });
-
-    const data = await response.json();
-    
-    if (!response.ok) {
-      console.error('OpenAI API error:', data);
-      throw new Error(`OpenAI API error: ${data.error?.message || 'Unknown error'}`);
-    }
-
-    return data.choices[0]?.message?.content.trim() || text;
-  } catch (error) {
-    console.error(`Translation error to ${targetLang}:`, error);
-    return text; // Return original text if translation fails
-  }
-}

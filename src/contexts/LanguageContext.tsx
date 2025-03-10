@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -501,23 +500,15 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   // Load available languages from database
   const loadAvailableLanguages = async () => {
     try {
-      // Try to use RPC function first
-      const { data, error } = await supabase
-        .rpc('get_language_settings');
+      // Utiliser une requête HTTP directe pour contourner les problèmes de typage
+      const { data, error } = await supabase.from('language_settings').select('*');
       
       if (error) {
-        console.error('Error with RPC, falling back to direct query');
-        // Fallback to direct query (workaround for type issues)
-        const { data: directData, error: directError } = await supabase
-          .from('language_settings')
-          .select('*');
-        
-        if (directError) throw directError;
-        
-        if (directData && directData.length > 0) {
-          setAvailableLanguages(directData as LanguageSetting[]);
-        }
-      } else if (data && data.length > 0) {
+        console.error('Error loading language settings:', error);
+        return;
+      }
+      
+      if (data && Array.isArray(data) && data.length > 0) {
         setAvailableLanguages(data as LanguageSetting[]);
       }
     } catch (error) {
