@@ -224,7 +224,7 @@ const Waiter: React.FC = () => {
             <DialogTitle>Scan Room QR Code</DialogTitle>
           </DialogHeader>
           <div className="aspect-square overflow-hidden rounded-md">
-            <QRScanner onResult={handleScanSuccess} />
+            <QRScanner onScan={handleScanSuccess} />
           </div>
         </DialogContent>
       </Dialog>
