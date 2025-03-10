@@ -21,6 +21,12 @@ interface MenuItem {
   image_url: string;
   category: string;
   available: boolean;
+  translations?: Record<string, any>;
+}
+
+interface TranslationResponse {
+  translations: Record<string, string>;
+  detectedLanguage?: string;
 }
 
 const MenuItemsManager: React.FC = () => {
@@ -29,7 +35,7 @@ const MenuItemsManager: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
-  const { formatPrice } = useLanguage();
+  const { formatPrice, availableLanguages } = useLanguage();
   const { uploading, uploadImageToSupabase } = useFileUpload();
   
   const [name, setName] = useState('');
@@ -41,6 +47,7 @@ const MenuItemsManager: React.FC = () => {
   const [showImageDialog, setShowImageDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [translating, setTranslating] = useState(false);
   
   useEffect(() => {
     fetchMenuItems();
@@ -245,6 +252,40 @@ const MenuItemsManager: React.FC = () => {
     }
   };
   
+  const translateItemContent = async (text: string, targetLangs: string[]): Promise<Record<string, any> | null> => {
+    try {
+      setTranslating(true);
+      
+      if (!text || targetLangs.length === 0) {
+        return null;
+      }
+      
+      const response = await fetch('/api/translate-text', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabase.auth.getSession()}`
+        },
+        body: JSON.stringify({
+          text,
+          targetLangs
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Translation failed');
+      }
+      
+      const data: TranslationResponse = await response.json();
+      return data.translations;
+    } catch (error) {
+      console.error('Error translating content:', error);
+      return null;
+    } finally {
+      setTranslating(false);
+    }
+  };
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -260,13 +301,47 @@ const MenuItemsManager: React.FC = () => {
         return;
       }
       
+      const defaultLang = 'en';
+      
+      const enabledLanguages = availableLanguages
+        .filter(lang => lang.enabled && lang.code !== defaultLang)
+        .map(lang => lang.code);
+      
+      let translations: Record<string, any> = {
+        name: { [defaultLang]: name },
+        description: { [defaultLang]: description }
+      };
+      
+      if (enabledLanguages.length > 0) {
+        setTranslating(true);
+        toast.info('Translating content...', { duration: 2000 });
+        
+        try {
+          const nameTranslations = await translateItemContent(name, enabledLanguages);
+          if (nameTranslations) {
+            translations.name = { ...translations.name, ...nameTranslations };
+          }
+          
+          const descTranslations = await translateItemContent(description, enabledLanguages);
+          if (descTranslations) {
+            translations.description = { ...translations.description, ...descTranslations };
+          }
+        } catch (error) {
+          console.error('Translation error:', error);
+          toast.error('Failed to translate content, but item will be saved', { duration: 3000 });
+        } finally {
+          setTranslating(false);
+        }
+      }
+      
       const menuItemData = {
         name,
         description,
         price: priceNum,
         image_url: imageUrl,
         category,
-        available
+        available,
+        translations
       };
       
       if (editingItem) {
@@ -368,6 +443,9 @@ const MenuItemsManager: React.FC = () => {
                     placeholder="Item name"
                     required
                   />
+                  <p className="text-xs text-muted-foreground">
+                    This will be automatically translated to all enabled languages.
+                  </p>
                 </div>
                 
                 <div className="space-y-2">
@@ -394,6 +472,9 @@ const MenuItemsManager: React.FC = () => {
                     required
                     rows={3}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    This will be automatically translated to all enabled languages.
+                  </p>
                 </div>
                 
                 <div className="space-y-2 md:col-span-2">
@@ -455,8 +536,8 @@ const MenuItemsManager: React.FC = () => {
                 <Button type="button" variant="outline" onClick={handleCancel}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={uploading}>
-                  {editingItem ? 'Update Item' : 'Add Item'}
+                <Button type="submit" disabled={uploading || translating}>
+                  {translating ? 'Translating...' : editingItem ? 'Update Item' : 'Add Item'}
                 </Button>
               </div>
             </form>
