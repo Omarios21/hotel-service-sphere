@@ -135,6 +135,27 @@ export type Database = {
         }
         Relationships: []
       }
+      currency_rates: {
+        Row: {
+          currency: string
+          id: string
+          rate: number
+          updated_at: string | null
+        }
+        Insert: {
+          currency: string
+          id?: string
+          rate: number
+          updated_at?: string | null
+        }
+        Update: {
+          currency?: string
+          id?: string
+          rate?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       language_settings: {
         Row: {
           code: string
@@ -219,6 +240,33 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           room_id?: string
+        }
+        Relationships: []
+      }
+      service_hours: {
+        Row: {
+          enabled: boolean
+          end_time: string
+          id: string
+          service_type: string
+          start_time: string
+          updated_at: string | null
+        }
+        Insert: {
+          enabled?: boolean
+          end_time: string
+          id?: string
+          service_type: string
+          start_time: string
+          updated_at?: string | null
+        }
+        Update: {
+          enabled?: boolean
+          end_time?: string
+          id?: string
+          service_type?: string
+          start_time?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 
 interface TimePickerProps {
@@ -16,6 +16,11 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   disabled = false
 }) => {
   const [timeValue, setTimeValue] = useState(value);
+  
+  // Sync with parent value when it changes externally
+  useEffect(() => {
+    setTimeValue(value);
+  }, [value]);
   
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
