@@ -13,6 +13,7 @@ import ActivitiesManager from '@/components/admin/ActivitiesManager';
 import SpaCalendarManager from '@/components/admin/SpaCalendarManager';
 import NotificationsManager from '@/components/admin/NotificationsManager';
 import UserManager from '@/components/admin/UserManager';
+import TransactionManager from '@/components/admin/TransactionManager';
 
 const Admin: React.FC = () => {
   const [loading, setLoading] = useState(false); // Set initial loading to false
@@ -37,8 +38,9 @@ const Admin: React.FC = () => {
         
         <main className="flex-1 overflow-y-auto p-6">
           <div className="max-w-7xl mx-auto">
-            <Tabs defaultValue="menu-items">
+            <Tabs defaultValue="transactions">
               <TabsList className="mb-6 flex flex-wrap">
+                <TabsTrigger value="transactions">Transactions</TabsTrigger>
                 <TabsTrigger value="menu-items">Menu Items</TabsTrigger>
                 <TabsTrigger value="spa-services">Spa Services</TabsTrigger>
                 <TabsTrigger value="activities">Activities</TabsTrigger>
@@ -47,6 +49,10 @@ const Admin: React.FC = () => {
                 <TabsTrigger value="users">User Management</TabsTrigger>
                 <TabsTrigger value="settings">Settings</TabsTrigger>
               </TabsList>
+              
+              <TabsContent value="transactions">
+                <TransactionManager />
+              </TabsContent>
               
               <TabsContent value="menu-items">
                 <MenuItemsManager />
