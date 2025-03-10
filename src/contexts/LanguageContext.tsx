@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 // Define supported languages
-export type Language = 'en' | 'es' | 'fr';
+export type Language = string;
 
 // Define supported currencies
 export type Currency = 'USD' | 'EUR' | 'MAD';
@@ -435,6 +436,13 @@ export const translations: Translations = {
   }
 };
 
+// Interface for a language setting
+export interface LanguageSetting {
+  code: string;
+  name: string;
+  enabled: boolean;
+}
+
 // Create the context
 interface LanguageContextType {
   language: Language;
@@ -443,6 +451,10 @@ interface LanguageContextType {
   setCurrency: (currency: Currency) => void;
   t: (key: string) => string;
   formatPrice: (priceInUSD: number) => string;
+  availableLanguages: LanguageSetting[];
+  setAvailableLanguages: (languages: LanguageSetting[]) => void;
+  loadAvailableLanguages: () => Promise<void>;
+  addTranslation: (key: string, translations: Record<string, string>) => void;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -456,7 +468,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   // Try to get saved language from localStorage, or default to English
   const [language, setLanguage] = useState<Language>(() => {
     const savedLanguage = localStorage.getItem('preferredLanguage');
-    return (savedLanguage as Language) || 'en';
+    return savedLanguage || 'en';
   });
 
   // Try to get saved currency from localStorage, or default to USD
@@ -464,6 +476,16 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     const savedCurrency = localStorage.getItem('preferredCurrency');
     return (savedCurrency as Currency) || 'USD';
   });
+  
+  // State for available languages
+  const [availableLanguages, setAvailableLanguages] = useState<LanguageSetting[]>([
+    { code: 'en', name: 'English', enabled: true },
+    { code: 'es', name: 'Español', enabled: true },
+    { code: 'fr', name: 'Français', enabled: true }
+  ]);
+  
+  // Custom translations loaded from database
+  const [customTranslations, setCustomTranslations] = useState<Translations>({});
 
   // Save language preference to localStorage when it changes
   useEffect(() => {
@@ -474,14 +496,52 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   useEffect(() => {
     localStorage.setItem('preferredCurrency', currency);
   }, [currency]);
+  
+  // Load available languages from database
+  const loadAvailableLanguages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('language_settings')
+        .select('*')
+        .order('name', { ascending: true });
+      
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        setAvailableLanguages(data);
+      }
+    } catch (error) {
+      console.error('Error loading language settings:', error);
+    }
+  };
+  
+  // Load available languages on mount
+  useEffect(() => {
+    loadAvailableLanguages();
+  }, []);
+
+  // Add a new translation to the custom translations
+  const addTranslation = (key: string, newTranslations: Record<string, string>) => {
+    setCustomTranslations(prev => ({
+      ...prev,
+      [key]: { ...newTranslations }
+    }));
+  };
 
   // Translation function
   const t = (key: string): string => {
-    if (!translations[key]) {
-      console.warn(`Translation key not found: ${key}`);
-      return key;
+    // First check custom translations
+    if (customTranslations[key] && customTranslations[key][language]) {
+      return customTranslations[key][language];
     }
-    return translations[key][language] || translations[key]['en'] || key;
+    
+    // Then check built-in translations
+    if (translations[key]) {
+      return translations[key][language] || translations[key]['en'] || key;
+    }
+    
+    console.warn(`Translation key not found: ${key}`);
+    return key;
   };
 
   // Price formatting function that considers the selected currency
@@ -504,7 +564,20 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, currency, setCurrency, t, formatPrice }}>
+    <LanguageContext.Provider 
+      value={{ 
+        language, 
+        setLanguage, 
+        currency, 
+        setCurrency, 
+        t, 
+        formatPrice,
+        availableLanguages,
+        setAvailableLanguages,
+        loadAvailableLanguages,
+        addTranslation
+      }}
+    >
       {children}
     </LanguageContext.Provider>
   );

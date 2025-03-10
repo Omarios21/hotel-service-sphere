@@ -1,102 +1,117 @@
 
 import React from 'react';
-import { cn } from "@/lib/utils";
-import {
-  BarChart3,
-  CreditCard,
+import { cn } from '@/lib/utils';
+import { 
+  CreditCard, 
+  Receipt, 
+  UtensilsCrossed, 
+  Spa, 
+  Tent, 
+  Calendar, 
+  Bell, 
+  Users, 
   Settings,
-  Store,
-  Users,
-  Utensils,
-  CalendarDays,
-  CheckSquare,
-  Bell
+  Globe
 } from 'lucide-react';
 
 interface AdminSidebarProps {
-  activeSection: string;
   onNavigate: (section: string) => void;
+  activeSection: string;
   collapsed: boolean;
 }
 
-const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeSection, onNavigate, collapsed }) => {
-  const navigationItems = [
-    {
-      name: 'Transactions',
-      icon: <CreditCard className="h-5 w-5" />,
-      value: 'transactions',
+const AdminSidebar: React.FC<AdminSidebarProps> = ({ 
+  onNavigate, 
+  activeSection,
+  collapsed 
+}) => {
+  const menuItems = [
+    { 
+      id: 'transactions', 
+      name: 'Transactions', 
+      icon: <CreditCard className="h-5 w-5" /> 
     },
-    {
-      name: 'Transaction Clearing',
-      icon: <CheckSquare className="h-5 w-5" />,
-      value: 'clearing-history',
+    { 
+      id: 'clearing-history', 
+      name: 'Clearing History', 
+      icon: <Receipt className="h-5 w-5" /> 
     },
-    {
-      name: 'Menu Items',
-      icon: <Utensils className="h-5 w-5" />,
-      value: 'menu-items',
+    { 
+      id: 'menu-items', 
+      name: 'Menu Items', 
+      icon: <UtensilsCrossed className="h-5 w-5" /> 
     },
-    {
-      name: 'Spa Services',
-      icon: <Store className="h-5 w-5" />,
-      value: 'spa-services',
+    { 
+      id: 'spa-services', 
+      name: 'Spa Services', 
+      icon: <Spa className="h-5 w-5" /> 
     },
-    {
-      name: 'Activities',
-      icon: <BarChart3 className="h-5 w-5" />,
-      value: 'activities',
+    { 
+      id: 'activities', 
+      name: 'Activities', 
+      icon: <Tent className="h-5 w-5" /> 
     },
-    {
-      name: 'Spa Calendar',
-      icon: <CalendarDays className="h-5 w-5" />,
-      value: 'spa-calendar',
+    { 
+      id: 'spa-calendar', 
+      name: 'Spa Calendar', 
+      icon: <Calendar className="h-5 w-5" /> 
     },
-    {
-      name: 'Notifications',
-      icon: <Bell className="h-5 w-5" />,
-      value: 'notifications',
+    { 
+      id: 'notifications', 
+      name: 'Notifications', 
+      icon: <Bell className="h-5 w-5" /> 
     },
-    {
-      name: 'User Management',
-      icon: <Users className="h-5 w-5" />,
-      value: 'users',
+    { 
+      id: 'users', 
+      name: 'Users', 
+      icon: <Users className="h-5 w-5" /> 
     },
-    {
-      name: 'Settings',
-      icon: <Settings className="h-5 w-5" />,
-      value: 'settings',
+    { 
+      id: 'languages', 
+      name: 'Languages', 
+      icon: <Globe className="h-5 w-5" /> 
     },
+    { 
+      id: 'settings', 
+      name: 'Settings', 
+      icon: <Settings className="h-5 w-5" /> 
+    }
   ];
 
   return (
-    <div className="h-full bg-slate-800 text-white">
-      <div className={cn(
-        "h-16 flex items-center border-b border-slate-700 px-4",
-        collapsed ? "justify-center" : "justify-between"
-      )}>
-        {!collapsed && <h2 className="text-xl font-bold">Admin Panel</h2>}
-        {collapsed && <span className="text-xl font-bold">A</span>}
+    <aside className="h-full bg-background border-r border-border p-2 overflow-y-auto">
+      <div className="flex flex-col h-full">
+        <div className="mb-6 p-2">
+          <h1 className={cn(
+            "font-bold transition-all duration-200",
+            collapsed ? "text-xs text-center" : "text-xl"
+          )}>
+            {collapsed ? "Admin" : "Hotel Admin"}
+          </h1>
+        </div>
+        
+        <nav className="flex-1">
+          <ul className="space-y-1">
+            {menuItems.map((item) => (
+              <li key={item.id}>
+                <button
+                  onClick={() => onNavigate(item.id)}
+                  className={cn(
+                    "flex items-center w-full px-3 py-2 rounded-md transition-colors",
+                    "hover:bg-accent hover:text-accent-foreground",
+                    activeSection === item.id ? "bg-accent text-accent-foreground" : "text-foreground",
+                    collapsed ? "justify-center" : "justify-start"
+                  )}
+                >
+                  {item.icon}
+                  {!collapsed && <span className="ml-3">{item.name}</span>}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </div>
-      <nav className="flex flex-col gap-1 p-2">
-        {navigationItems.map(item => (
-          <button
-            key={item.value}
-            onClick={() => onNavigate(item.value)}
-            className={cn(
-              "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
-              collapsed ? "justify-center" : "justify-start",
-              activeSection === item.value
-                ? "bg-slate-700 text-white"
-                : "hover:bg-slate-700/50 text-slate-300"
-            )}
-            title={collapsed ? item.name : undefined}
-          >
-            {item.icon}
-            {!collapsed && <span>{item.name}</span>}
-          </button>
-        ))}
-      </nav>
-    </div>
+    </aside>
   );
 };
 

@@ -13,6 +13,7 @@ import NotificationsManager from '@/components/admin/NotificationsManager';
 import UserManager from '@/components/admin/UserManager';
 import TransactionManager from '@/components/admin/TransactionManager';
 import TransactionClearingManager from '@/components/admin/TransactionClearingManager';
+import LanguageManager from '@/components/admin/LanguageManager';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -102,6 +103,8 @@ const Admin: React.FC = () => {
         return <NotificationsManager />;
       case 'users':
         return <UserManager />;
+      case 'languages':
+        return <LanguageManager />;
       case 'settings':
         return (
           <div className="text-center p-12">
