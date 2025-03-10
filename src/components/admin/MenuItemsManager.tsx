@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2, Check, X, Image, Upload, Camera } from 'lucide-react';
+import { Plus, Edit, Trash2, Camera, Clock, Check, X, Image, Upload } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useFileUpload } from '@/hooks/useFileUpload';
@@ -36,7 +36,7 @@ const MenuItemsManager: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const { formatPrice, availableLanguages } = useLanguage();
-  const { uploading, uploadImageToSupabase } = useFileUpload();
+  const { uploading, uploadImageToSupabase, handleTakePhoto } = useFileUpload();
   
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');

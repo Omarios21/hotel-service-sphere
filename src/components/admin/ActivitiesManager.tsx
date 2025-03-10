@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2, MapPin, Clock, Check, X, Image, Upload } from 'lucide-react';
+import { Plus, Edit, Trash2, MapPin, Clock, Check, X, Image, Upload, Camera } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFileUpload } from '@/hooks/useFileUpload';
@@ -31,7 +30,7 @@ const ActivitiesManager: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const { formatPrice } = useLanguage();
-  const { uploading, uploadImageToSupabase } = useFileUpload();
+  const { uploading, uploadImageToSupabase, handleTakePhoto } = useFileUpload();
   
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -125,7 +124,6 @@ const ActivitiesManager: React.FC = () => {
       
       toast.success(`${activity.name} is now ${!activity.available ? 'available' : 'unavailable'}`, { duration: 2000 });
       
-      // Dispatch event to notify other components
       window.dispatchEvent(new Event('activitiesUpdated'));
     } catch (error: any) {
       toast.error('Error updating activity: ' + error.message, { duration: 2000 });
@@ -146,7 +144,6 @@ const ActivitiesManager: React.FC = () => {
       setActivities(activities.filter(a => a.id !== activity.id));
       toast.success(`${activity.name} deleted successfully`, { duration: 2000 });
       
-      // Dispatch event to notify other components
       window.dispatchEvent(new Event('activitiesUpdated'));
     } catch (error: any) {
       toast.error('Error deleting activity: ' + error.message, { duration: 2000 });
@@ -163,6 +160,15 @@ const ActivitiesManager: React.FC = () => {
     
     if (url) {
       setImageUrl(url);
+      setShowImageDialog(false);
+    }
+  };
+  
+  const handleTakePhotoClick = async () => {
+    const photoUrl = await handleTakePhoto();
+    
+    if (photoUrl) {
+      setImageUrl(photoUrl);
       setShowImageDialog(false);
     }
   };
@@ -206,7 +212,6 @@ const ActivitiesManager: React.FC = () => {
         
         toast.success(`${name} updated successfully`, { duration: 2000 });
         
-        // Dispatch event to notify other components
         window.dispatchEvent(new Event('activitiesUpdated'));
       } else {
         const { data, error } = await supabase
@@ -222,7 +227,6 @@ const ActivitiesManager: React.FC = () => {
         
         toast.success(`${name} added successfully`, { duration: 2000 });
         
-        // Dispatch event to notify other components
         window.dispatchEvent(new Event('activitiesUpdated'));
       }
       
@@ -356,6 +360,15 @@ const ActivitiesManager: React.FC = () => {
                       <Upload className="h-4 w-4 mr-2" />
                       Upload
                     </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      onClick={handleTakePhotoClick}
+                      disabled={uploading}
+                    >
+                      <Camera className="h-4 w-4 mr-2" />
+                      Take Photo
+                    </Button>
                   </div>
                   {imageUrl && (
                     <div className="mt-2 relative w-full max-w-[200px] aspect-video bg-muted rounded-md overflow-hidden">
@@ -381,20 +394,38 @@ const ActivitiesManager: React.FC = () => {
       <Dialog open={showImageDialog} onOpenChange={setShowImageDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Upload Image</DialogTitle>
+            <DialogTitle>Add Image</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-4">
-            <Label htmlFor="image-upload">Select Image</Label>
-            <Input
-              id="image-upload"
-              type="file"
-              accept="image/*"
-              onChange={handleUploadImage}
-              disabled={uploading}
-            />
-            <p className="text-sm text-muted-foreground">
-              Upload an image for the activity. Recommended size: 500x300 pixels.
-            </p>
+            <div className="space-y-2">
+              <Label htmlFor="image-upload">Upload Image</Label>
+              <Input
+                id="image-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleUploadImage}
+                disabled={uploading}
+              />
+              <p className="text-sm text-muted-foreground">
+                Upload an image for the activity. Recommended size: 500x300 pixels.
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Take Photo</Label>
+              <Button 
+                className="w-full"
+                onClick={handleTakePhotoClick}
+                disabled={uploading}
+              >
+                <Camera className="h-4 w-4 mr-2" />
+                Take Photo with Camera
+              </Button>
+              <p className="text-sm text-muted-foreground">
+                Take a photo using your device's camera.
+              </p>
+            </div>
+            
             <div className="flex justify-end">
               <Button 
                 variant="outline" 
