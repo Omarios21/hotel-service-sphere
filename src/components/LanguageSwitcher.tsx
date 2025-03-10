@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useLanguage, Language } from '@/contexts/LanguageContext';
 import { Globe } from 'lucide-react';
 import { 
@@ -10,19 +10,20 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 const LanguageSwitcher: React.FC = () => {
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, availableLanguages, loadAvailableLanguages } = useLanguage();
   
-  const languages = [
-    { code: 'en', name: 'English', acronym: 'EN' },
-    { code: 'es', name: 'Español', acronym: 'ES' },
-    { code: 'fr', name: 'Français', acronym: 'FR' }
-  ];
+  useEffect(() => {
+    loadAvailableLanguages();
+  }, [loadAvailableLanguages]);
   
   // Get the acronym of the currently selected language
   const getCurrentLanguageAcronym = () => {
-    const currentLang = languages.find(lang => lang.code === language);
-    return currentLang ? currentLang.acronym : 'EN';
+    const currentLang = availableLanguages.find(lang => lang.code === language);
+    return currentLang ? currentLang.code.toUpperCase() : 'EN';
   };
+  
+  // Filter enabled languages
+  const enabledLanguages = availableLanguages.filter(lang => lang.enabled);
   
   return (
     <DropdownMenu>
@@ -31,7 +32,7 @@ const LanguageSwitcher: React.FC = () => {
         <span className="text-sm font-medium">{getCurrentLanguageAcronym()}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-background">
-        {languages.map((lang) => (
+        {enabledLanguages.map((lang) => (
           <DropdownMenuItem
             key={lang.code}
             className={`flex items-center gap-2 ${language === lang.code ? 'font-medium text-primary' : ''}`}

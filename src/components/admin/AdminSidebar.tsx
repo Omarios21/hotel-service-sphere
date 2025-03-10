@@ -5,7 +5,7 @@ import {
   CreditCard, 
   Receipt, 
   UtensilsCrossed, 
-  Spa, 
+  Flower2, 
   Tent, 
   Calendar, 
   Bell, 
@@ -44,7 +44,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { 
       id: 'spa-services', 
       name: 'Spa Services', 
-      icon: <Spa className="h-5 w-5" /> 
+      icon: <Flower2 className="h-5 w-5" /> 
     },
     { 
       id: 'activities', 

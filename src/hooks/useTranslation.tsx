@@ -27,7 +27,7 @@ export const useTranslation = () => {
       // Get enabled languages from the database
       const { data: languageData, error: langError } = await supabase
         .from('language_settings')
-        .select('code, enabled')
+        .select('*')
         .eq('enabled', true);
       
       if (langError) throw langError;

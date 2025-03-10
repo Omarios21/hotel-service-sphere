@@ -43,14 +43,27 @@ const LanguageManager: React.FC = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('language_settings')
-        .select('*')
-        .order('name', { ascending: true });
+        .rpc('get_language_settings')
+        .select('*');
       
-      if (error) throw error;
-      
-      if (data && data.length > 0) {
-        setLanguages(data);
+      if (error) {
+        console.error('Error fetching languages:', error);
+        // Fallback to direct query if RPC fails (workaround for type issues)
+        const { data: directData, error: directError } = await supabase
+          .from('language_settings')
+          .select('*')
+          .order('name');
+        
+        if (directError) throw directError;
+        
+        if (directData && directData.length > 0) {
+          setLanguages(directData as LanguageSetting[]);
+        } else {
+          // If no settings exist, initialize with defaults
+          await saveLanguageSettings(defaultLanguages);
+        }
+      } else if (data && data.length > 0) {
+        setLanguages(data as LanguageSetting[]);
       } else {
         // If no settings exist, initialize with defaults
         await saveLanguageSettings(defaultLanguages);
@@ -65,20 +78,17 @@ const LanguageManager: React.FC = () => {
 
   const saveLanguageSettings = async (langSettings: LanguageSetting[]) => {
     try {
-      // First delete existing settings
-      const { error: deleteError } = await supabase
-        .from('language_settings')
-        .delete()
-        .neq('code', 'placeholder'); // Delete all entries
-      
-      if (deleteError) throw deleteError;
-      
-      // Then insert new settings
-      const { error: insertError } = await supabase
-        .from('language_settings')
-        .insert(langSettings);
-      
-      if (insertError) throw insertError;
+      for (const lang of langSettings) {
+        const { error } = await supabase
+          .from('language_settings')
+          .upsert({ 
+            code: lang.code, 
+            name: lang.name, 
+            enabled: lang.enabled 
+          });
+        
+        if (error) throw error;
+      }
       
       setLanguages(langSettings);
       toast.success('Language settings saved', { duration: 2000 });

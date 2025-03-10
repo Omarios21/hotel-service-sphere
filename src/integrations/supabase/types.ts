@@ -20,6 +20,7 @@ export type Database = {
           location: string
           name: string
           price: number
+          translations: Json | null
           updated_at: string | null
         }
         Insert: {
@@ -32,6 +33,7 @@ export type Database = {
           location: string
           name: string
           price: number
+          translations?: Json | null
           updated_at?: string | null
         }
         Update: {
@@ -44,6 +46,7 @@ export type Database = {
           location?: string
           name?: string
           price?: number
+          translations?: Json | null
           updated_at?: string | null
         }
         Relationships: []
@@ -132,6 +135,24 @@ export type Database = {
         }
         Relationships: []
       }
+      language_settings: {
+        Row: {
+          code: string
+          enabled: boolean | null
+          name: string
+        }
+        Insert: {
+          code: string
+          enabled?: boolean | null
+          name: string
+        }
+        Update: {
+          code?: string
+          enabled?: boolean | null
+          name?: string
+        }
+        Relationships: []
+      }
       menu_items: {
         Row: {
           available: boolean | null
@@ -142,6 +163,7 @@ export type Database = {
           image_url: string
           name: string
           price: number
+          translations: Json | null
           updated_at: string | null
         }
         Insert: {
@@ -153,6 +175,7 @@ export type Database = {
           image_url: string
           name: string
           price: number
+          translations?: Json | null
           updated_at?: string | null
         }
         Update: {
@@ -164,6 +187,7 @@ export type Database = {
           image_url?: string
           name?: string
           price?: number
+          translations?: Json | null
           updated_at?: string | null
         }
         Relationships: []
@@ -250,6 +274,7 @@ export type Database = {
           image: string
           name: string
           price: number
+          translations: Json | null
           updated_at: string | null
         }
         Insert: {
@@ -261,6 +286,7 @@ export type Database = {
           image: string
           name: string
           price: number
+          translations?: Json | null
           updated_at?: string | null
         }
         Update: {
@@ -272,6 +298,7 @@ export type Database = {
           image?: string
           name?: string
           price?: number
+          translations?: Json | null
           updated_at?: string | null
         }
         Relationships: []
@@ -418,6 +445,35 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "transaction_categories"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      translations: {
+        Row: {
+          content: string
+          id: string
+          key: string
+          lang_code: string
+        }
+        Insert: {
+          content: string
+          id?: string
+          key: string
+          lang_code: string
+        }
+        Update: {
+          content?: string
+          id?: string
+          key?: string
+          lang_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "translations_lang_code_fkey"
+            columns: ["lang_code"]
+            isOneToOne: false
+            referencedRelation: "language_settings"
+            referencedColumns: ["code"]
           },
         ]
       }
