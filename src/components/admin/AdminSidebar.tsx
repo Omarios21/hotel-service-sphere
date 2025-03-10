@@ -3,7 +3,6 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { 
   CreditCard, 
-  Receipt, 
   UtensilsCrossed, 
   Flower2, 
   Tent, 
@@ -30,11 +29,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       id: 'transactions', 
       name: 'Transactions', 
       icon: <CreditCard className="h-5 w-5" /> 
-    },
-    { 
-      id: 'clearing-history', 
-      name: 'Clearing History', 
-      icon: <Receipt className="h-5 w-5" /> 
     },
     { 
       id: 'menu-items', 

@@ -12,7 +12,6 @@ import SpaCalendarManager from '@/components/admin/SpaCalendarManager';
 import NotificationsManager from '@/components/admin/NotificationsManager';
 import UserManager from '@/components/admin/UserManager';
 import TransactionManager from '@/components/admin/TransactionManager';
-import TransactionClearingManager from '@/components/admin/TransactionClearingManager';
 import LanguageManager from '@/components/admin/LanguageManager';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -89,8 +88,6 @@ const Admin: React.FC = () => {
     switch (activeSection) {
       case 'transactions':
         return <TransactionManager />;
-      case 'clearing-history':
-        return <TransactionClearingManager />;
       case 'menu-items':
         return <MenuItemsManager />;
       case 'spa-services':
