@@ -1,260 +1,293 @@
 
 import React, { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useWalletTransactions, WalletTransaction } from '@/hooks/useWalletTransactions';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { User, CreditCard, DollarSign, History, LogOut } from 'lucide-react';
 import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
+  Search, 
+  CreditCard, 
+  CheckCircle, 
+  Clock, 
+  LogOut,
+  Trash2,
+  FileText 
+} from 'lucide-react';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
   DialogTitle,
+  DialogFooter,
+  DialogDescription 
 } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+interface Transaction {
+  id: string;
+  roomId: string;
+  amount: number;
+  description: string;
+  date: string;
+  type: string;
+  location: string;
+  status: string;
+}
 
 const Receptionist: React.FC = () => {
-  const [roomId, setRoomId] = useState<string>('');
-  const [clearDialogOpen, setClearDialogOpen] = useState(false);
-  const [notes, setNotes] = useState('');
-  const { transactions, fetchTransactions } = useWalletTransactions();
-  const [roomTransactions, setRoomTransactions] = useState<WalletTransaction[]>([]);
-  const [totalBalance, setTotalBalance] = useState(0);
+  const { toast } = useToast();
   const navigate = useNavigate();
-
-  // Filter transactions when roomId changes
-  useEffect(() => {
-    if (roomId) {
-      const filtered = transactions.filter(tx => tx.roomId === roomId);
-      setRoomTransactions(filtered);
-      
-      // Calculate total balance (sum of all transactions)
-      const total = filtered.reduce((sum, tx) => {
-        if (tx.status === 'completed') {
-          if (tx.type === 'payment' || tx.type === 'access') {
-            return sum - tx.amount;
-          } else if (tx.type === 'topup') {
-            return sum + tx.amount;
-          }
-        }
-        return sum;
-      }, 0);
-      
-      setTotalBalance(total);
-    } else {
-      setRoomTransactions([]);
-      setTotalBalance(0);
-    }
-  }, [roomId, transactions]);
-
-  // Load transactions on mount
-  useEffect(() => {
-    fetchTransactions();
-  }, [fetchTransactions]);
-
-  const handleClearBalance = async () => {
-    if (!roomId) {
-      toast.error('Please select a room first');
-      return;
-    }
-
-    try {
-      // In a real implementation, this would use the actual user ID
-      // For demo, we'll use a fixed ID
-      const receptionistId = '00000000-0000-0000-0000-000000000000';
-      
-      // Record the clearing in our transaction_clearing table
-      // This would be a real Supabase call in production
-      /*
-      const { error } = await supabase
-        .from('transaction_clearing')
-        .insert({
-          room_id: roomId,
-          cleared_by: receptionistId,
-          cleared_amount: totalBalance,
-          notes: notes
-        });
-      
-      if (error) throw error;
-      */
-      
-      // For demo, we'll just update the local state
-      setRoomTransactions([]);
-      setTotalBalance(0);
-      
-      toast.success(`Balance cleared for Room ${roomId}`);
-      setClearDialogOpen(false);
-      setNotes('');
-    } catch (error) {
-      console.error('Error clearing balance:', error);
-      toast.error('Failed to clear balance');
-    }
-  };
-
+  const { formatPrice } = useLanguage();
+  const [roomSearchQuery, setRoomSearchQuery] = useState('');
+  const [roomId, setRoomId] = useState('');
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [showClearDialog, setShowClearDialog] = useState(false);
+  const [clearingNotes, setClearingNotes] = useState('');
+  
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    navigate('/');
+    navigate('/auth');
+  };
+  
+  const handleSearchRoom = () => {
+    if (!roomSearchQuery.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Please enter a room number',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    setRoomId(roomSearchQuery);
+    fetchRoomTransactions(roomSearchQuery);
+  };
+  
+  const fetchRoomTransactions = async (room: string) => {
+    setLoading(true);
+    
+    try {
+      // In a real implementation, this would fetch from Supabase
+      // For now, we'll use mock data
+      const mockTransactions: Transaction[] = [
+        {
+          id: '1',
+          roomId: room,
+          amount: 25.50,
+          description: 'Cocktail at the bar',
+          date: new Date().toISOString(),
+          type: 'payment',
+          location: 'Hotel Bar',
+          status: 'completed'
+        },
+        {
+          id: '2',
+          roomId: room,
+          amount: 32.75,
+          description: 'Lunch at restaurant',
+          date: new Date(Date.now() - 3600000).toISOString(),
+          type: 'payment',
+          location: 'Hotel Restaurant',
+          status: 'completed'
+        },
+        {
+          id: '3',
+          roomId: room,
+          amount: 45.00,
+          description: 'Spa Treatment',
+          date: new Date(Date.now() - 7200000).toISOString(),
+          type: 'payment',
+          location: 'Hotel Spa',
+          status: 'completed'
+        }
+      ];
+      
+      setTransactions(mockTransactions);
+    } catch (error) {
+      console.error('Error fetching room transactions:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load room transactions',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const calculateTotalAmount = () => {
+    return transactions.reduce((sum, tx) => sum + tx.amount, 0);
+  };
+  
+  const handleClearBalance = async () => {
+    setLoading(true);
+    
+    try {
+      const totalAmount = calculateTotalAmount();
+      
+      // In a real implementation, this would call Supabase to record the clearing
+      // and update the transaction statuses
+      
+      // Mock user ID for the receptionist
+      const receptionistUserId = '00000000-0000-0000-0000-000000000000';
+      
+      const clearingRecord = {
+        id: Math.random().toString(36).substring(2, 9),
+        roomId,
+        clearedBy: receptionistUserId,
+        clearedAmount: totalAmount,
+        clearedAt: new Date().toISOString(),
+        notes: clearingNotes || 'Balance cleared at checkout'
+      };
+      
+      // For demo purposes, just log the clearing record
+      console.log('Balance cleared:', clearingRecord);
+      
+      toast({
+        title: 'Balance Cleared',
+        description: `Successfully cleared ${formatPrice(totalAmount)} for Room ${roomId}`,
+      });
+      
+      // Reset the state
+      setTransactions([]);
+      setRoomId('');
+      setRoomSearchQuery('');
+      setClearingNotes('');
+      setShowClearDialog(false);
+    } catch (error) {
+      console.error('Error clearing balance:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to clear room balance',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString();
   };
 
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="container flex h-16 items-center justify-between py-4">
-          <h1 className="text-2xl font-bold">Hotel Receptionist Dashboard</h1>
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
+          <h1 className="text-lg font-semibold">Receptionist Panel</h1>
+          <Button variant="outline" size="sm" onClick={handleSignOut}>
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign Out
+          </Button>
         </div>
       </header>
-
+      
       <main className="container py-6">
-        <div className="grid gap-6">
-          <div className="flex flex-col md:flex-row gap-4 items-start md:items-end">
-            <div className="space-y-2 flex-1">
-              <Label htmlFor="room-id">Room Number</Label>
-              <Input
-                id="room-id"
-                value={roomId}
-                onChange={(e) => setRoomId(e.target.value)}
-                placeholder="Enter room number"
-              />
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Find Room</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <Input
+                  placeholder="Enter room number"
+                  value={roomSearchQuery}
+                  onChange={(e) => setRoomSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearchRoom()}
+                />
+              </div>
+              <Button onClick={handleSearchRoom}>
+                <Search className="h-4 w-4 mr-2" />
+                Search
+              </Button>
             </div>
-            <Button 
-              onClick={() => setClearDialogOpen(true)}
-              disabled={!roomId || totalBalance === 0}
-            >
-              <CreditCard className="h-4 w-4 mr-2" />
-              Clear Balance
-            </Button>
-          </div>
-
-          {roomId ? (
-            <>
+          </CardContent>
+        </Card>
+        
+        {roomId && (
+          <>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold">Room {roomId}</h2>
+              
+              {transactions.length > 0 && (
+                <Button 
+                  onClick={() => setShowClearDialog(true)}
+                  disabled={loading}
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Clear Balance ({formatPrice(calculateTotalAmount())})
+                </Button>
+              )}
+            </div>
+            
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+              </div>
+            ) : transactions.length > 0 ? (
+              <div className="space-y-4">
+                {transactions.map((transaction) => (
+                  <Card key={transaction.id}>
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h3 className="font-medium">{transaction.description}</h3>
+                          <div className="text-sm text-muted-foreground">{transaction.location}</div>
+                          <div className="text-xs text-muted-foreground flex items-center mt-1">
+                            <Clock className="h-3 w-3 mr-1" />
+                            {formatDate(transaction.date)}
+                          </div>
+                        </div>
+                        <div className="font-semibold">{formatPrice(transaction.amount)}</div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex justify-between items-center">
-                    <span>Room {roomId} Balance</span>
-                    <Badge variant={totalBalance >= 0 ? "outline" : "destructive"} className="text-lg">
-                      ${Math.abs(totalBalance).toFixed(2)}
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Transaction History</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {roomTransactions.length > 0 ? (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Description</TableHead>
-                          <TableHead>Location</TableHead>
-                          <TableHead>Type</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead className="text-right">Amount</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {roomTransactions.map((tx) => (
-                          <TableRow key={tx.id}>
-                            <TableCell>
-                              {format(new Date(tx.date), 'MMM dd, yyyy HH:mm')}
-                            </TableCell>
-                            <TableCell>{tx.description}</TableCell>
-                            <TableCell>{tx.location}</TableCell>
-                            <TableCell>
-                              <Badge variant="outline">
-                                {tx.type}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Badge 
-                                variant={tx.status === 'completed' ? 'default' : 
-                                         tx.status === 'pending' ? 'outline' : 'destructive'}
-                              >
-                                {tx.status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-right font-medium">
-                              {tx.type === 'topup' ? '+' : '-'}${tx.amount.toFixed(2)}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  ) : (
-                    <p className="text-center py-4 text-muted-foreground">
-                      No transactions found for this room.
-                    </p>
-                  )}
+                <CardContent className="p-6 text-center">
+                  <p className="text-muted-foreground">No transactions found for this room.</p>
                 </CardContent>
               </Card>
-            </>
-          ) : (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-                <DollarSign className="h-16 w-16 text-muted-foreground mb-4" />
-                <h3 className="text-xl font-semibold mb-2">No Room Selected</h3>
-                <p className="text-muted-foreground">Enter a room number to view its transactions and balance.</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+            )}
+          </>
+        )}
       </main>
-
-      <Dialog open={clearDialogOpen} onOpenChange={setClearDialogOpen}>
+      
+      <Dialog open={showClearDialog} onOpenChange={setShowClearDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Clear Balance for Room {roomId}</DialogTitle>
+            <DialogTitle>Clear Room Balance</DialogTitle>
             <DialogDescription>
-              This will mark all transactions as cleared. This action cannot be undone.
+              This will clear all transactions for Room {roomId} with a total amount of {formatPrice(calculateTotalAmount())}.
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
-            <div className="flex justify-between">
-              <span>Total amount to clear:</span>
-              <span className="font-bold">${Math.abs(totalBalance).toFixed(2)}</span>
-            </div>
-            
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes (optional)</Label>
-              <Input
+              <Label htmlFor="notes">Notes (Optional)</Label>
+              <Textarea
                 id="notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Add notes about this balance clearing"
+                placeholder="Payment method, checkout notes, etc."
+                value={clearingNotes}
+                onChange={(e) => setClearingNotes(e.target.value)}
               />
             </div>
           </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setClearDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setShowClearDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleClearBalance}>
+            <Button onClick={handleClearBalance} disabled={loading}>
               Clear Balance
             </Button>
           </DialogFooter>

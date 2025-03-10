@@ -270,6 +270,54 @@ export type Database = {
         }
         Relationships: []
       }
+      transaction_clearing: {
+        Row: {
+          cleared_amount: number
+          cleared_at: string | null
+          cleared_by: string
+          id: string
+          notes: string | null
+          room_id: string
+        }
+        Insert: {
+          cleared_amount: number
+          cleared_at?: string | null
+          cleared_by: string
+          id?: string
+          notes?: string | null
+          room_id: string
+        }
+        Update: {
+          cleared_amount?: number
+          cleared_at?: string | null
+          cleared_by?: string
+          id?: string
+          notes?: string | null
+          room_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

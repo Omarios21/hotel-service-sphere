@@ -11,7 +11,11 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, DollarSign } from 'lucide-react';
+import { Calendar, DollarSign, User, FileText } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Search } from 'lucide-react';
 
 interface TransactionClearing {
   id: string;
@@ -25,6 +29,8 @@ interface TransactionClearing {
 const TransactionClearingManager: React.FC = () => {
   const [clearingHistory, setClearingHistory] = useState<TransactionClearing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const { formatPrice } = useLanguage();
 
   useEffect(() => {
     const fetchClearingHistory = async () => {
@@ -78,18 +84,64 @@ const TransactionClearingManager: React.FC = () => {
     fetchClearingHistory();
   }, []);
 
+  const filteredHistory = clearingHistory.filter(item => 
+    item.roomId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.clearedBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (item.notes && item.notes.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  const calculateTotalCleared = () => {
+    return filteredHistory.reduce((sum, item) => sum + item.clearedAmount, 0);
+  };
+
   return (
     <div>
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
           <CardTitle className="text-xl font-bold">Balance Clearing History</CardTitle>
+          <div className="flex items-center gap-2">
+            <Input
+              placeholder="Search rooms, staff..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-[200px]"
+            />
+            <Button variant="ghost" size="sm">
+              <Search className="h-4 w-4" />
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
+          <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <Card className="bg-slate-50">
+              <CardContent className="pt-6">
+                <div className="text-2xl font-bold">{filteredHistory.length}</div>
+                <p className="text-muted-foreground">Total Clearings</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-slate-50">
+              <CardContent className="pt-6">
+                <div className="text-2xl font-bold">{formatPrice(calculateTotalCleared())}</div>
+                <p className="text-muted-foreground">Total Amount Cleared</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-slate-50">
+              <CardContent className="pt-6">
+                <div className="text-2xl font-bold">
+                  {new Set(filteredHistory.map(item => item.clearedBy)).size}
+                </div>
+                <p className="text-muted-foreground">Unique Staff Members</p>
+              </CardContent>
+            </Card>
+          </div>
+          
           {loading ? (
             <div className="flex justify-center py-8">
               <div className="animate-spin-slow h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
             </div>
-          ) : clearingHistory.length > 0 ? (
+          ) : filteredHistory.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -101,7 +153,7 @@ const TransactionClearingManager: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {clearingHistory.map((item) => (
+                {filteredHistory.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell>
                       <div className="flex items-center">
@@ -112,15 +164,27 @@ const TransactionClearingManager: React.FC = () => {
                     <TableCell>
                       <Badge variant="outline">Room {item.roomId}</Badge>
                     </TableCell>
-                    <TableCell>{item.clearedBy}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <User className="h-4 w-4 mr-2 text-muted-foreground" />
+                        {item.clearedBy}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center font-medium">
                         <DollarSign className="h-4 w-4 mr-1 text-muted-foreground" />
-                        {item.clearedAmount.toFixed(2)}
+                        {formatPrice(item.clearedAmount)}
                       </div>
                     </TableCell>
                     <TableCell className="max-w-xs truncate">
-                      {item.notes || '-'}
+                      {item.notes ? (
+                        <div className="flex items-center">
+                          <FileText className="h-4 w-4 mr-2 text-muted-foreground" />
+                          {item.notes}
+                        </div>
+                      ) : (
+                        '-'
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
