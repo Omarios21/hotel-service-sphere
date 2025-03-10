@@ -15,7 +15,8 @@ import {
   User, 
   Trash2,
   X,
-  Search
+  Search,
+  Clipboard
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -64,8 +65,17 @@ interface Transaction {
   description: string;
   location: string;
   timestamp: string;
-  status: 'pending' | 'paid' | 'cancelled';
+  status: 'pending' | 'paid' | 'cancelled' | 'approved';
   waiter_name: string;
+}
+
+interface TransactionLog {
+  id: string;
+  transaction_id: string;
+  changed_by_name: string;
+  previous_status: string;
+  new_status: string;
+  changed_at: string;
 }
 
 const Waiter: React.FC = () => {
@@ -89,6 +99,9 @@ const Waiter: React.FC = () => {
   const [showWaiterNamePrompt, setShowWaiterNamePrompt] = useState<boolean>(!localStorage.getItem('waiterName'));
   const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false);
   const [transactionToCancel, setTransactionToCancel] = useState<string | null>(null);
+  const [showTransactionLogs, setShowTransactionLogs] = useState(false);
+  const [currentTransactionId, setCurrentTransactionId] = useState<string>('');
+  const [transactionLogs, setTransactionLogs] = useState<TransactionLog[]>([]);
   
   // Fetch data when component mounts
   useEffect(() => {
@@ -177,7 +190,7 @@ const Waiter: React.FC = () => {
           description: tx.description || '',
           location: tx.location,
           timestamp: tx.date,
-          status: tx.status as 'pending' | 'paid' | 'cancelled',
+          status: tx.status as 'pending' | 'paid' | 'cancelled' | 'approved',
           waiter_name: tx.waiter_name || ''
         }));
         
@@ -190,6 +203,34 @@ const Waiter: React.FC = () => {
         description: 'Failed to load recent transactions',
         variant: 'destructive',
       });
+    }
+  };
+  
+  const fetchTransactionLogs = async (transactionId: string) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('transaction_logs')
+        .select('*')
+        .eq('transaction_id', transactionId)
+        .order('changed_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      if (data) {
+        setTransactionLogs(data as TransactionLog[]);
+        setCurrentTransactionId(transactionId);
+        setShowTransactionLogs(true);
+      }
+    } catch (error) {
+      console.error('Error fetching transaction logs:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load transaction history',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -265,6 +306,20 @@ const Waiter: React.FC = () => {
       
       if (error) throw error;
       
+      // Log the transaction creation
+      if (data) {
+        const { error: logError } = await supabase
+          .from('transaction_logs')
+          .insert({
+            transaction_id: data.id,
+            changed_by_name: waiterName,
+            previous_status: 'created',
+            new_status: 'pending'
+          });
+          
+        if (logError) console.error('Error logging transaction creation:', logError);
+      }
+      
       toast({
         title: 'Transaction created',
         description: `Successfully charged ${formatPrice(parseFloat(amount))} to Room ${roomId}`,
@@ -334,12 +389,38 @@ const Waiter: React.FC = () => {
     
     setLoading(true);
     try {
-      const { error } = await supabase
+      // Get the current status for logging
+      const transaction = recentTransactions.find(tx => tx.id === transactionToCancel);
+      if (!transaction) {
+        toast({
+          title: 'Error',
+          description: 'Transaction not found',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      const previousStatus = transaction.status;
+      
+      // Update transaction status
+      const { error: updateError } = await supabase
         .from('transactions')
         .update({ status: 'cancelled' })
         .eq('id', transactionToCancel);
       
-      if (error) throw error;
+      if (updateError) throw updateError;
+      
+      // Log the status change
+      const { error: logError } = await supabase
+        .from('transaction_logs')
+        .insert({
+          transaction_id: transactionToCancel,
+          changed_by_name: waiterName,
+          previous_status: previousStatus,
+          new_status: 'cancelled'
+        });
+      
+      if (logError) throw logError;
       
       toast({
         title: 'Transaction cancelled',
@@ -380,6 +461,7 @@ const Waiter: React.FC = () => {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'paid': return 'bg-green-100 text-green-800';
       case 'cancelled': return 'bg-red-100 text-red-800';
+      case 'approved': return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -512,19 +594,31 @@ const Waiter: React.FC = () => {
                             </span>
                           </TableCell>
                           <TableCell>
-                            {transaction.status === 'pending' && (
+                            <div className="flex space-x-1">
                               <Button 
                                 variant="ghost" 
                                 size="sm"
-                                className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                onClick={() => {
-                                  setTransactionToCancel(transaction.id);
-                                  setIsConfirmCancelOpen(true);
-                                }}
+                                className="h-8 px-2 text-slate-600 hover:text-slate-700 hover:bg-slate-50"
+                                onClick={() => fetchTransactionLogs(transaction.id)}
+                                title="View History"
                               >
-                                <X className="h-4 w-4" />
+                                <Clipboard className="h-4 w-4" />
                               </Button>
-                            )}
+                              
+                              {transaction.status === 'pending' && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  onClick={() => {
+                                    setTransactionToCancel(transaction.id);
+                                    setIsConfirmCancelOpen(true);
+                                  }}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -637,6 +731,63 @@ const Waiter: React.FC = () => {
             >
               Yes, Cancel It
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Transaction Logs Dialog */}
+      <Dialog open={showTransactionLogs} onOpenChange={setShowTransactionLogs}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Transaction History</DialogTitle>
+            <DialogDescription>
+              View the status change history for this transaction.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            {transactionLogs.length > 0 ? (
+              <div className="overflow-y-auto max-h-96">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2 px-4">Date & Time</th>
+                      <th className="text-left py-2 px-4">Changed By</th>
+                      <th className="text-left py-2 px-4">From Status</th>
+                      <th className="text-left py-2 px-4">To Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transactionLogs.map(log => (
+                      <tr key={log.id} className="border-b hover:bg-slate-50">
+                        <td className="py-2 px-4 text-sm">
+                          {formatDate(log.changed_at)}
+                        </td>
+                        <td className="py-2 px-4">{log.changed_by_name}</td>
+                        <td className="py-2 px-4">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(log.previous_status)}`}>
+                            {log.previous_status === 'created' 
+                              ? 'Created' 
+                              : log.previous_status.charAt(0).toUpperCase() + log.previous_status.slice(1)}
+                          </span>
+                        </td>
+                        <td className="py-2 px-4">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(log.new_status)}`}>
+                            {log.new_status.charAt(0).toUpperCase() + log.new_status.slice(1)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-4 text-muted-foreground">
+                No transaction history found.
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShowTransactionLogs(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

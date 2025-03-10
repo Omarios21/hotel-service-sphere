@@ -348,6 +348,41 @@ export type Database = {
         }
         Relationships: []
       }
+      transaction_logs: {
+        Row: {
+          changed_at: string
+          changed_by_name: string
+          id: string
+          new_status: string
+          previous_status: string
+          transaction_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by_name: string
+          id?: string
+          new_status: string
+          previous_status: string
+          transaction_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by_name?: string
+          id?: string
+          new_status?: string
+          previous_status?: string
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_logs_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           amount: number

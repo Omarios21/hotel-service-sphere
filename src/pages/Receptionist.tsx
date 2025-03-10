@@ -18,7 +18,9 @@ import {
   Filter,
   X,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Clipboard,
+  Check
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -47,6 +49,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { useWalletTransactions } from '@/hooks/useWalletTransactions';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface Transaction {
   id: string;
@@ -59,6 +62,15 @@ interface Transaction {
   location: string;
   status: string;
   waiter_name: string;
+}
+
+interface TransactionLog {
+  id: string;
+  transaction_id: string;
+  changed_by_name: string;
+  previous_status: string;
+  new_status: string;
+  changed_at: string;
 }
 
 const Receptionist: React.FC = () => {
@@ -79,11 +91,26 @@ const Receptionist: React.FC = () => {
   const [filterGuest, setFilterGuest] = useState('');
   const [uniqueWaiters, setUniqueWaiters] = useState<string[]>([]);
   const [uniqueRooms, setUniqueRooms] = useState<string[]>([]);
+  const [selectedTransactions, setSelectedTransactions] = useState<string[]>([]);
+  const [isBulkActionDialogOpen, setIsBulkActionDialogOpen] = useState(false);
+  const [bulkAction, setBulkAction] = useState<'paid' | 'cancelled' | ''>();
+  const [receptionistName, setReceptionistName] = useState<string>(localStorage.getItem('receptionistName') || 'Receptionist');
+  const [showNamePrompt, setShowNamePrompt] = useState(false);
+  const [showTransactionLogs, setShowTransactionLogs] = useState(false);
+  const [currentTransactionId, setCurrentTransactionId] = useState<string>('');
+  const [transactionLogs, setTransactionLogs] = useState<TransactionLog[]>([]);
   
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate('/auth');
   };
+  
+  // Check if receptionist name is set
+  useEffect(() => {
+    if (!localStorage.getItem('receptionistName')) {
+      setShowNamePrompt(true);
+    }
+  }, []);
   
   const handleSearchRoom = () => {
     if (!roomSearchQuery.trim()) {
@@ -99,6 +126,34 @@ const Receptionist: React.FC = () => {
     // Filter existing transactions for this room
     const roomTransactions = allTransactions.filter(tx => tx.roomId === roomSearchQuery);
     setTransactions(roomTransactions);
+  };
+  
+  const fetchTransactionLogs = async (transactionId: string) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('transaction_logs')
+        .select('*')
+        .eq('transaction_id', transactionId)
+        .order('changed_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      if (data) {
+        setTransactionLogs(data as TransactionLog[]);
+        setCurrentTransactionId(transactionId);
+        setShowTransactionLogs(true);
+      }
+    } catch (error) {
+      console.error('Error fetching transaction logs:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load transaction history',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
   
   const fetchAllTransactions = async () => {
@@ -245,15 +300,46 @@ const Receptionist: React.FC = () => {
   };
   
   const handleUpdateStatus = async (transactionId: string, newStatus: 'paid' | 'cancelled') => {
+    if (!receptionistName) {
+      setShowNamePrompt(true);
+      return;
+    }
+    
     setLoading(true);
     
     try {
-      const { error } = await supabase
+      // Get the current status for logging
+      const transaction = allTransactions.find(tx => tx.id === transactionId);
+      if (!transaction) {
+        toast({
+          title: 'Error',
+          description: 'Transaction not found',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      const previousStatus = transaction.status;
+      
+      // Update transaction status
+      const { error: updateError } = await supabase
         .from('transactions')
         .update({ status: newStatus })
         .eq('id', transactionId);
       
-      if (error) throw error;
+      if (updateError) throw updateError;
+      
+      // Log the status change
+      const { error: logError } = await supabase
+        .from('transaction_logs')
+        .insert({
+          transaction_id: transactionId,
+          changed_by_name: receptionistName,
+          previous_status: previousStatus,
+          new_status: newStatus
+        });
+      
+      if (logError) throw logError;
       
       // Update the local state
       setAllTransactions(prev => 
@@ -277,6 +363,112 @@ const Receptionist: React.FC = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const handleBulkStatusUpdate = async () => {
+    if (!bulkAction || selectedTransactions.length === 0) {
+      toast({
+        title: 'Error',
+        description: 'Please select transactions and an action to perform',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    if (!receptionistName) {
+      setShowNamePrompt(true);
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      // For each selected transaction
+      for (const txId of selectedTransactions) {
+        // Get the current status for logging
+        const transaction = allTransactions.find(tx => tx.id === txId);
+        if (!transaction) continue;
+        
+        const previousStatus = transaction.status;
+        
+        // Update transaction status
+        const { error: updateError } = await supabase
+          .from('transactions')
+          .update({ status: bulkAction })
+          .eq('id', txId);
+        
+        if (updateError) throw updateError;
+        
+        // Log the status change
+        const { error: logError } = await supabase
+          .from('transaction_logs')
+          .insert({
+            transaction_id: txId,
+            changed_by_name: receptionistName,
+            previous_status: previousStatus,
+            new_status: bulkAction
+          });
+        
+        if (logError) throw logError;
+      }
+      
+      // Update local state
+      setAllTransactions(prev => 
+        prev.map(tx => selectedTransactions.includes(tx.id) ? { ...tx, status: bulkAction } : tx)
+      );
+      
+      setTransactions(prev => 
+        prev.map(tx => selectedTransactions.includes(tx.id) ? { ...tx, status: bulkAction } : tx)
+      );
+      
+      // Reset selections
+      setSelectedTransactions([]);
+      setBulkAction(undefined);
+      setIsBulkActionDialogOpen(false);
+      
+      toast({
+        title: 'Status Updated',
+        description: `Updated ${selectedTransactions.length} transactions to ${bulkAction}`,
+      });
+    } catch (error) {
+      console.error('Error updating transaction status:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update transaction status',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedTransactions(transactions.map(tx => tx.id));
+    } else {
+      setSelectedTransactions([]);
+    }
+  };
+  
+  const handleSelectTransaction = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedTransactions(prev => [...prev, id]);
+    } else {
+      setSelectedTransactions(prev => prev.filter(txId => txId !== id));
+    }
+  };
+  
+  const saveReceptionistName = () => {
+    if (receptionistName.trim()) {
+      localStorage.setItem('receptionistName', receptionistName);
+      setShowNamePrompt(false);
+    } else {
+      toast({
+        title: 'Error',
+        description: 'Please enter your name',
+        variant: 'destructive',
+      });
     }
   };
   
@@ -338,6 +530,7 @@ const Receptionist: React.FC = () => {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'paid': return 'bg-green-100 text-green-800';
       case 'cancelled': return 'bg-red-100 text-red-800';
+      case 'approved': return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -359,6 +552,18 @@ const Receptionist: React.FC = () => {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Transaction Management</CardTitle>
             <div className="flex gap-2">
+              {selectedTransactions.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">{selectedTransactions.length} selected</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsBulkActionDialogOpen(true)}
+                  >
+                    Update Status
+                  </Button>
+                </div>
+              )}
               <Button onClick={() => setShowFilterDialog(true)} variant="outline">
                 <Filter className="h-4 w-4 mr-2" />
                 Filter
@@ -402,6 +607,12 @@ const Receptionist: React.FC = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead className="w-10">
+                          <Checkbox
+                            checked={selectedTransactions.length === transactions.length && transactions.length > 0}
+                            onCheckedChange={handleSelectAll}
+                          />
+                        </TableHead>
                         <TableHead>Date & Time</TableHead>
                         <TableHead>Room</TableHead>
                         <TableHead>Guest</TableHead>
@@ -416,6 +627,12 @@ const Receptionist: React.FC = () => {
                     <TableBody>
                       {transactions.map((transaction) => (
                         <TableRow key={transaction.id}>
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedTransactions.includes(transaction.id)}
+                              onCheckedChange={(checked) => handleSelectTransaction(transaction.id, !!checked)}
+                            />
+                          </TableCell>
                           <TableCell className="text-sm">
                             {formatDate(transaction.date)}
                           </TableCell>
@@ -433,35 +650,47 @@ const Receptionist: React.FC = () => {
                             </span>
                           </TableCell>
                           <TableCell>
-                            {transaction.status === 'pending' && (
-                              <div className="flex space-x-1">
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  className="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
-                                  onClick={() => handleUpdateStatus(transaction.id, 'paid')}
-                                  title="Mark as Paid"
-                                >
-                                  <CheckCircle2 className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                  onClick={() => handleUpdateStatus(transaction.id, 'cancelled')}
-                                  title="Cancel Transaction"
-                                >
-                                  <XCircle className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            )}
+                            <div className="flex space-x-1">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                className="h-8 px-2 text-slate-600 hover:text-slate-700 hover:bg-slate-50"
+                                onClick={() => fetchTransactionLogs(transaction.id)}
+                                title="View History"
+                              >
+                                <Clipboard className="h-4 w-4" />
+                              </Button>
+                              
+                              {transaction.status === 'pending' && (
+                                <>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    className="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                    onClick={() => handleUpdateStatus(transaction.id, 'paid')}
+                                    title="Mark as Paid"
+                                  >
+                                    <CheckCircle2 className="h-4 w-4" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    onClick={() => handleUpdateStatus(transaction.id, 'cancelled')}
+                                    title="Cancel Transaction"
+                                  >
+                                    <XCircle className="h-4 w-4" />
+                                  </Button>
+                                </>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                     <TableFooter>
                       <TableRow>
-                        <TableCell colSpan={6} className="text-right font-medium">
+                        <TableCell colSpan={7} className="text-right font-medium">
                           Total:
                         </TableCell>
                         <TableCell className="font-bold text-primary">
@@ -540,6 +769,7 @@ const Receptionist: React.FC = () => {
                   <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="paid">Paid</SelectItem>
                   <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -592,6 +822,122 @@ const Receptionist: React.FC = () => {
             <Button onClick={applyFilters}>
               Apply Filters
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Bulk Action Dialog */}
+      <Dialog open={isBulkActionDialogOpen} onOpenChange={setIsBulkActionDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Transaction Status</DialogTitle>
+            <DialogDescription>
+              Change the status for {selectedTransactions.length} selected transactions.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <Select value={bulkAction} onValueChange={(value: any) => setBulkAction(value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select new status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="paid">Paid</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsBulkActionDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleBulkStatusUpdate} disabled={!bulkAction || loading}>
+              {loading ? 'Processing...' : 'Update Status'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Receptionist Name Dialog */}
+      <Dialog open={showNamePrompt} onOpenChange={setShowNamePrompt}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enter Your Name</DialogTitle>
+            <DialogDescription>
+              Please provide your name for transaction logging purposes.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <Input
+              placeholder="Your name"
+              value={receptionistName}
+              onChange={(e) => setReceptionistName(e.target.value)}
+            />
+          </div>
+          
+          <DialogFooter>
+            <Button onClick={saveReceptionistName}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Transaction Logs Dialog */}
+      <Dialog open={showTransactionLogs} onOpenChange={setShowTransactionLogs}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Transaction History</DialogTitle>
+            <DialogDescription>
+              View the status change history for this transaction.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            {transactionLogs.length > 0 ? (
+              <div className="overflow-y-auto max-h-96">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2 px-4">Date & Time</th>
+                      <th className="text-left py-2 px-4">Changed By</th>
+                      <th className="text-left py-2 px-4">From Status</th>
+                      <th className="text-left py-2 px-4">To Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transactionLogs.map(log => (
+                      <tr key={log.id} className="border-b hover:bg-slate-50">
+                        <td className="py-2 px-4 text-sm">
+                          {formatDate(log.changed_at)}
+                        </td>
+                        <td className="py-2 px-4">{log.changed_by_name}</td>
+                        <td className="py-2 px-4">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(log.previous_status)}`}>
+                            {log.previous_status === 'created' 
+                              ? 'Created' 
+                              : log.previous_status.charAt(0).toUpperCase() + log.previous_status.slice(1)}
+                          </span>
+                        </td>
+                        <td className="py-2 px-4">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(log.new_status)}`}>
+                            {log.new_status.charAt(0).toUpperCase() + log.new_status.slice(1)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-4 text-muted-foreground">
+                No transaction history found.
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button onClick={() => setShowTransactionLogs(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
