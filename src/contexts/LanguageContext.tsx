@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -500,8 +501,9 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   // Load available languages from database
   const loadAvailableLanguages = async () => {
     try {
-      // Utiliser une requête HTTP directe pour contourner les problèmes de typage
-      const { data, error } = await supabase.from('language_settings').select('*');
+      const { data, error } = await supabase
+        .from('language_settings')
+        .select('*');
       
       if (error) {
         console.error('Error loading language settings:', error);

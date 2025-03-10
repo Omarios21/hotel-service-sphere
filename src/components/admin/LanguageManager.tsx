@@ -43,29 +43,17 @@ const LanguageManager: React.FC = () => {
     try {
       setLoading(true);
       
-      // Utiliser une requête SQL directe via la fonction rpc pour contourner les problèmes de typage
-      const { data, error } = await supabase.rpc('fetch_language_settings');
+      const { data, error } = await supabase
+        .from('language_settings')
+        .select('*');
       
       if (error) {
         console.error('Error fetching languages:', error);
-        
-        // Tentative alternative avec une requête HTTP directe
-        const result = await supabase.from('language_settings').select('*');
-        
-        if (result.error) {
-          console.error('Alternative query failed:', result.error);
-          // Si tout échoue, utilisez les langues par défaut
-          setLanguages(defaultLanguages);
-        } else if (result.data && result.data.length > 0) {
-          setLanguages(result.data as LanguageSetting[]);
-        } else {
-          // S'il n'y a pas de données, initialisez avec les valeurs par défaut
-          await saveLanguageSettings(defaultLanguages);
-        }
+        setLanguages(defaultLanguages);
       } else if (data && Array.isArray(data) && data.length > 0) {
         setLanguages(data as LanguageSetting[]);
       } else {
-        // Si aucun paramètre n'existe, initialisez avec les valeurs par défaut
+        // S'il n'y a pas de données, initialisez avec les valeurs par défaut
         await saveLanguageSettings(defaultLanguages);
       }
     } catch (error: any) {
@@ -80,12 +68,13 @@ const LanguageManager: React.FC = () => {
   const saveLanguageSettings = async (langSettings: LanguageSetting[]) => {
     try {
       for (const lang of langSettings) {
-        // Utilisation de l'API HTTP directe pour contourner les problèmes de typage
-        const { error } = await supabase.from('language_settings').upsert({ 
-          code: lang.code, 
-          name: lang.name, 
-          enabled: lang.enabled 
-        });
+        const { error } = await supabase
+          .from('language_settings')
+          .upsert({ 
+            code: lang.code, 
+            name: lang.name, 
+            enabled: lang.enabled 
+          });
         
         if (error) throw error;
       }
