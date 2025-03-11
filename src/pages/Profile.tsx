@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { motion } from 'framer-motion';
-import { User, Clock, Calendar, LogOut, Settings, Bell, CheckSquare, Shield, Moon, Sun } from 'lucide-react';
+import { User, Clock, Calendar, LogOut, Settings, Bell, Moon, Sun } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -85,8 +85,9 @@ const Profile: React.FC = () => {
   };
   
   const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
-    toast.success(`Theme switched to ${theme === 'dark' ? 'light' : 'dark'} mode`);
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    toast.success(`Theme switched to ${newTheme} mode`);
   };
   
   const getStatusColor = (status: Order['status']) => {
@@ -135,23 +136,24 @@ const Profile: React.FC = () => {
           </p>
         </motion.div>
         
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-          className="mb-4"
-        >
-          <Button 
-            variant="outline" 
-            onClick={goToAdmin} 
-            className="flex items-center gap-2"
+        {isAdmin && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="mb-4"
           >
-            <Shield className="h-4 w-4" />
-            <span>Go to Admin Interface</span>
-          </Button>
-        </motion.div>
+            <Button 
+              variant="outline" 
+              onClick={goToAdmin} 
+              className="flex items-center gap-2"
+            >
+              <span>Go to Admin Interface</span>
+            </Button>
+          </motion.div>
+        )}
         
-        <div className="bg-white dark:bg-slate-900 border border-border rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-background border border-border rounded-xl shadow-sm overflow-hidden">
           <div className="p-6 border-b border-border">
             <div className="flex items-center">
               <div className="bg-secondary rounded-full p-3 mr-4">
@@ -215,7 +217,7 @@ const Profile: React.FC = () => {
                     {orders.map(order => (
                       <div
                         key={order.id}
-                        className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-border rounded-lg dark:bg-slate-800"
+                        className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-border rounded-lg bg-card"
                       >
                         <div className="mb-3 sm:mb-0">
                           <h4 className="font-medium">{order.title}</h4>
@@ -255,7 +257,7 @@ const Profile: React.FC = () => {
                 <h3 className="font-medium text-lg mb-4">Preferences</h3>
                 
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border border-border rounded-lg dark:bg-slate-800">
+                  <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-card">
                     <div className="flex items-center">
                       <Bell className="h-5 w-5 mr-3 text-muted-foreground" />
                       <div>
@@ -271,7 +273,7 @@ const Profile: React.FC = () => {
                     />
                   </div>
                   
-                  <div className="flex items-center justify-between p-4 border border-border rounded-lg dark:bg-slate-800">
+                  <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-card">
                     <div className="flex items-center">
                       {theme === 'dark' ? (
                         <Moon className="h-5 w-5 mr-3 text-muted-foreground" />
@@ -291,7 +293,7 @@ const Profile: React.FC = () => {
                     />
                   </div>
                   
-                  <div className="flex items-center justify-between p-4 border border-border rounded-lg dark:bg-slate-800">
+                  <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-card">
                     <div className="flex items-center">
                       <Settings className="h-5 w-5 mr-3 text-muted-foreground" />
                       <div>
