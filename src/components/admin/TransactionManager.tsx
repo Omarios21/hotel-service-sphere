@@ -778,4 +778,4 @@ const TransactionManager: React.FC = () => {
                                             size="sm"
                                             className={`h-8 px-2 ${
                                               transaction.admin_status === 'open' 
-                                                ? 'text-slate-600 hover:text-slate-700 dark:text-slate-400 dark:hover:text
+                                                ? 'text-slate-600 hover:text-slate-700 dark:text-slate-400 dark:
