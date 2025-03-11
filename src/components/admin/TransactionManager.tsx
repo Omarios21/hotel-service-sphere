@@ -192,6 +192,18 @@ const TransactionManager: React.FC = () => {
     }
   };
 
+  const handleStatusFilterChange = (value: string) => {
+    if (value === 'pending' || value === 'paid' || value === 'cancelled' || value === 'all') {
+      setStatusFilter(value);
+    }
+  };
+
+  const handleAdminStatusFilterChange = (value: string) => {
+    if (value === 'open' || value === 'closed' || value === 'all') {
+      setAdminStatusFilter(value);
+    }
+  };
+
   const handleUpdateStatus = async (id: string, newStatus: 'paid' | 'cancelled') => {
     try {
       if (!adminName) {
@@ -505,7 +517,7 @@ const TransactionManager: React.FC = () => {
                         exit={{ opacity: 0, height: 0 }}
                         className="flex flex-wrap gap-3 pb-2"
                       >
-                        <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
                           <SelectTrigger className="w-[130px] border-primary/20">
                             <SelectValue placeholder="Status" />
                           </SelectTrigger>
@@ -517,7 +529,7 @@ const TransactionManager: React.FC = () => {
                           </SelectContent>
                         </Select>
 
-                        <Select value={adminStatusFilter} onValueChange={setAdminStatusFilter}>
+                        <Select value={adminStatusFilter} onValueChange={handleAdminStatusFilterChange}>
                           <SelectTrigger className="w-[150px] border-primary/20">
                             <SelectValue placeholder="Admin Status" />
                           </SelectTrigger>
