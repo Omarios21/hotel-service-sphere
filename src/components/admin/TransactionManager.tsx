@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,7 +7,7 @@ import { CreditCard, Search, ArrowDownUp, Clock, CheckCircle2, XCircle, Check, C
 import { format } from 'date-fns';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { PieChart, Pie, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { PieChart, Pie, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
@@ -81,7 +80,6 @@ const TransactionManager: React.FC = () => {
   useEffect(() => {
     fetchTransactions();
     
-    // Check if admin name is set
     if (!localStorage.getItem('adminName')) {
       setShowNamePrompt(true);
     }
@@ -135,7 +133,6 @@ const TransactionManager: React.FC = () => {
   useEffect(() => {
     let filtered = [...transactions];
     
-    // Apply search term filter
     if (searchTerm) {
       filtered = filtered.filter(tx => 
         tx.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -146,22 +143,18 @@ const TransactionManager: React.FC = () => {
       );
     }
     
-    // Apply status filter
     if (statusFilter !== 'all') {
       filtered = filtered.filter(tx => tx.status === statusFilter);
     }
     
-    // Apply admin status filter
     if (adminStatusFilter !== 'all') {
       filtered = filtered.filter(tx => tx.admin_status === adminStatusFilter);
     }
     
-    // Apply type filter
     if (typeFilter !== 'all') {
       filtered = filtered.filter(tx => tx.type === typeFilter);
     }
     
-    // Apply sorting
     filtered.sort((a, b) => {
       const dateA = new Date(a.date).getTime();
       const dateB = new Date(b.date).getTime();
@@ -201,13 +194,11 @@ const TransactionManager: React.FC = () => {
 
   const handleUpdateStatus = async (id: string, newStatus: 'paid' | 'cancelled') => {
     try {
-      // If admin name is not set, prompt for it
       if (!adminName) {
         setShowNamePrompt(true);
         return;
       }
       
-      // Get the current status for logging
       const transaction = transactions.find(tx => tx.id === id);
       if (!transaction) {
         toast.error('Transaction not found');
@@ -216,7 +207,6 @@ const TransactionManager: React.FC = () => {
       
       const previousStatus = transaction.status;
       
-      // Update transaction status
       const { error: updateError } = await supabase
         .from('transactions')
         .update({ status: newStatus })
@@ -224,7 +214,6 @@ const TransactionManager: React.FC = () => {
       
       if (updateError) throw updateError;
       
-      // Log the status change
       const { error: logError } = await supabase
         .from('transaction_logs')
         .insert({
@@ -236,7 +225,6 @@ const TransactionManager: React.FC = () => {
       
       if (logError) throw logError;
       
-      // Update local state
       setTransactions(prev => 
         prev.map(tx => tx.id === id ? { ...tx, status: newStatus } : tx)
       );
@@ -250,13 +238,11 @@ const TransactionManager: React.FC = () => {
 
   const handleUpdateAdminStatus = async (id: string, newAdminStatus: 'open' | 'closed') => {
     try {
-      // If admin name is not set, prompt for it
       if (!adminName) {
         setShowNamePrompt(true);
         return;
       }
       
-      // Update transaction admin status
       const { error: updateError } = await supabase
         .from('transactions')
         .update({ admin_status: newAdminStatus })
@@ -264,7 +250,6 @@ const TransactionManager: React.FC = () => {
       
       if (updateError) throw updateError;
       
-      // Update local state
       setTransactions(prev => 
         prev.map(tx => tx.id === id ? { ...tx, admin_status: newAdminStatus } : tx)
       );
@@ -282,7 +267,6 @@ const TransactionManager: React.FC = () => {
       return;
     }
     
-    // If admin name is not set, prompt for it
     if (!adminName) {
       setShowNamePrompt(true);
       return;
@@ -291,15 +275,12 @@ const TransactionManager: React.FC = () => {
     setLoading(true);
     
     try {
-      // For each selected transaction
       for (const txId of selectedTransactions) {
-        // Get the current status for logging
         const transaction = transactions.find(tx => tx.id === txId);
         if (!transaction) continue;
         
         const previousStatus = transaction.status;
         
-        // Update transaction status
         const { error: updateError } = await supabase
           .from('transactions')
           .update({ status: bulkAction })
@@ -307,7 +288,6 @@ const TransactionManager: React.FC = () => {
         
         if (updateError) throw updateError;
         
-        // Log the status change
         const { error: logError } = await supabase
           .from('transaction_logs')
           .insert({
@@ -320,12 +300,10 @@ const TransactionManager: React.FC = () => {
         if (logError) throw logError;
       }
       
-      // Update local state
       setTransactions(prev => 
         prev.map(tx => selectedTransactions.includes(tx.id) ? { ...tx, status: bulkAction } : tx)
       );
       
-      // Reset selections
       setSelectedTransactions([]);
       setBulkAction('');
       setIsDialogOpen(false);
@@ -345,7 +323,6 @@ const TransactionManager: React.FC = () => {
       return;
     }
     
-    // If admin name is not set, prompt for it
     if (!adminName) {
       setShowNamePrompt(true);
       return;
@@ -354,9 +331,7 @@ const TransactionManager: React.FC = () => {
     setLoading(true);
     
     try {
-      // For each selected transaction
       for (const txId of selectedTransactions) {
-        // Update transaction admin status
         const { error: updateError } = await supabase
           .from('transactions')
           .update({ admin_status: bulkAdminStatus })
@@ -365,12 +340,10 @@ const TransactionManager: React.FC = () => {
         if (updateError) throw updateError;
       }
       
-      // Update local state
       setTransactions(prev => 
         prev.map(tx => selectedTransactions.includes(tx.id) ? { ...tx, admin_status: bulkAdminStatus } : tx)
       );
       
-      // Reset selections
       setSelectedTransactions([]);
       setBulkAdminStatus('open');
       setIsAdminStatusDialogOpen(false);
@@ -409,13 +382,11 @@ const TransactionManager: React.FC = () => {
     }
   };
   
-  // Calculate summary statistics
   const totalTransactions = filteredTransactions.length;
   const totalAmount = filteredTransactions.reduce((sum, tx) => sum + tx.amount, 0);
   const pendingTransactions = filteredTransactions.filter(tx => tx.status === 'pending').length;
   const cancelledTransactions = filteredTransactions.filter(tx => tx.status === 'cancelled').length;
   
-  // Prepare data for charts
   const statusData = [
     { name: 'Pending', value: filteredTransactions.filter(tx => tx.status === 'pending').length },
     { name: 'Paid', value: filteredTransactions.filter(tx => tx.status === 'paid').length },
@@ -923,7 +894,7 @@ const TransactionManager: React.FC = () => {
                                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                               </Pie>
-                              <Tooltip formatter={(value) => [`${value} transactions`, 'Count']} />
+                              <RechartsTooltip formatter={(value) => [`${value} transactions`, 'Count']} />
                               <Legend />
                             </PieChart>
                           </ResponsiveContainer>
@@ -957,7 +928,7 @@ const TransactionManager: React.FC = () => {
                                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                               </Pie>
-                              <Tooltip formatter={(value) => [`${value} transactions`, 'Count']} />
+                              <RechartsTooltip formatter={(value) => [`${value} transactions`, 'Count']} />
                               <Legend />
                             </PieChart>
                           </ResponsiveContainer>
@@ -999,7 +970,6 @@ const TransactionManager: React.FC = () => {
         </Card>
       </motion.div>
       
-      {/* Admin Name Dialog */}
       <Dialog open={showNamePrompt} onOpenChange={setShowNamePrompt}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -1022,7 +992,6 @@ const TransactionManager: React.FC = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Bulk Update Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -1051,7 +1020,6 @@ const TransactionManager: React.FC = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Bulk Admin Status Update Dialog */}
       <Dialog open={isAdminStatusDialogOpen} onOpenChange={setIsAdminStatusDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -1080,7 +1048,6 @@ const TransactionManager: React.FC = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Transaction Logs Dialog */}
       {showTransactionLogs && (
         <Dialog open={showTransactionLogs} onOpenChange={setShowTransactionLogs}>
           <DialogContent className="max-w-3xl">
