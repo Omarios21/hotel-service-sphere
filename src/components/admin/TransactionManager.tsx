@@ -833,7 +833,7 @@ const TransactionManager: React.FC = () => {
                 </TabsContent>
                 
                 <TabsContent value="analytics" className="mt-0">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Card>
                       <CardHeader>
                         <CardTitle>Transaction Status</CardTitle>
@@ -847,16 +847,16 @@ const TransactionManager: React.FC = () => {
                                 cx="50%"
                                 cy="50%"
                                 labelLine={false}
+                                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                                 outerRadius={80}
                                 fill="#8884d8"
                                 dataKey="value"
-                                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                               >
                                 {statusData.map((entry, index) => (
                                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                               </Pie>
-                              <RechartsTooltip formatter={(value: any) => [`${value} transactions`, 'Count']} />
+                              <RechartsTooltip />
                               <Legend />
                             </PieChart>
                           </ResponsiveContainer>
@@ -877,16 +877,16 @@ const TransactionManager: React.FC = () => {
                                 cx="50%"
                                 cy="50%"
                                 labelLine={false}
+                                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                                 outerRadius={80}
                                 fill="#8884d8"
                                 dataKey="value"
-                                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                               >
                                 {adminStatusData.map((entry, index) => (
                                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                               </Pie>
-                              <RechartsTooltip formatter={(value: any) => [`${value} transactions`, 'Count']} />
+                              <RechartsTooltip />
                               <Legend />
                             </PieChart>
                           </ResponsiveContainer>

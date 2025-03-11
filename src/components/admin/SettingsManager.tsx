@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, HotelInfo } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useLanguage, Currency, currencyRates } from '@/contexts/LanguageContext';
 import { Input } from "@/components/ui/input";
@@ -23,14 +23,14 @@ import { Info, AlertCircle, Hotel, Clock, Coffee, Wifi, Waves } from "lucide-rea
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-interface HotelInfo {
-  id: string;
-  name: string;
-  tagline: string;
-  checkout_time: string;
-  breakfast_time: string;
-  wifi_code: string;
-  pool_hours: string;
+// Service hours interface
+interface ServiceHours {
+  [key: string]: {
+    enabled: boolean;
+    startTime: string;
+    endTime: string;
+    is24Hours: boolean;
+  }
 }
 
 const SettingsManager = () => {
@@ -42,7 +42,7 @@ const SettingsManager = () => {
   const [displayRates, setDisplayRates] = useState<Record<Currency, string>>({} as Record<Currency, string>);
   
   // Service availability times
-  const [serviceHours, setServiceHours] = useState({
+  const [serviceHours, setServiceHours] = useState<ServiceHours>({
     roomService: {
       enabled: true,
       startTime: "07:00",
@@ -150,15 +150,16 @@ const SettingsManager = () => {
           .from('hotel_info')
           .select('*')
           .order('updated_at', { ascending: false })
-          .limit(1);
+          .limit(1)
+          .single();
 
         if (hotelError) {
           console.error('Error loading hotel info:', hotelError);
           toast.warning('Could not load hotel information from database');
         }
 
-        if (hotelData && hotelData.length > 0) {
-          setHotelInfo(hotelData[0] as HotelInfo);
+        if (hotelData) {
+          setHotelInfo(hotelData as HotelInfo);
         }
       } catch (error: any) {
         console.error('Error loading settings:', error);

@@ -156,6 +156,39 @@ export type Database = {
         }
         Relationships: []
       }
+      hotel_info: {
+        Row: {
+          breakfast_time: string
+          checkout_time: string
+          id: string
+          name: string
+          pool_hours: string
+          tagline: string
+          updated_at: string
+          wifi_code: string
+        }
+        Insert: {
+          breakfast_time?: string
+          checkout_time?: string
+          id?: string
+          name?: string
+          pool_hours?: string
+          tagline?: string
+          updated_at?: string
+          wifi_code?: string
+        }
+        Update: {
+          breakfast_time?: string
+          checkout_time?: string
+          id?: string
+          name?: string
+          pool_hours?: string
+          tagline?: string
+          updated_at?: string
+          wifi_code?: string
+        }
+        Relationships: []
+      }
       language_settings: {
         Row: {
           code: string

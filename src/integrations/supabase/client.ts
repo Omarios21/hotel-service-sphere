@@ -25,3 +25,15 @@ export const supabase = createClient<Database>(
 (async () => {
   await supabase.removeAllChannels();
 })();
+
+// Define the HotelInfo interface to use throughout the app
+export interface HotelInfo {
+  id: string;
+  name: string;
+  tagline: string;
+  checkout_time: string;
+  breakfast_time: string;
+  wifi_code: string;
+  pool_hours: string;
+  updated_at?: string;
+}

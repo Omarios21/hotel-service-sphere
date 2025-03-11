@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
@@ -7,7 +6,7 @@ import { Calendar, Clock, Wifi, ChevronRight, Coffee, Waves } from 'lucide-react
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, HotelInfo } from '@/integrations/supabase/client';
 import DeliveryStatus from '@/components/home/DeliveryStatus';
 import DeliveryFollowUp from '@/components/room-service/DeliveryFollowUp';
 import SpaBookingStatus from '@/components/spa/SpaBookingStatus';
@@ -27,15 +26,6 @@ interface Activity {
   status: 'upcoming' | 'ongoing';
 }
 
-interface HotelInfo {
-  name: string;
-  tagline: string;
-  checkout_time: string;
-  breakfast_time: string;
-  wifi_code: string;
-  pool_hours: string;
-}
-
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -49,6 +39,7 @@ const Home: React.FC = () => {
   const [currentActivityBooking, setCurrentActivityBooking] = useState<ActivityBooking | null>(null);
   
   const [hotelInfo, setHotelInfo] = useState<HotelInfo>({
+    id: '',
     name: "Grand Azure Resort",
     tagline: "Where luxury meets tranquility",
     checkout_time: "11:00 AM",
@@ -81,7 +72,6 @@ const Home: React.FC = () => {
     }
   ]);
 
-  // Fetch hotel info from Supabase
   useEffect(() => {
     const fetchHotelInfo = async () => {
       try {
@@ -89,22 +79,16 @@ const Home: React.FC = () => {
           .from('hotel_info')
           .select('*')
           .order('updated_at', { ascending: false })
-          .limit(1);
+          .limit(1)
+          .single();
         
         if (error) {
           console.error('Error fetching hotel info:', error);
           return;
         }
         
-        if (data && data.length > 0) {
-          setHotelInfo({
-            name: data[0].name,
-            tagline: data[0].tagline,
-            checkout_time: data[0].checkout_time,
-            breakfast_time: data[0].breakfast_time,
-            wifi_code: data[0].wifi_code,
-            pool_hours: data[0].pool_hours
-          });
+        if (data) {
+          setHotelInfo(data as HotelInfo);
         }
       } catch (err) {
         console.error('Error fetching hotel info:', err);
@@ -113,7 +97,6 @@ const Home: React.FC = () => {
     
     fetchHotelInfo();
     
-    // Listen for settings updates
     const handleSettingsUpdate = () => {
       fetchHotelInfo();
     };
