@@ -1,0 +1,25 @@
+
+/* Global styles to properly size Lucide icons when size prop is used */
+svg[data-lucide] {
+  width: 1em;
+  height: 1em;
+}
+
+/* For specific icon sizes that might be used in the app */
+.icon-size-16 svg[data-lucide],
+svg[data-lucide].icon-size-16 {
+  width: 16px;
+  height: 16px;
+}
+
+.icon-size-20 svg[data-lucide],
+svg[data-lucide].icon-size-20 {
+  width: 20px;
+  height: 20px;
+}
+
+.icon-size-24 svg[data-lucide],
+svg[data-lucide].icon-size-24 {
+  width: 24px;
+  height: 24px;
+}
