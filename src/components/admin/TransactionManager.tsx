@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -834,99 +833,97 @@ const TransactionManager: React.FC = () => {
                 </TabsContent>
                 
                 <TabsContent value="analytics" className="mt-0">
-                  <div className="flex flex-col gap-6">
-                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-lg">Transaction Status</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="h-80">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <PieChart>
-                                <Pie
-                                  data={statusData}
-                                  cx="50%"
-                                  cy="50%"
-                                  labelLine={false}
-                                  outerRadius={80}
-                                  fill="#8884d8"
-                                  dataKey="value"
-                                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                                >
-                                  {statusData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                  ))}
-                                </Pie>
-                                <Legend />
-                                <RechartsTooltip 
-                                  formatter={(value, name) => [`${value} Transactions`, `Status: ${name}`]}
-                                />
-                              </PieChart>
-                            </ResponsiveContainer>
-                          </div>
-                        </CardContent>
-                      </Card>
-                      
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-lg">Admin Status</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="h-80">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <PieChart>
-                                <Pie
-                                  data={adminStatusData}
-                                  cx="50%"
-                                  cy="50%"
-                                  labelLine={false}
-                                  outerRadius={80}
-                                  fill="#8884d8"
-                                  dataKey="value"
-                                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                                >
-                                  {adminStatusData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                  ))}
-                                </Pie>
-                                <Legend />
-                                <RechartsTooltip 
-                                  formatter={(value, name) => [`${value} Transactions`, `Admin Status: ${name}`]}
-                                />
-                              </PieChart>
-                            </ResponsiveContainer>
-                          </div>
-                        </CardContent>
-                      </Card>
-                      
-                      <Card className="lg:col-span-2">
-                        <CardHeader>
-                          <CardTitle className="text-lg">Revenue by Location</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="h-80">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <BarChart data={locationData}>
-                                <XAxis dataKey="name" />
-                                <YAxis 
-                                  tickFormatter={(value) => formatPrice(value)}
-                                />
-                                <RechartsTooltip 
-                                  formatter={(value) => [formatPrice(value as number), 'Revenue']}
-                                />
-                                <Legend />
-                                <Bar dataKey="value" name="Revenue" fill="#4f46e5">
-                                  {locationData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                  ))}
-                                </Bar>
-                              </BarChart>
-                            </ResponsiveContainer>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Transaction Status</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-80">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={statusData}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                outerRadius={80}
+                                fill="#8884d8"
+                                dataKey="value"
+                                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                              >
+                                {statusData.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                              </Pie>
+                              <RechartsTooltip formatter={(value: any) => [`${value} transactions`, 'Count']} />
+                              <Legend />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Admin Status</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-80">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={adminStatusData}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                outerRadius={80}
+                                fill="#8884d8"
+                                dataKey="value"
+                                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                              >
+                                {adminStatusData.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                              </Pie>
+                              <RechartsTooltip formatter={(value: any) => [`${value} transactions`, 'Count']} />
+                              <Legend />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card className="lg:col-span-2">
+                      <CardHeader>
+                        <CardTitle>Transaction Amount by Location</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-80">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                              data={locationData}
+                              margin={{
+                                top: 20,
+                                right: 30,
+                                left: 20,
+                                bottom: 5,
+                              }}
+                            >
+                              <XAxis dataKey="name" />
+                              <YAxis />
+                              <RechartsTooltip formatter={(value: any) => [formatPrice(value), 'Amount']} />
+                              <Legend />
+                              <Bar dataKey="value" fill="#8884d8">
+                                {locationData.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                              </Bar>
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
                 </TabsContent>
               </div>

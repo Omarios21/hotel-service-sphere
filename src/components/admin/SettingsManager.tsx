@@ -19,9 +19,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { TimePicker } from "@/components/admin/TimePicker";
 import { Switch } from "@/components/ui/switch";
-import { Info, AlertCircle } from "lucide-react";
+import { Info, AlertCircle, Hotel, Clock, Coffee, Wifi, Waves } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
+interface HotelInfo {
+  id: string;
+  name: string;
+  tagline: string;
+  checkout_time: string;
+  breakfast_time: string;
+  wifi_code: string;
+  pool_hours: string;
+}
 
 const SettingsManager = () => {
   // Currency rates
@@ -47,12 +57,23 @@ const SettingsManager = () => {
     }
   });
 
+  // Hotel information
+  const [hotelInfo, setHotelInfo] = useState<HotelInfo>({
+    id: '',
+    name: 'Grand Azure Resort',
+    tagline: 'Where luxury meets tranquility',
+    checkout_time: '11:00 AM',
+    breakfast_time: '7:00 AM - 10:30 AM',
+    wifi_code: 'AZURE2025',
+    pool_hours: '8:00 AM - 8:00 PM'
+  });
+
   // Error state
   const [error, setError] = useState<string | null>(null);
   // Loading state
   const [isSaving, setIsSaving] = useState(false);
   
-  // Load currency rates and service hours from database
+  // Load currency rates, service hours, and hotel info from database
   useEffect(() => {
     const loadSettings = async () => {
       try {
@@ -123,6 +144,22 @@ const SettingsManager = () => {
           
           setServiceHours(hoursObj);
         }
+
+        // Load hotel info
+        const { data: hotelData, error: hotelError } = await supabase
+          .from('hotel_info')
+          .select('*')
+          .order('updated_at', { ascending: false })
+          .limit(1);
+
+        if (hotelError) {
+          console.error('Error loading hotel info:', hotelError);
+          toast.warning('Could not load hotel information from database');
+        }
+
+        if (hotelData && hotelData.length > 0) {
+          setHotelInfo(hotelData[0] as HotelInfo);
+        }
       } catch (error: any) {
         console.error('Error loading settings:', error);
         setError('Failed to load settings. Please try again later.');
@@ -192,6 +229,14 @@ const SettingsManager = () => {
         startTime: is24Hours ? "00:00" : prev[service].startTime,
         endTime: is24Hours ? "23:59" : prev[service].endTime
       }
+    }));
+  };
+
+  // Handle hotel info changes
+  const handleHotelInfoChange = (field: keyof HotelInfo, value: string) => {
+    setHotelInfo(prev => ({
+      ...prev,
+      [field]: value
     }));
   };
   
@@ -278,6 +323,49 @@ const SettingsManager = () => {
           throw error;
         }
       }
+
+      // Save hotel info
+      try {
+        if (hotelInfo.id) {
+          // Update existing record
+          const { error: updateError } = await supabase
+            .from('hotel_info')
+            .update({
+              name: hotelInfo.name,
+              tagline: hotelInfo.tagline,
+              checkout_time: hotelInfo.checkout_time,
+              breakfast_time: hotelInfo.breakfast_time,
+              wifi_code: hotelInfo.wifi_code,
+              pool_hours: hotelInfo.pool_hours,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', hotelInfo.id);
+
+          if (updateError) throw updateError;
+        } else {
+          // Insert new record
+          const { data, error: insertError } = await supabase
+            .from('hotel_info')
+            .insert({
+              name: hotelInfo.name,
+              tagline: hotelInfo.tagline,
+              checkout_time: hotelInfo.checkout_time,
+              breakfast_time: hotelInfo.breakfast_time,
+              wifi_code: hotelInfo.wifi_code,
+              pool_hours: hotelInfo.pool_hours
+            })
+            .select();
+
+          if (insertError) throw insertError;
+          
+          if (data && data.length > 0) {
+            setHotelInfo(data[0] as HotelInfo);
+          }
+        }
+      } catch (error) {
+        console.error('Error saving hotel info:', error);
+        throw error;
+      }
       
       toast.success('Settings saved successfully');
       
@@ -311,6 +399,93 @@ const SettingsManager = () => {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Hotel Information</CardTitle>
+          <CardDescription>
+            Configure the hotel information displayed on the Home page
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="hotelName">Hotel Name</Label>
+              <div className="flex items-center">
+                <Hotel className="h-4 w-4 mr-2 text-muted-foreground" />
+                <Input
+                  id="hotelName"
+                  value={hotelInfo.name}
+                  onChange={(e) => handleHotelInfoChange('name', e.target.value)}
+                  className="border-primary/20 focus-visible:ring-primary/30"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="hotelTagline">Tagline</Label>
+              <Input
+                id="hotelTagline"
+                value={hotelInfo.tagline}
+                onChange={(e) => handleHotelInfoChange('tagline', e.target.value)}
+                className="border-primary/20 focus-visible:ring-primary/30"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="checkoutTime">Checkout Time</Label>
+              <div className="flex items-center">
+                <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+                <Input
+                  id="checkoutTime"
+                  value={hotelInfo.checkout_time}
+                  onChange={(e) => handleHotelInfoChange('checkout_time', e.target.value)}
+                  className="border-primary/20 focus-visible:ring-primary/30"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="breakfastTime">Breakfast Time</Label>
+              <div className="flex items-center">
+                <Coffee className="h-4 w-4 mr-2 text-muted-foreground" />
+                <Input
+                  id="breakfastTime"
+                  value={hotelInfo.breakfast_time}
+                  onChange={(e) => handleHotelInfoChange('breakfast_time', e.target.value)}
+                  className="border-primary/20 focus-visible:ring-primary/30"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="wifiCode">WiFi Access Code</Label>
+              <div className="flex items-center">
+                <Wifi className="h-4 w-4 mr-2 text-muted-foreground" />
+                <Input
+                  id="wifiCode"
+                  value={hotelInfo.wifi_code}
+                  onChange={(e) => handleHotelInfoChange('wifi_code', e.target.value)}
+                  className="border-primary/20 focus-visible:ring-primary/30"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="poolHours">Swimming Pool Hours</Label>
+              <div className="flex items-center">
+                <Waves className="h-4 w-4 mr-2 text-muted-foreground" />
+                <Input
+                  id="poolHours"
+                  value={hotelInfo.pool_hours}
+                  onChange={(e) => handleHotelInfoChange('pool_hours', e.target.value)}
+                  className="border-primary/20 focus-visible:ring-primary/30"
+                />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
       
       <Card>
         <CardHeader>

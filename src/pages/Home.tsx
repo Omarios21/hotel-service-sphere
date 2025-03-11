@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
@@ -6,6 +7,7 @@ import { Calendar, Clock, Wifi, ChevronRight, Coffee, Waves } from 'lucide-react
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
 import DeliveryStatus from '@/components/home/DeliveryStatus';
 import DeliveryFollowUp from '@/components/room-service/DeliveryFollowUp';
 import SpaBookingStatus from '@/components/spa/SpaBookingStatus';
@@ -25,6 +27,15 @@ interface Activity {
   status: 'upcoming' | 'ongoing';
 }
 
+interface HotelInfo {
+  name: string;
+  tagline: string;
+  checkout_time: string;
+  breakfast_time: string;
+  wifi_code: string;
+  pool_hours: string;
+}
+
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -37,14 +48,14 @@ const Home: React.FC = () => {
   const [currentSpaBooking, setCurrentSpaBooking] = useState<SpaBooking | null>(null);
   const [currentActivityBooking, setCurrentActivityBooking] = useState<ActivityBooking | null>(null);
   
-  const hotelInfo = {
+  const [hotelInfo, setHotelInfo] = useState<HotelInfo>({
     name: "Grand Azure Resort",
     tagline: "Where luxury meets tranquility",
-    checkoutTime: "11:00 AM",
-    breakfastTime: "7:00 AM - 10:30 AM",
-    wifiCode: "AZURE2025",
-    poolHours: "8:00 AM - 8:00 PM"
-  };
+    checkout_time: "11:00 AM",
+    breakfast_time: "7:00 AM - 10:30 AM",
+    wifi_code: "AZURE2025",
+    pool_hours: "8:00 AM - 8:00 PM"
+  });
   
   const [activities, setActivities] = useState<Activity[]>([
     {
@@ -69,6 +80,50 @@ const Home: React.FC = () => {
       status: 'ongoing'
     }
   ]);
+
+  // Fetch hotel info from Supabase
+  useEffect(() => {
+    const fetchHotelInfo = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('hotel_info')
+          .select('*')
+          .order('updated_at', { ascending: false })
+          .limit(1);
+        
+        if (error) {
+          console.error('Error fetching hotel info:', error);
+          return;
+        }
+        
+        if (data && data.length > 0) {
+          setHotelInfo({
+            name: data[0].name,
+            tagline: data[0].tagline,
+            checkout_time: data[0].checkout_time,
+            breakfast_time: data[0].breakfast_time,
+            wifi_code: data[0].wifi_code,
+            pool_hours: data[0].pool_hours
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching hotel info:', err);
+      }
+    };
+    
+    fetchHotelInfo();
+    
+    // Listen for settings updates
+    const handleSettingsUpdate = () => {
+      fetchHotelInfo();
+    };
+    
+    window.addEventListener('settingsUpdated', handleSettingsUpdate);
+    
+    return () => {
+      window.removeEventListener('settingsUpdated', handleSettingsUpdate);
+    };
+  }, []);
 
   useEffect(() => {
     const sortedActivities = [...activities].sort((a, b) => {
@@ -216,7 +271,7 @@ const Home: React.FC = () => {
                       </div>
                       <div>
                         <span className="text-muted-foreground font-light">{t('home.checkout')}</span>
-                        <p className="font-medium text-base">{hotelInfo.checkoutTime}</p>
+                        <p className="font-medium text-base">{hotelInfo.checkout_time}</p>
                       </div>
                     </div>
                     
@@ -226,7 +281,7 @@ const Home: React.FC = () => {
                       </div>
                       <div>
                         <span className="text-muted-foreground font-light">{t('home.wifiAccess')}</span>
-                        <p className="font-medium font-mono text-base">{hotelInfo.wifiCode}</p>
+                        <p className="font-medium font-mono text-base">{hotelInfo.wifi_code}</p>
                       </div>
                     </div>
                     
@@ -236,7 +291,7 @@ const Home: React.FC = () => {
                       </div>
                       <div>
                         <span className="text-muted-foreground font-light">{t('home.breakfast')}</span>
-                        <p className="font-medium text-base">{hotelInfo.breakfastTime}</p>
+                        <p className="font-medium text-base">{hotelInfo.breakfast_time}</p>
                       </div>
                     </div>
                     
@@ -246,7 +301,7 @@ const Home: React.FC = () => {
                       </div>
                       <div>
                         <span className="text-muted-foreground font-light">Swimming Pool</span>
-                        <p className="font-medium text-base">{hotelInfo.poolHours}</p>
+                        <p className="font-medium text-base">{hotelInfo.pool_hours}</p>
                       </div>
                     </div>
                   </div>
