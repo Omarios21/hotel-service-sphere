@@ -1,15 +1,11 @@
 
-import React from 'react'
-import ReactDOM from 'react-dom/client'
+import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
-import './styles/lucide-icon-fix.css'
-import { ThemeProvider } from './contexts/ThemeContext'
+import { LanguageProvider } from './contexts/LanguageContext'
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <ThemeProvider>
-      <App />
-    </ThemeProvider>
-  </React.StrictMode>,
-)
+createRoot(document.getElementById("root")!).render(
+  <LanguageProvider>
+    <App />
+  </LanguageProvider>
+);
