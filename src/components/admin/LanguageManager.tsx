@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { Check, X, Plus } from 'lucide-react';
+import { Check, X, Plus, AlertCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import SearchBar from './SearchBar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -34,37 +34,70 @@ const defaultLanguages: LanguageSetting[] = [
 const LanguageManager: React.FC = () => {
   const [languages, setLanguages] = useState<LanguageSetting[]>(defaultLanguages);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [newLangCode, setNewLangCode] = useState('');
   const [newLangName, setNewLangName] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 3;
 
   useEffect(() => {
     fetchLanguageSettings();
-  }, []);
+  }, [retryCount]);
 
   const fetchLanguageSettings = async () => {
     try {
       setLoading(true);
+      setFetchError(null);
       
-      const { data, error } = await supabase
+      // Use a timeout to prevent infinite loading if the network is completely down
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Request timeout')), 5000)
+      );
+      
+      const fetchPromise = supabase
         .from('language_settings')
         .select('*');
       
+      // Race between timeout and fetch
+      const { data, error } = await Promise.race([
+        fetchPromise,
+        timeoutPromise.then(() => ({ data: null, error: new Error('Request timeout') }))
+      ]) as any;
+      
       if (error) {
         console.error('Error fetching languages:', error);
+        
+        // If we have network errors and haven't exceeded max retries, try again
+        if (retryCount < maxRetries) {
+          console.log(`Retry attempt ${retryCount + 1} of ${maxRetries}`);
+          setRetryCount(prev => prev + 1);
+          return;
+        }
+        
+        setFetchError(`Failed to load languages. Using default values.`);
         setLanguages(defaultLanguages);
+        toast.error('Using default language settings due to connection issues');
       } else if (data && Array.isArray(data) && data.length > 0) {
+        console.log('Successfully fetched language settings:', data.length);
         setLanguages(data as LanguageSetting[]);
       } else {
-        // S'il n'y a pas de données, initialisez avec les valeurs par défaut
-        await saveLanguageSettings(defaultLanguages);
+        console.log('No language settings found. Using defaults.');
+        // If there are no data, initialize with default values
+        // But don't try to save if we might have connection issues
+        if (!error && retryCount === 0) {
+          await saveLanguageSettings(defaultLanguages);
+        } else {
+          setLanguages(defaultLanguages);
+        }
       }
     } catch (error: any) {
       console.error('Error loading language settings:', error);
-      toast.error('Error loading language settings', { duration: 2000 });
+      setFetchError(`Failed to load: ${error.message || 'Unknown error'}`);
+      toast.error('Error loading language settings', { duration: 3000 });
       setLanguages(defaultLanguages);
     } finally {
       setLoading(false);
@@ -74,11 +107,22 @@ const LanguageManager: React.FC = () => {
   const saveLanguageSettings = async (langSettings: LanguageSetting[]) => {
     try {
       setSaving(true);
+      setFetchError(null);
       
-      // Batch the upsert operation
-      const { error } = await supabase
+      // Use a timeout for the save operation as well
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Save timeout')), 5000)
+      );
+      
+      const savePromise = supabase
         .from('language_settings')
         .upsert(langSettings);
+      
+      // Race between timeout and save
+      const { error } = await Promise.race([
+        savePromise,
+        timeoutPromise.then(() => ({ error: new Error('Save operation timed out') }))
+      ]) as any;
       
       if (error) throw error;
       
@@ -86,7 +130,7 @@ const LanguageManager: React.FC = () => {
       toast.success('Language settings saved', { duration: 2000 });
     } catch (error: any) {
       console.error('Error saving language settings:', error);
-      toast.error('Error saving language settings', { duration: 2000 });
+      toast.error(`Failed to save: ${error.message || 'Network error'}`, { duration: 3000 });
     } finally {
       setSaving(false);
     }
@@ -125,6 +169,11 @@ const LanguageManager: React.FC = () => {
     setShowAddForm(false);
     
     saveLanguageSettings(updatedLanguages);
+  };
+
+  const handleRetry = () => {
+    setRetryCount(0);
+    fetchLanguageSettings();
   };
 
   const filteredLanguages = useMemo(() => {
@@ -172,12 +221,26 @@ const LanguageManager: React.FC = () => {
           )}
           <Button 
             onClick={handleSaveChanges} 
-            disabled={saving}
+            disabled={saving || loading}
           >
             {saving ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
       </div>
+      
+      {fetchError && (
+        <Card className="mb-6 border-yellow-400">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-yellow-600">
+              <AlertCircle className="h-5 w-5" />
+              <p>{fetchError}</p>
+              <Button variant="outline" size="sm" onClick={handleRetry} className="ml-auto">
+                Retry
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       
       {showAddForm && (
         <Card className="mb-6">
