@@ -674,17 +674,7 @@ const TransactionManager: React.FC = () => {
                                 </TableHeader>
                                 <TableBody>
                                   {filteredTransactions.map((transaction, index) => (
-                                    <motion.tr 
-                                      key={transaction.id}
-                                      initial={{ opacity: 0, y: 10 }}
-                                      animate={{ opacity: 1, y: 0 }}
-                                      transition={{ delay: index * 0.03, duration: 0.2 }}
-                                      className={`
-                                        border-b transition-colors last:border-0
-                                        ${index % 2 === 0 ? 'bg-card' : 'bg-muted/10'}
-                                        hover:bg-muted/20 dark:hover:bg-muted/10
-                                      `}
-                                    >
+                                    <TableRow key={transaction.id}>
                                       <TableCell className="py-3">
                                         <Checkbox 
                                           checked={selectedTransactions.includes(transaction.id)}
@@ -767,4 +757,196 @@ const TransactionManager: React.FC = () => {
                                                 ? 'text-slate-600 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300' 
                                                 : 'text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300'
                                             } hover:bg-slate-50 dark:hover:bg-slate-800/60`}
-                                            onClick={() => handleUpdateAdminStatus
+                                            onClick={() => handleUpdateAdminStatus(transaction.id, transaction.admin_status === 'open' ? 'closed' : 'open')}
+                                          >
+                                            {transaction.admin_status === 'open' ? (
+                                              <Lock className="h-4 w-4" />
+                                            ) : (
+                                              <Unlock className="h-4 w-4" />
+                                            )}
+                                          </Button>
+                                        </div>
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </div>
+                          </Card>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="analytics" className="mt-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Transaction Status Distribution</CardTitle>
+                      </CardHeader>
+                      <CardContent className="flex justify-center">
+                        <ResponsiveContainer width="100%" height={300}>
+                          <PieChart>
+                            <Pie
+                              data={statusData}
+                              dataKey="value"
+                              nameKey="name"
+                              cx="50%"
+                              cy="50%"
+                              outerRadius={80}
+                            >
+                              {statusData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <RechartsTooltip />
+                            <Legend />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Location Distribution</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={300}>
+                          <BarChart data={locationData}>
+                            <XAxis dataKey="name" />
+                            <YAxis />
+                            <RechartsTooltip />
+                            <Bar dataKey="value" fill="#8884d8">
+                              {locationData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </TabsContent>
+              </div>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </motion.div>
+      
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogHeader>
+          <DialogTitle>Update Status</DialogTitle>
+          <DialogDescription>
+            Select transactions and choose a new status.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogContent>
+          <div className="flex flex-col gap-4">
+            <Select value={bulkAction} onValueChange={setBulkAction}>
+              <SelectTrigger className="w-[150px] border-primary/20">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="paid">Paid</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleBulkStatusUpdate}
+              className="border-primary/20 hover:border-primary/40"
+            >
+              Update
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={isAdminStatusDialogOpen} onOpenChange={setIsAdminStatusDialogOpen}>
+        <DialogHeader>
+          <DialogTitle>Update Admin Status</DialogTitle>
+          <DialogDescription>
+            Select transactions and choose a new admin status.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogContent>
+          <div className="flex flex-col gap-4">
+            <Select value={bulkAdminStatus} onValueChange={setBulkAdminStatus}>
+              <SelectTrigger className="w-[150px] border-primary/20">
+                <SelectValue placeholder="Admin Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="open">Open</SelectItem>
+                <SelectItem value="closed">Closed</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleBulkAdminStatusUpdate}
+              className="border-primary/20 hover:border-primary/40"
+            >
+              Update
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={showTransactionLogs} onOpenChange={setShowTransactionLogs}>
+        <DialogHeader>
+          <DialogTitle>Transaction History</DialogTitle>
+          <DialogDescription>
+            View the history of a selected transaction.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogContent>
+          <div className="flex flex-col gap-4">
+            <Table>
+              <TableHeader className="bg-muted/30">
+                <TableRow>
+                  <TableHead>Date & Time</TableHead>
+                  <TableHead>Changed By</TableHead>
+                  <TableHead>Previous Status</TableHead>
+                  <TableHead>New Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {transactionLogs.map(log => (
+                  <TableRow key={log.id}>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <Calendar className="h-4 w-4 mr-2 text-muted-foreground flex-shrink-0" />
+                        <Badge variant="outline" className="font-medium whitespace-nowrap">
+                          {format(new Date(log.changed_at), 'MMM d, yyyy HH:mm')}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="bg-secondary/20 hover:bg-secondary/30 transition-colors">
+                        {log.changed_by_name}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="bg-secondary/20 hover:bg-secondary/30 transition-colors">
+                        {log.previous_status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="bg-secondary/20 hover:bg-secondary/30 transition-colors">
+                        {log.new_status}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default TransactionManager;
