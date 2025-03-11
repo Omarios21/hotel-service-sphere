@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -576,7 +575,7 @@ const TransactionManager: React.FC = () => {
                                 className="rounded-sm data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
                               />
                             </TableHead>
-                            <TableHead>Date & Time</TableHead>
+                            <TableHead className="w-48">Date & Time</TableHead>
                             <TableHead>Room</TableHead>
                             <TableHead>Guest</TableHead>
                             <TableHead>Description</TableHead>
@@ -601,7 +600,9 @@ const TransactionManager: React.FC = () => {
                               <TableCell>
                                 <div className="flex items-center">
                                   <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                                  {format(new Date(transaction.date), 'MMM d, yyyy HH:mm')}
+                                  <Badge variant="outline" className="font-medium">
+                                    {format(new Date(transaction.date), 'MMM d, yyyy HH:mm')}
+                                  </Badge>
                                 </div>
                               </TableCell>
                               <TableCell>
