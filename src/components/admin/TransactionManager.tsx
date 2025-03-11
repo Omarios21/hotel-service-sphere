@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -778,4 +779,292 @@ const TransactionManager: React.FC = () => {
                                             size="sm"
                                             className={`h-8 px-2 ${
                                               transaction.admin_status === 'open' 
-                                                ? 'text-slate-600 hover:text-slate-700 dark:text-slate-400 dark:
+                                                ? 'text-slate-600 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300 dark:hover:bg-slate-800/60'
+                                                : 'text-slate-400 dark:text-slate-600'
+                                            }`}
+                                            onClick={() => handleUpdateAdminStatus(
+                                              transaction.id, 
+                                              transaction.admin_status === 'open' ? 'closed' : 'open'
+                                            )}
+                                            disabled={transaction.admin_status === 'closed'}
+                                            title={transaction.admin_status === 'open' ? 'Close Transaction' : 'Transaction Closed'}
+                                          >
+                                            {transaction.admin_status === 'open' ? (
+                                              <Lock className="h-4 w-4" />
+                                            ) : (
+                                              <Unlock className="h-4 w-4" />
+                                            )}
+                                          </Button>
+                                          
+                                          {transaction.status === 'pending' && (
+                                            <>
+                                              <Button 
+                                                variant="ghost" 
+                                                size="sm"
+                                                className="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/20"
+                                                onClick={() => handleUpdateStatus(transaction.id, 'paid')}
+                                                title="Mark as Paid"
+                                              >
+                                                <CheckCircle2 className="h-4 w-4" />
+                                              </Button>
+                                              
+                                              <Button 
+                                                variant="ghost" 
+                                                size="sm"
+                                                className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
+                                                onClick={() => handleUpdateStatus(transaction.id, 'cancelled')}
+                                                title="Mark as Cancelled"
+                                              >
+                                                <XCircle className="h-4 w-4" />
+                                              </Button>
+                                            </>
+                                          )}
+                                        </div>
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </div>
+                          </Card>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="analytics" className="mt-0">
+                  <div className="flex flex-col gap-6">
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">Transaction Status</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="h-80">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <PieChart>
+                                <Pie
+                                  data={statusData}
+                                  cx="50%"
+                                  cy="50%"
+                                  labelLine={false}
+                                  outerRadius={80}
+                                  fill="#8884d8"
+                                  dataKey="value"
+                                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                >
+                                  {statusData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                  ))}
+                                </Pie>
+                                <Legend />
+                                <RechartsTooltip 
+                                  formatter={(value, name) => [`${value} Transactions`, `Status: ${name}`]}
+                                />
+                              </PieChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">Admin Status</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="h-80">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <PieChart>
+                                <Pie
+                                  data={adminStatusData}
+                                  cx="50%"
+                                  cy="50%"
+                                  labelLine={false}
+                                  outerRadius={80}
+                                  fill="#8884d8"
+                                  dataKey="value"
+                                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                >
+                                  {adminStatusData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                  ))}
+                                </Pie>
+                                <Legend />
+                                <RechartsTooltip 
+                                  formatter={(value, name) => [`${value} Transactions`, `Admin Status: ${name}`]}
+                                />
+                              </PieChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card className="lg:col-span-2">
+                        <CardHeader>
+                          <CardTitle className="text-lg">Revenue by Location</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="h-80">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <BarChart data={locationData}>
+                                <XAxis dataKey="name" />
+                                <YAxis 
+                                  tickFormatter={(value) => formatPrice(value)}
+                                />
+                                <RechartsTooltip 
+                                  formatter={(value) => [formatPrice(value as number), 'Revenue']}
+                                />
+                                <Legend />
+                                <Bar dataKey="value" name="Revenue" fill="#4f46e5">
+                                  {locationData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                  ))}
+                                </Bar>
+                              </BarChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                </TabsContent>
+              </div>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </motion.div>
+      
+      {/* Admin Name Dialog */}
+      <Dialog open={showNamePrompt} onOpenChange={setShowNamePrompt}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enter Your Name</DialogTitle>
+            <DialogDescription>
+              Your name will be recorded when you make changes to transactions.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              value={adminName}
+              onChange={(e) => setAdminName(e.target.value)}
+              placeholder="Your name"
+              className="w-full"
+            />
+          </div>
+          <DialogFooter>
+            <Button onClick={saveAdminName}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Bulk Status Update Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Transaction Status</DialogTitle>
+            <DialogDescription>
+              Change the status for {selectedTransactions.length} selected transactions.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Select value={bulkAction} onValueChange={handleBulkActionChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select new status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="paid">Mark as Paid</SelectItem>
+                <SelectItem value="cancelled">Mark as Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleBulkStatusUpdate} disabled={!bulkAction}>
+              Update {selectedTransactions.length} transactions
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Bulk Admin Status Update Dialog */}
+      <Dialog open={isAdminStatusDialogOpen} onOpenChange={setIsAdminStatusDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Admin Status</DialogTitle>
+            <DialogDescription>
+              Change the admin status for {selectedTransactions.length} selected transactions.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Select value={bulkAdminStatus} onValueChange={handleBulkAdminStatusChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select new admin status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="open">Open</SelectItem>
+                <SelectItem value="closed">Closed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAdminStatusDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleBulkAdminStatusUpdate}>
+              Update {selectedTransactions.length} transactions
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Transaction History Dialog */}
+      <Dialog open={showTransactionLogs} onOpenChange={setShowTransactionLogs}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Transaction History</DialogTitle>
+            <DialogDescription>
+              View the history of status changes for this transaction.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 max-h-[400px] overflow-y-auto">
+            {transactionLogs.length === 0 ? (
+              <p className="text-center text-muted-foreground">No history available</p>
+            ) : (
+              <div className="space-y-4">
+                {transactionLogs.map((log) => (
+                  <div key={log.id} className="border rounded-lg p-3 bg-secondary/10">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium">{log.changed_by_name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {format(new Date(log.changed_at), 'MMM d, yyyy HH:mm')}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className={getStatusColor(log.previous_status)}>
+                        {log.previous_status.charAt(0).toUpperCase() + log.previous_status.slice(1)}
+                      </Badge>
+                      <ArrowDownUp className="h-4 w-4 text-muted-foreground" />
+                      <Badge variant="outline" className={getStatusColor(log.new_status)}>
+                        {log.new_status.charAt(0).toUpperCase() + log.new_status.slice(1)}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTransactionLogs(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default TransactionManager;
