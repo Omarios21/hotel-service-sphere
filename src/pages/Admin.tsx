@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,6 +16,7 @@ import LanguageManager from '@/components/admin/LanguageManager';
 import SettingsManager from '@/components/admin/SettingsManager';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 const Admin: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>('transactions');
@@ -109,34 +111,37 @@ const Admin: React.FC = () => {
   };
   
   return (
-    <div className="flex h-screen overflow-hidden">
-      <div className={cn(
-        "transition-all duration-300 ease-in-out relative",
-        sidebarCollapsed ? "w-16" : "w-64"
-      )}>
-        <AdminSidebar 
-          onNavigate={setActiveSection} 
-          activeSection={activeSection} 
-          collapsed={sidebarCollapsed}
-        />
-        <button 
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 bg-primary text-white p-1 rounded-full shadow-md z-10"
-          onClick={toggleSidebar}
-        >
-          {sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-        </button>
-      </div>
-      
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <AdminHeader onSignOut={handleSignOut} />
+    <ThemeProvider>
+      <div className="flex h-screen overflow-hidden bg-background text-foreground transition-colors duration-300">
+        <div className={cn(
+          "transition-all duration-300 ease-in-out relative",
+          sidebarCollapsed ? "w-16" : "w-64"
+        )}>
+          <AdminSidebar 
+            onNavigate={setActiveSection} 
+            activeSection={activeSection} 
+            collapsed={sidebarCollapsed}
+          />
+          <button 
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 bg-primary text-primary-foreground p-1 rounded-full shadow-md z-10 hover:scale-110 transition-transform"
+            onClick={toggleSidebar}
+            aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          </button>
+        </div>
         
-        <main className="flex-1 overflow-y-auto p-4 md:p-6">
-          <div className="max-w-7xl mx-auto">
-            {renderActiveSection()}
-          </div>
-        </main>
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <AdminHeader onSignOut={handleSignOut} />
+          
+          <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-background">
+            <div className="max-w-7xl mx-auto">
+              {renderActiveSection()}
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    </ThemeProvider>
   );
 };
 

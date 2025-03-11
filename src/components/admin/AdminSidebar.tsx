@@ -10,8 +10,10 @@ import {
   Bell, 
   Users, 
   Settings,
-  Globe
+  Globe,
+  Hotel
 } from 'lucide-react';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface AdminSidebarProps {
   onNavigate: (section: string) => void;
@@ -24,6 +26,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   activeSection,
   collapsed 
 }) => {
+  const { theme } = useTheme();
+  
   const menuItems = [
     { 
       id: 'transactions', 
@@ -73,15 +77,16 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   ];
 
   return (
-    <aside className="h-full bg-background border-r border-border p-2 overflow-y-auto">
+    <aside className="h-full bg-card border-r border-border p-2 overflow-y-auto shadow-sm transition-colors duration-300">
       <div className="flex flex-col h-full">
         <div className="mb-6 p-2">
-          <h1 className={cn(
-            "font-bold transition-all duration-200",
-            collapsed ? "text-xs text-center" : "text-xl"
+          <div className={cn(
+            "font-bold transition-all duration-200 flex items-center",
+            collapsed ? "justify-center" : "justify-start"
           )}>
-            {collapsed ? "Admin" : "Hotel Admin"}
-          </h1>
+            <Hotel className={cn("text-primary", collapsed ? "h-8 w-8" : "h-6 w-6 mr-2")} />
+            {!collapsed && <span className="text-xl">Hotel Admin</span>}
+          </div>
         </div>
         
         <nav className="flex-1">
@@ -91,14 +96,23 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 <button
                   onClick={() => onNavigate(item.id)}
                   className={cn(
-                    "flex items-center w-full px-3 py-2 rounded-md transition-colors",
-                    "hover:bg-accent hover:text-accent-foreground",
-                    activeSection === item.id ? "bg-accent text-accent-foreground" : "text-foreground",
+                    "flex items-center w-full px-3 py-2 rounded-md transition-all duration-200",
+                    "hover:bg-primary/10",
+                    activeSection === item.id 
+                      ? "bg-primary text-primary-foreground" 
+                      : "text-foreground",
                     collapsed ? "justify-center" : "justify-start"
                   )}
                 >
                   {item.icon}
-                  {!collapsed && <span className="ml-3">{item.name}</span>}
+                  {!collapsed && (
+                    <span className={cn(
+                      "ml-3 transition-opacity",
+                      activeSection === item.id ? "font-medium" : ""
+                    )}>
+                      {item.name}
+                    </span>
+                  )}
                 </button>
               </li>
             ))}
