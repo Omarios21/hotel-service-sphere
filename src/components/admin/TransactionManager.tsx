@@ -1,11 +1,13 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CreditCard, Search, ArrowDownUp, Clock, CheckCircle2, XCircle, Check, Clipboard, Lock, Unlock, Calendar, DollarSign, User, FileText } from 'lucide-react';
+import { CreditCard, Search, ArrowDownUp, Clock, CheckCircle2, XCircle, Check, Clipboard, Lock, Unlock, Calendar, DollarSign, User, FileText, Filter, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { PieChart, Pie, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +30,7 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
+import { motion } from 'framer-motion';
 
 interface Transaction {
   id: string;
@@ -62,6 +65,7 @@ const TransactionManager: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const { formatPrice } = useLanguage();
+  const { theme } = useTheme();
   const [selectedTransactions, setSelectedTransactions] = useState<string[]>([]);
   const [adminName, setAdminName] = useState<string>(localStorage.getItem('adminName') || 'Admin');
   const [showNamePrompt, setShowNamePrompt] = useState(false);
@@ -72,6 +76,7 @@ const TransactionManager: React.FC = () => {
   const [showTransactionLogs, setShowTransactionLogs] = useState(false);
   const [currentTransactionId, setCurrentTransactionId] = useState<string>('');
   const [transactionLogs, setTransactionLogs] = useState<TransactionLog[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
   
   useEffect(() => {
     fetchTransactions();
@@ -169,19 +174,19 @@ const TransactionManager: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-      case 'paid': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'paid': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+      case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
       case 'failed': 
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'cancelled': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
     }
   };
   
   const getAdminStatusColor = (status: string) => {
     switch (status) {
-      case 'open': return 'bg-blue-100 text-blue-800';
-      case 'closed': return 'bg-slate-100 text-slate-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'open': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+      case 'closed': return 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
     }
   };
   
@@ -436,468 +441,641 @@ const TransactionManager: React.FC = () => {
   
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Transaction Management</CardTitle>
-          {selectedTransactions.length > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">{selectedTransactions.length} selected</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setIsDialogOpen(true);
-                }}
-              >
-                Update Status
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setIsAdminStatusDialogOpen(true);
-                }}
-              >
-                Update Admin Status
-              </Button>
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <Card className="overflow-hidden border-none shadow-md dark:bg-slate-900/60 dark:backdrop-blur-sm">
+          <CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-primary/10 to-transparent">
+            <div>
+              <CardTitle className="text-2xl">Transaction Management</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Manage and monitor all transactions
+              </p>
             </div>
-          )}
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="list">
-            <TabsList className="mb-4">
-              <TabsTrigger value="list">Transaction List</TabsTrigger>
-              <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="list">
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-                  <div className="relative w-full md:w-64">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search transactions..."
-                      className="pl-8"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="flex gap-2 w-full md:w-auto flex-wrap">
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger className="w-[110px]">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="paid">Paid</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    <Select value={adminStatusFilter} onValueChange={setAdminStatusFilter}>
-                      <SelectTrigger className="w-[140px]">
-                        <SelectValue placeholder="Admin Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Admin Status</SelectItem>
-                        <SelectItem value="open">Open</SelectItem>
-                        <SelectItem value="closed">Closed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    
-                    <Select value={typeFilter} onValueChange={setTypeFilter}>
-                      <SelectTrigger className="w-[110px]">
-                        <SelectValue placeholder="Type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Types</SelectItem>
-                        <SelectItem value="payment">Payment</SelectItem>
-                        <SelectItem value="topup">Top-up</SelectItem>
-                        <SelectItem value="access">Access</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    
-                    <button
-                      onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                      className="flex items-center gap-1 px-3 py-2 border rounded-md hover:bg-slate-100"
-                    >
-                      <ArrowDownUp className="h-4 w-4" />
-                      <span className="hidden sm:inline">{sortOrder === 'asc' ? 'Oldest' : 'Newest'}</span>
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-                  <Card className="bg-slate-50">
-                    <CardContent className="pt-6">
-                      <div className="text-2xl font-bold">{totalTransactions}</div>
-                      <p className="text-muted-foreground">Total Transactions</p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="bg-slate-50">
-                    <CardContent className="pt-6">
-                      <div className="text-2xl font-bold">{formatPrice(totalAmount)}</div>
-                      <p className="text-muted-foreground">Total Amount</p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="bg-slate-50">
-                    <CardContent className="pt-6">
-                      <div className="text-2xl font-bold">
-                        {new Set(filteredTransactions.map(item => item.room_id)).size}
+            {selectedTransactions.length > 0 && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex items-center gap-2"
+              >
+                <span className="text-sm font-medium">{selectedTransactions.length} selected</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setIsDialogOpen(true);
+                  }}
+                  className="border-primary/20 hover:border-primary/40"
+                >
+                  <Check size={16} className="mr-1" />
+                  Update Status
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setIsAdminStatusDialogOpen(true);
+                  }}
+                  className="border-primary/20 hover:border-primary/40"
+                >
+                  <Lock size={16} className="mr-1" />
+                  Update Admin Status
+                </Button>
+              </motion.div>
+            )}
+          </CardHeader>
+          <CardContent className="p-0">
+            <Tabs defaultValue="list" className="w-full">
+              <div className="px-6 pt-2 border-b">
+                <TabsList className="mb-2 w-full justify-start h-10 p-1 bg-secondary/30">
+                  <TabsTrigger value="list" className="flex gap-2 data-[state=active]:bg-background">
+                    <FileText size={16} />
+                    Transaction List
+                  </TabsTrigger>
+                  <TabsTrigger value="analytics" className="flex gap-2 data-[state=active]:bg-background">
+                    <BarChart size={16} />
+                    Analytics
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+              
+              <div className="p-6">
+                <TabsContent value="list" className="mt-0">
+                  <div className="flex flex-col gap-6">
+                    <div className="flex flex-wrap gap-4 items-center justify-between">
+                      <div className="relative w-full md:w-64">
+                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Search transactions..."
+                          className="pl-8 border-primary/20 focus-visible:ring-primary/30"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
                       </div>
-                      <p className="text-muted-foreground">Unique Rooms</p>
-                    </CardContent>
-                  </Card>
-                </div>
-                
-                {loading ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-                  </div>
-                ) : (
-                  <>
-                    {filteredTransactions.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        No transactions found matching your filters.
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowFilters(!showFilters)}
+                        className="border-primary/20 hover:border-primary/40"
+                      >
+                        <Filter size={16} className="mr-1" />
+                        Filters
+                        <ChevronDown size={14} className={`ml-1 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+                      </Button>
+                    </div>
+                    
+                    {showFilters && (
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="flex flex-wrap gap-3 pb-2"
+                      >
+                        <Select value={statusFilter} onValueChange={setStatusFilter}>
+                          <SelectTrigger className="w-[130px] border-primary/20">
+                            <SelectValue placeholder="Status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Status</SelectItem>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="paid">Paid</SelectItem>
+                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                          </SelectContent>
+                        </Select>
+
+                        <Select value={adminStatusFilter} onValueChange={setAdminStatusFilter}>
+                          <SelectTrigger className="w-[150px] border-primary/20">
+                            <SelectValue placeholder="Admin Status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Admin Status</SelectItem>
+                            <SelectItem value="open">Open</SelectItem>
+                            <SelectItem value="closed">Closed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        
+                        <Select value={typeFilter} onValueChange={setTypeFilter}>
+                          <SelectTrigger className="w-[130px] border-primary/20">
+                            <SelectValue placeholder="Type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Types</SelectItem>
+                            <SelectItem value="payment">Payment</SelectItem>
+                            <SelectItem value="topup">Top-up</SelectItem>
+                            <SelectItem value="access">Access</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        
+                        <Button
+                          variant="outline"
+                          onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                          className="flex items-center gap-1 border-primary/20 hover:border-primary/40"
+                        >
+                          <ArrowDownUp size={16} />
+                          <span className="hidden sm:inline">{sortOrder === 'asc' ? 'Oldest First' : 'Newest First'}</span>
+                        </Button>
+                      </motion.div>
+                    )}
+                    
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                      <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="col-span-1"
+                      >
+                        <Card className="bg-primary/5 border-primary/10 hover:shadow-lg transition-all">
+                          <CardContent className="flex items-center justify-between pt-6">
+                            <div>
+                              <p className="text-sm font-medium text-muted-foreground">Total Transactions</p>
+                              <h3 className="text-2xl font-bold mt-1">{totalTransactions}</h3>
+                            </div>
+                            <div className="bg-primary/10 p-3 rounded-full">
+                              <FileText className="h-5 w-5 text-primary" />
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                      
+                      <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="col-span-1"
+                      >
+                        <Card className="bg-green-500/5 border-green-500/10 hover:shadow-lg transition-all">
+                          <CardContent className="flex items-center justify-between pt-6">
+                            <div>
+                              <p className="text-sm font-medium text-muted-foreground">Total Amount</p>
+                              <h3 className="text-2xl font-bold mt-1">{formatPrice(totalAmount)}</h3>
+                            </div>
+                            <div className="bg-green-500/10 p-3 rounded-full">
+                              <DollarSign className="h-5 w-5 text-green-500" />
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                      
+                      <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="col-span-1"
+                      >
+                        <Card className="bg-yellow-500/5 border-yellow-500/10 hover:shadow-lg transition-all">
+                          <CardContent className="flex items-center justify-between pt-6">
+                            <div>
+                              <p className="text-sm font-medium text-muted-foreground">Pending</p>
+                              <h3 className="text-2xl font-bold mt-1">{pendingTransactions}</h3>
+                            </div>
+                            <div className="bg-yellow-500/10 p-3 rounded-full">
+                              <Clock className="h-5 w-5 text-yellow-500" />
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                      
+                      <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                        className="col-span-1"
+                      >
+                        <Card className="bg-blue-500/5 border-blue-500/10 hover:shadow-lg transition-all">
+                          <CardContent className="flex items-center justify-between pt-6">
+                            <div>
+                              <p className="text-sm font-medium text-muted-foreground">Unique Rooms</p>
+                              <h3 className="text-2xl font-bold mt-1">
+                                {new Set(filteredTransactions.map(item => item.room_id)).size}
+                              </h3>
+                            </div>
+                            <div className="bg-blue-500/10 p-3 rounded-full">
+                              <User className="h-5 w-5 text-blue-500" />
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    </div>
+                    
+                    {loading ? (
+                      <div className="flex justify-center py-12">
+                        <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full"></div>
                       </div>
                     ) : (
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="w-10">
-                              <Checkbox 
-                                checked={selectedTransactions.length === filteredTransactions.length && filteredTransactions.length > 0}
-                                onCheckedChange={handleSelectAll}
-                                className="rounded-sm data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-                              />
-                            </TableHead>
-                            <TableHead className="w-48">Date & Time</TableHead>
-                            <TableHead>Room</TableHead>
-                            <TableHead>Guest</TableHead>
-                            <TableHead>Description</TableHead>
-                            <TableHead>Location</TableHead>
-                            <TableHead>Waiter</TableHead>
-                            <TableHead>Amount</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Admin Status</TableHead>
-                            <TableHead>Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {filteredTransactions.map(transaction => (
-                            <TableRow key={transaction.id}>
-                              <TableCell>
-                                <Checkbox 
-                                  checked={selectedTransactions.includes(transaction.id)}
-                                  onCheckedChange={(checked) => handleSelectTransaction(transaction.id, !!checked)}
-                                  className="rounded-sm data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-                                />
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center">
-                                  <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                                  <Badge variant="outline" className="font-medium">
-                                    {format(new Date(transaction.date), 'MMM d, yyyy HH:mm')}
-                                  </Badge>
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="outline">Room {transaction.room_id}</Badge>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center">
-                                  <User className="h-4 w-4 mr-2 text-muted-foreground" />
-                                  {transaction.guest_name || '-'}
-                                </div>
-                              </TableCell>
-                              <TableCell className="max-w-xs truncate">
-                                {transaction.description ? (
-                                  <div className="flex items-center">
-                                    <FileText className="h-4 w-4 mr-2 text-muted-foreground" />
-                                    {transaction.description}
-                                  </div>
-                                ) : '-'}
-                              </TableCell>
-                              <TableCell>{transaction.location}</TableCell>
-                              <TableCell>{transaction.waiter_name || '-'}</TableCell>
-                              <TableCell>
-                                <div className="flex items-center font-medium">
-                                  <DollarSign className="h-4 w-4 mr-1 text-muted-foreground" />
-                                  {formatPrice(transaction.amount)}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
-                                  {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
-                                </span>
-                              </TableCell>
-                              <TableCell>
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getAdminStatusColor(transaction.admin_status)}`}>
-                                  {transaction.admin_status.charAt(0).toUpperCase() + transaction.admin_status.slice(1)}
-                                </span>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex space-x-1">
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    className="h-8 px-2 text-slate-600 hover:text-slate-700 hover:bg-slate-50"
-                                    onClick={() => fetchTransactionLogs(transaction.id)}
-                                    title="View History"
-                                  >
-                                    <Clipboard className="h-4 w-4" />
-                                  </Button>
-                                  
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    className={`h-8 px-2 ${
-                                      transaction.admin_status === 'open' 
-                                        ? 'text-slate-600 hover:text-slate-700' 
-                                        : 'text-blue-600 hover:text-blue-700'
-                                    } hover:bg-slate-50`}
-                                    onClick={() => handleUpdateAdminStatus(
-                                      transaction.id, 
-                                      transaction.admin_status === 'open' ? 'closed' : 'open'
-                                    )}
-                                    title={transaction.admin_status === 'open' ? 'Close Transaction' : 'Open Transaction'}
-                                  >
-                                    {transaction.admin_status === 'open' 
-                                      ? <Lock className="h-4 w-4" /> 
-                                      : <Unlock className="h-4 w-4" />}
-                                  </Button>
-                                  
-                                  {transaction.status === 'pending' && (
-                                    <>
-                                      <Button 
-                                        variant="ghost" 
-                                        size="sm"
-                                        className="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
-                                        onClick={() => handleUpdateStatus(transaction.id, 'paid')}
-                                        title="Mark as Paid"
-                                      >
-                                        <CheckCircle2 className="h-4 w-4" />
-                                      </Button>
-                                      <Button 
-                                        variant="ghost" 
-                                        size="sm"
-                                        className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                        onClick={() => handleUpdateStatus(transaction.id, 'cancelled')}
-                                        title="Cancel Transaction"
-                                      >
-                                        <XCircle className="h-4 w-4" />
-                                      </Button>
-                                    </>
-                                  )}
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                      <>
+                        {filteredTransactions.length === 0 ? (
+                          <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-center py-16 bg-secondary/10 rounded-lg border border-dashed"
+                          >
+                            <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-4 opacity-40" />
+                            <p className="text-lg font-medium text-muted-foreground">No transactions found</p>
+                            <p className="text-sm text-muted-foreground/80 mt-1">Try adjusting your search or filters</p>
+                          </motion.div>
+                        ) : (
+                          <Card className="overflow-hidden border-none shadow-md">
+                            <div className="rounded-md overflow-x-auto">
+                              <Table>
+                                <TableHeader className="bg-muted/30">
+                                  <TableRow>
+                                    <TableHead className="w-10">
+                                      <Checkbox 
+                                        checked={selectedTransactions.length === filteredTransactions.length && filteredTransactions.length > 0}
+                                        onCheckedChange={handleSelectAll}
+                                        className="rounded-sm data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                                      />
+                                    </TableHead>
+                                    <TableHead className="w-48">Date & Time</TableHead>
+                                    <TableHead>Room</TableHead>
+                                    <TableHead>Guest</TableHead>
+                                    <TableHead>Description</TableHead>
+                                    <TableHead>Location</TableHead>
+                                    <TableHead>Waiter</TableHead>
+                                    <TableHead>Amount</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Admin Status</TableHead>
+                                    <TableHead>Actions</TableHead>
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {filteredTransactions.map((transaction, index) => (
+                                    <motion.tr 
+                                      key={transaction.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      transition={{ delay: index * 0.03, duration: 0.2 }}
+                                      className={`
+                                        border-b transition-colors last:border-0
+                                        ${index % 2 === 0 ? 'bg-card' : 'bg-muted/10'}
+                                        hover:bg-muted/20 dark:hover:bg-muted/10
+                                      `}
+                                    >
+                                      <TableCell className="py-3">
+                                        <Checkbox 
+                                          checked={selectedTransactions.includes(transaction.id)}
+                                          onCheckedChange={(checked) => handleSelectTransaction(transaction.id, !!checked)}
+                                          className="rounded-sm data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                                        />
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex items-center">
+                                          <Calendar className="h-4 w-4 mr-2 text-muted-foreground flex-shrink-0" />
+                                          <Badge variant="outline" className="font-medium whitespace-nowrap">
+                                            {format(new Date(transaction.date), 'MMM d, yyyy HH:mm')}
+                                          </Badge>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell>
+                                        <Badge variant="outline" className="bg-secondary/20 hover:bg-secondary/30 transition-colors">
+                                          Room {transaction.room_id}
+                                        </Badge>
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex items-center">
+                                          <User className="h-4 w-4 mr-2 text-muted-foreground flex-shrink-0" />
+                                          <span className="font-medium">{transaction.guest_name || '-'}</span>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell className="max-w-xs truncate">
+                                        {transaction.description ? (
+                                          <div className="flex items-center">
+                                            <FileText className="h-4 w-4 mr-2 text-muted-foreground flex-shrink-0" />
+                                            <span className="truncate">{transaction.description}</span>
+                                          </div>
+                                        ) : '-'}
+                                      </TableCell>
+                                      <TableCell>
+                                        <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-0">
+                                          {transaction.location}
+                                        </Badge>
+                                      </TableCell>
+                                      <TableCell>
+                                        {transaction.waiter_name ? (
+                                          <Badge variant="outline" className="font-medium">
+                                            {transaction.waiter_name}
+                                          </Badge>
+                                        ) : '-'}
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex items-center font-medium">
+                                          <DollarSign className="h-4 w-4 mr-1 text-green-500 flex-shrink-0" />
+                                          {formatPrice(transaction.amount)}
+                                        </div>
+                                      </TableCell>
+                                      <TableCell>
+                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
+                                          {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
+                                        </span>
+                                      </TableCell>
+                                      <TableCell>
+                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getAdminStatusColor(transaction.admin_status)}`}>
+                                          {transaction.admin_status.charAt(0).toUpperCase() + transaction.admin_status.slice(1)}
+                                        </span>
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex space-x-1">
+                                          <Button 
+                                            variant="ghost" 
+                                            size="sm"
+                                            className="h-8 px-2 text-slate-600 hover:text-slate-700 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-300 dark:hover:bg-slate-800/60"
+                                            onClick={() => fetchTransactionLogs(transaction.id)}
+                                            title="View History"
+                                          >
+                                            <Clipboard className="h-4 w-4" />
+                                          </Button>
+                                          
+                                          <Button 
+                                            variant="ghost" 
+                                            size="sm"
+                                            className={`h-8 px-2 ${
+                                              transaction.admin_status === 'open' 
+                                                ? 'text-slate-600 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300' 
+                                                : 'text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300'
+                                            } hover:bg-slate-50 dark:hover:bg-slate-800/60`}
+                                            onClick={() => handleUpdateAdminStatus(
+                                              transaction.id, 
+                                              transaction.admin_status === 'open' ? 'closed' : 'open'
+                                            )}
+                                            title={transaction.admin_status === 'open' ? 'Close Transaction' : 'Open Transaction'}
+                                          >
+                                            {transaction.admin_status === 'open' 
+                                              ? <Lock className="h-4 w-4" /> 
+                                              : <Unlock className="h-4 w-4" />}
+                                          </Button>
+                                          
+                                          {transaction.status === 'pending' && (
+                                            <>
+                                              <Button 
+                                                variant="ghost" 
+                                                size="sm"
+                                                className="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/20"
+                                                onClick={() => handleUpdateStatus(transaction.id, 'paid')}
+                                                title="Mark as Paid"
+                                              >
+                                                <CheckCircle2 className="h-4 w-4" />
+                                              </Button>
+                                              <Button 
+                                                variant="ghost" 
+                                                size="sm"
+                                                className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
+                                                onClick={() => handleUpdateStatus(transaction.id, 'cancelled')}
+                                                title="Cancel Transaction"
+                                              >
+                                                <XCircle className="h-4 w-4" />
+                                              </Button>
+                                            </>
+                                          )}
+                                        </div>
+                                      </TableCell>
+                                    </motion.tr>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </div>
+                          </Card>
+                        )}
+                      </>
                     )}
-                  </>
-                )}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="analytics">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                <Card className="bg-slate-50">
-                  <CardContent className="pt-6">
-                    <div className="text-2xl font-bold">{totalTransactions}</div>
-                    <p className="text-muted-foreground">Total Transactions</p>
-                  </CardContent>
-                </Card>
-                
-                <Card className="bg-slate-50">
-                  <CardContent className="pt-6">
-                    <div className="text-2xl font-bold">{formatPrice(totalAmount)}</div>
-                    <p className="text-muted-foreground">Total Amount</p>
-                  </CardContent>
-                </Card>
-                
-                <Card className="bg-slate-50">
-                  <CardContent className="pt-6">
-                    <div className="text-2xl font-bold">{pendingTransactions}</div>
-                    <p className="text-muted-foreground">Pending Transactions</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-slate-50">
-                  <CardContent className="pt-6">
-                    <div className="text-2xl font-bold">{filteredTransactions.filter(tx => tx.admin_status === 'closed').length}</div>
-                    <p className="text-muted-foreground">Closed Transactions</p>
-                  </CardContent>
-                </Card>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Transaction Status</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-64">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={statusData}
-                            cx="50%"
-                            cy="50%"
-                            outerRadius={80}
-                            fill="#8884d8"
-                            dataKey="value"
-                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                          >
-                            {statusData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip formatter={(value) => [`${value} transactions`, 'Count']} />
-                          <Legend />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Admin Status</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-64">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={adminStatusData}
-                            cx="50%"
-                            cy="50%"
-                            outerRadius={80}
-                            fill="#8884d8"
-                            dataKey="value"
-                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                          >
-                            {adminStatusData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip formatter={(value) => [`${value} transactions`, 'Count']} />
-                          <Legend />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Revenue by Location</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={locationData}>
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip formatter={(value) => [formatPrice(value as number), 'Amount']} />
-                        <Bar dataKey="value" fill="#4f46e5">
-                          {locationData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+                </TabsContent>
+                
+                <TabsContent value="analytics" className="mt-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <Card className="bg-primary/5 border-primary/10 hover:shadow-lg transition-all">
+                      <CardContent className="flex items-center justify-between pt-6">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Total Transactions</p>
+                          <h3 className="text-2xl font-bold mt-1">{totalTransactions}</h3>
+                        </div>
+                        <div className="bg-primary/10 p-3 rounded-full">
+                          <FileText className="h-5 w-5 text-primary" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card className="bg-green-500/5 border-green-500/10 hover:shadow-lg transition-all">
+                      <CardContent className="flex items-center justify-between pt-6">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Total Amount</p>
+                          <h3 className="text-2xl font-bold mt-1">{formatPrice(totalAmount)}</h3>
+                        </div>
+                        <div className="bg-green-500/10 p-3 rounded-full">
+                          <DollarSign className="h-5 w-5 text-green-500" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card className="bg-yellow-500/5 border-yellow-500/10 hover:shadow-lg transition-all">
+                      <CardContent className="flex items-center justify-between pt-6">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Pending</p>
+                          <h3 className="text-2xl font-bold mt-1">{pendingTransactions}</h3>
+                        </div>
+                        <div className="bg-yellow-500/10 p-3 rounded-full">
+                          <Clock className="h-5 w-5 text-yellow-500" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card className="bg-blue-500/5 border-blue-500/10 hover:shadow-lg transition-all">
+                      <CardContent className="flex items-center justify-between pt-6">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Closed</p>
+                          <h3 className="text-2xl font-bold mt-1">
+                            {filteredTransactions.filter(tx => tx.admin_status === 'closed').length}
+                          </h3>
+                        </div>
+                        <div className="bg-blue-500/10 p-3 rounded-full">
+                          <Lock className="h-5 w-5 text-blue-500" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <Card className="hover:shadow-lg transition-all border-primary/10">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg font-medium">
+                          <div className="bg-primary/10 p-1.5 rounded-full">
+                            <CheckCircle2 className="h-4 w-4 text-primary" />
+                          </div>
+                          Transaction Status
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-64">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={statusData}
+                                cx="50%"
+                                cy="50%"
+                                outerRadius={80}
+                                fill="#8884d8"
+                                dataKey="value"
+                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                              >
+                                {statusData.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                              </Pie>
+                              <Tooltip formatter={(value) => [`${value} transactions`, 'Count']} />
+                              <Legend />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card className="hover:shadow-lg transition-all border-primary/10">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg font-medium">
+                          <div className="bg-primary/10 p-1.5 rounded-full">
+                            <Lock className="h-4 w-4 text-primary" />
+                          </div>
+                          Admin Status
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-64">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={adminStatusData}
+                                cx="50%"
+                                cy="50%"
+                                outerRadius={80}
+                                fill="#8884d8"
+                                dataKey="value"
+                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                              >
+                                {adminStatusData.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                              </Pie>
+                              <Tooltip formatter={(value) => [`${value} transactions`, 'Count']} />
+                              <Legend />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  
+                  <Card className="hover:shadow-lg transition-all border-primary/10">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg font-medium">
+                        <div className="bg-primary/10 p-1.5 rounded-full">
+                          <DollarSign className="h-4 w-4 text-primary" />
+                        </div>
+                        Revenue by Location
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-72">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={locationData}>
+                            <XAxis dataKey="name" />
+                            <YAxis />
+                            <Tooltip formatter={(value) => [formatPrice(value as number), 'Amount']} />
+                            <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                              {locationData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </div>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </motion.div>
       
       {/* Admin Name Dialog */}
       <Dialog open={showNamePrompt} onOpenChange={setShowNamePrompt}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Enter Your Name</DialogTitle>
+            <DialogTitle>Entrez votre nom</DialogTitle>
             <DialogDescription>
-              Please provide your name for transaction logging purposes.
+              Veuillez fournir votre nom pour les besoins de journalisation des transactions.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Input
-              placeholder="Your name"
+              placeholder="Votre nom"
               value={adminName}
               onChange={(e) => setAdminName(e.target.value)}
+              className="border-primary/20 focus-visible:ring-primary/30"
             />
           </div>
           <DialogFooter>
-            <Button onClick={saveAdminName}>Save</Button>
+            <Button onClick={saveAdminName}>Enregistrer</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
       
       {/* Bulk Update Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Update Transaction Status</DialogTitle>
+            <DialogTitle>Mettre à jour le statut des transactions</DialogTitle>
             <DialogDescription>
-              Change the status for {selectedTransactions.length} selected transactions.
+              Modifiez le statut pour {selectedTransactions.length} transactions sélectionnées.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Select value={bulkAction} onValueChange={(value: any) => setBulkAction(value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select new status" />
+              <SelectTrigger className="border-primary/20">
+                <SelectValue placeholder="Sélectionnez un nouveau statut" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="paid">Paid</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="paid">Payé</SelectItem>
+                <SelectItem value="cancelled">Annulé</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Cancel
+              Annuler
             </Button>
-            <Button onClick={handleBulkStatusUpdate}>Update</Button>
+            <Button onClick={handleBulkStatusUpdate}>Mettre à jour</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
       
       {/* Bulk Admin Status Update Dialog */}
       <Dialog open={isAdminStatusDialogOpen} onOpenChange={setIsAdminStatusDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Update Admin Status</DialogTitle>
+            <DialogTitle>Mettre à jour le statut administratif</DialogTitle>
             <DialogDescription>
-              Change the admin status for {selectedTransactions.length} selected transactions.
+              Modifiez le statut administratif pour {selectedTransactions.length} transactions sélectionnées.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Select value={bulkAdminStatus} onValueChange={(value: any) => setBulkAdminStatus(value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select new admin status" />
+              <SelectTrigger className="border-primary/20">
+                <SelectValue placeholder="Sélectionnez un nouveau statut administratif" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="open">Open</SelectItem>
-                <SelectItem value="closed">Closed</SelectItem>
+                <SelectItem value="open">Ouvert</SelectItem>
+                <SelectItem value="closed">Fermé</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAdminStatusDialogOpen(false)}>
-              Cancel
+              Annuler
             </Button>
-            <Button onClick={handleBulkAdminStatusUpdate}>Update</Button>
+            <Button onClick={handleBulkAdminStatusUpdate}>Mettre à jour</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -907,51 +1085,58 @@ const TransactionManager: React.FC = () => {
         <Dialog open={showTransactionLogs} onOpenChange={setShowTransactionLogs}>
           <DialogContent className="max-w-3xl">
             <DialogHeader>
-              <DialogTitle>Transaction History</DialogTitle>
+              <DialogTitle>Historique des transactions</DialogTitle>
               <DialogDescription>
-                Status change history for transaction ID: {currentTransactionId}
+                Historique des changements de statut pour la transaction ID: {currentTransactionId}
               </DialogDescription>
             </DialogHeader>
             <div className="py-4">
               {transactionLogs.length === 0 ? (
-                <div className="text-center py-4 text-muted-foreground">
-                  No history found for this transaction.
+                <div className="text-center py-6 bg-muted/20 rounded-lg">
+                  <Clipboard className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-40" />
+                  <p className="text-muted-foreground">Aucun historique trouvé pour cette transaction.</p>
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date & Time</TableHead>
-                      <TableHead>Changed By</TableHead>
-                      <TableHead>Previous Status</TableHead>
-                      <TableHead>New Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {transactionLogs.map(log => (
-                      <TableRow key={log.id}>
-                        <TableCell>
-                          {format(new Date(log.changed_at), 'MMM d, yyyy HH:mm')}
-                        </TableCell>
-                        <TableCell>{log.changed_by_name}</TableCell>
-                        <TableCell>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(log.previous_status)}`}>
-                            {log.previous_status.charAt(0).toUpperCase() + log.previous_status.slice(1)}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(log.new_status)}`}>
-                            {log.new_status.charAt(0).toUpperCase() + log.new_status.slice(1)}
-                          </span>
-                        </TableCell>
+                <Card className="overflow-hidden border-primary/10">
+                  <Table>
+                    <TableHeader className="bg-muted/30">
+                      <TableRow>
+                        <TableHead>Date & heure</TableHead>
+                        <TableHead>Modifié par</TableHead>
+                        <TableHead>Statut précédent</TableHead>
+                        <TableHead>Nouveau statut</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {transactionLogs.map((log, index) => (
+                        <TableRow key={log.id} className={index % 2 === 0 ? 'bg-card' : 'bg-muted/10'}>
+                          <TableCell className="font-medium">
+                            {format(new Date(log.changed_at), 'MMM d, yyyy HH:mm')}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="font-medium">
+                              {log.changed_by_name}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(log.previous_status)}`}>
+                              {log.previous_status.charAt(0).toUpperCase() + log.previous_status.slice(1)}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(log.new_status)}`}>
+                              {log.new_status.charAt(0).toUpperCase() + log.new_status.slice(1)}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </Card>
               )}
             </div>
             <DialogFooter>
-              <Button onClick={() => setShowTransactionLogs(false)}>Close</Button>
+              <Button onClick={() => setShowTransactionLogs(false)}>Fermer</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
