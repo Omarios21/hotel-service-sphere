@@ -1,147 +1,121 @@
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import MenuItemsManager from '@/components/admin/MenuItemsManager';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ArrowLeft, Settings, Bell, Users, Calendar, Menu as MenuIcon, BarChart3, CreditCard, FileText } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import AdminHeader from '@/components/admin/AdminHeader';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import SpaServicesManager from '@/components/admin/SpaServicesManager';
-import ActivitiesManager from '@/components/admin/ActivitiesManager';
-import SpaCalendarManager from '@/components/admin/SpaCalendarManager';
-import NotificationsManager from '@/components/admin/NotificationsManager';
 import UserManager from '@/components/admin/UserManager';
-import TransactionManager from '@/components/admin/TransactionManager';
-import LanguageManager from '@/components/admin/LanguageManager';
+import NotificationsManager from '@/components/admin/NotificationsManager';
 import SettingsManager from '@/components/admin/SettingsManager';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { ThemeProvider } from '@/contexts/ThemeContext';
+import MenuItemsManager from '@/components/admin/MenuItemsManager';
+import SpaServicesManager from '@/components/admin/SpaServicesManager';
+import SpaCalendarManager from '@/components/admin/SpaCalendarManager';
+import ActivitiesManager from '@/components/admin/ActivitiesManager';
+import LanguageManager from '@/components/admin/LanguageManager';
+import EditableTransactionManager from '@/components/admin/EditableTransactionManager';
+import TransactionClearingManager from '@/components/admin/TransactionClearingManager';
 
 const Admin: React.FC = () => {
-  const [activeSection, setActiveSection] = useState<string>('transactions');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const navigate = useNavigate();
-  
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate('/auth');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [activeTab, setActiveTab] = useState('dashboard');
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
   };
-  
-  const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
-  };
-  
-  useEffect(() => {
-    const menuItemsChannel = supabase
-      .channel('admin_menu_items_changes')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'menu_items' 
-        }, 
-        () => {
-          console.log('Menu items updated in admin');
-          window.dispatchEvent(new Event('menuItemsUpdated'));
-          window.dispatchEvent(new Event('adminMenuItemsChanged'));
-      })
-      .subscribe();
-      
-    const spaServicesChannel = supabase
-      .channel('admin_spa_services_changes')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'spa_services' 
-        }, 
-        () => {
-          console.log('Spa services updated in admin');
-          window.dispatchEvent(new Event('spaServicesUpdated'));
-          window.dispatchEvent(new Event('adminSpaServicesChanged'));
-      })
-      .subscribe();
-      
-    const activitiesChannel = supabase
-      .channel('admin_activities_changes')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'activities' 
-        }, 
-        () => {
-          console.log('Activities updated in admin');
-          window.dispatchEvent(new Event('activitiesUpdated'));
-          window.dispatchEvent(new Event('adminActivitiesChanged'));
-      })
-      .subscribe();
-    
-    return () => {
-      supabase.removeChannel(menuItemsChannel);
-      supabase.removeChannel(spaServicesChannel);
-      supabase.removeChannel(activitiesChannel);
-    };
-  }, []);
-  
-  const renderActiveSection = () => {
-    switch (activeSection) {
-      case 'transactions':
-        return <TransactionManager />;
-      case 'menu-items':
-        return <MenuItemsManager />;
-      case 'spa-services':
-        return <SpaServicesManager />;
-      case 'activities':
-        return <ActivitiesManager />;
-      case 'spa-calendar':
-        return <SpaCalendarManager />;
-      case 'notifications':
-        return <NotificationsManager />;
-      case 'users':
-        return <UserManager />;
-      case 'languages':
-        return <LanguageManager />;
-      case 'settings':
-        return <SettingsManager />;
-      default:
-        return <TransactionManager />;
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { 
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
     }
   };
-  
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
-    <ThemeProvider>
-      <div className="flex h-screen overflow-hidden bg-background text-foreground transition-colors duration-300">
-        <div className={cn(
-          "transition-all duration-300 ease-in-out relative",
-          sidebarCollapsed ? "w-16" : "w-64"
-        )}>
-          <AdminSidebar 
-            onNavigate={setActiveSection} 
-            activeSection={activeSection} 
-            collapsed={sidebarCollapsed}
-          />
-          <button 
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 bg-primary text-primary-foreground p-1 rounded-full shadow-md z-10 hover:scale-110 transition-transform"
-            onClick={toggleSidebar}
-            aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            {sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-          </button>
-        </div>
+    <div className="flex min-h-screen bg-background">
+      {/* Sidebar for desktop */}
+      <AdminSidebar open={sidebarOpen} setOpen={setSidebarOpen} activeTab={activeTab} onTabChange={handleTabChange} />
+      
+      {/* Main content */}
+      <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : 'md:ml-20'}`}>
+        <AdminHeader 
+          sidebarOpen={sidebarOpen} 
+          setSidebarOpen={setSidebarOpen} 
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+        />
         
-        <div className="flex flex-col flex-1 overflow-hidden">
-          <AdminHeader onSignOut={handleSignOut} />
-          
-          <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-background">
-            <div className="max-w-7xl mx-auto">
-              {renderActiveSection()}
-            </div>
-          </main>
-        </div>
+        <main className="p-4 md:p-6">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="space-y-6"
+          >
+            {/* Dashboard Tab */}
+            <TabsContent value="dashboard" className={activeTab === 'dashboard' ? 'block' : 'hidden'}>
+              <EditableTransactionManager />
+            </TabsContent>
+            
+            {/* Users Tab */}
+            <TabsContent value="users" className={activeTab === 'users' ? 'block' : 'hidden'}>
+              <UserManager />
+            </TabsContent>
+            
+            {/* Notifications Tab */}
+            <TabsContent value="notifications" className={activeTab === 'notifications' ? 'block' : 'hidden'}>
+              <NotificationsManager />
+            </TabsContent>
+            
+            {/* Menu Items Tab */}
+            <TabsContent value="menu-items" className={activeTab === 'menu-items' ? 'block' : 'hidden'}>
+              <MenuItemsManager />
+            </TabsContent>
+            
+            {/* SPA Services Tab */}
+            <TabsContent value="spa-services" className={activeTab === 'spa-services' ? 'block' : 'hidden'}>
+              <SpaServicesManager />
+            </TabsContent>
+
+            {/* SPA Calendar Tab */}
+            <TabsContent value="spa-calendar" className={activeTab === 'spa-calendar' ? 'block' : 'hidden'}>
+              <SpaCalendarManager />
+            </TabsContent>
+
+            {/* Activities Tab */}
+            <TabsContent value="activities" className={activeTab === 'activities' ? 'block' : 'hidden'}>
+              <ActivitiesManager />
+            </TabsContent>
+            
+            {/* Transaction Clearing Tab */}
+            <TabsContent value="transaction-clearing" className={activeTab === 'transaction-clearing' ? 'block' : 'hidden'}>
+              <TransactionClearingManager />
+            </TabsContent>
+            
+            {/* Languages Tab */}
+            <TabsContent value="languages" className={activeTab === 'languages' ? 'block' : 'hidden'}>
+              <LanguageManager />
+            </TabsContent>
+            
+            {/* Settings Tab */}
+            <TabsContent value="settings" className={activeTab === 'settings' ? 'block' : 'hidden'}>
+              <SettingsManager />
+            </TabsContent>
+          </motion.div>
+        </main>
       </div>
-    </ThemeProvider>
+    </div>
   );
 };
 
