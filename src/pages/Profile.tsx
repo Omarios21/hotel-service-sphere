@@ -1,11 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { motion } from 'framer-motion';
-import { User, Clock, Calendar, LogOut, Settings, Bell, CheckSquare, Shield } from 'lucide-react';
+import { User, Clock, Calendar, LogOut, Settings, Bell, CheckSquare, Shield, Moon, Sun } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface Order {
   id: string;
@@ -22,6 +25,7 @@ const Profile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'orders' | 'settings'>('orders');
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const { theme, setTheme } = useTheme();
   
   useEffect(() => {
     const checkAdmin = async () => {
@@ -78,6 +82,11 @@ const Profile: React.FC = () => {
   const toggleNotifications = () => {
     setNotificationsEnabled(!notificationsEnabled);
     toast.success(`Notifications ${notificationsEnabled ? 'disabled' : 'enabled'}`);
+  };
+  
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+    toast.success(`Theme switched to ${theme === 'dark' ? 'light' : 'dark'} mode`);
   };
   
   const getStatusColor = (status: Order['status']) => {
@@ -142,7 +151,7 @@ const Profile: React.FC = () => {
           </Button>
         </motion.div>
         
-        <div className="bg-white border border-border rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 border border-border rounded-xl shadow-sm overflow-hidden">
           <div className="p-6 border-b border-border">
             <div className="flex items-center">
               <div className="bg-secondary rounded-full p-3 mr-4">
@@ -206,7 +215,7 @@ const Profile: React.FC = () => {
                     {orders.map(order => (
                       <div
                         key={order.id}
-                        className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-border rounded-lg"
+                        className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-border rounded-lg dark:bg-slate-800"
                       >
                         <div className="mb-3 sm:mb-0">
                           <h4 className="font-medium">{order.title}</h4>
@@ -246,7 +255,7 @@ const Profile: React.FC = () => {
                 <h3 className="font-medium text-lg mb-4">Preferences</h3>
                 
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border border-border rounded-lg">
+                  <div className="flex items-center justify-between p-4 border border-border rounded-lg dark:bg-slate-800">
                     <div className="flex items-center">
                       <Bell className="h-5 w-5 mr-3 text-muted-foreground" />
                       <div>
@@ -256,21 +265,33 @@ const Profile: React.FC = () => {
                         </p>
                       </div>
                     </div>
-                    <button 
-                      onClick={toggleNotifications}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        notificationsEnabled ? 'bg-primary' : 'bg-muted'
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          notificationsEnabled ? 'translate-x-6' : 'translate-x-1'
-                        }`}
-                      />
-                    </button>
+                    <Switch
+                      checked={notificationsEnabled}
+                      onCheckedChange={toggleNotifications}
+                    />
                   </div>
                   
-                  <div className="flex items-center justify-between p-4 border border-border rounded-lg">
+                  <div className="flex items-center justify-between p-4 border border-border rounded-lg dark:bg-slate-800">
+                    <div className="flex items-center">
+                      {theme === 'dark' ? (
+                        <Moon className="h-5 w-5 mr-3 text-muted-foreground" />
+                      ) : (
+                        <Sun className="h-5 w-5 mr-3 text-muted-foreground" />
+                      )}
+                      <div>
+                        <h4 className="font-medium">Dark Mode</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Switch between light and dark themes
+                        </p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={theme === 'dark'}
+                      onCheckedChange={toggleTheme}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-4 border border-border rounded-lg dark:bg-slate-800">
                     <div className="flex items-center">
                       <Settings className="h-5 w-5 mr-3 text-muted-foreground" />
                       <div>
